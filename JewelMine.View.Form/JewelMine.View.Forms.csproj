@@ -86,7 +86,9 @@
       <Name>JewelMine.Engine</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\Cave.jpg" />
+  </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\Amethyst.gif" />
     <EmbeddedResource Include="Resources\Citrine.gif" />

@@ -18,7 +18,11 @@ namespace JewelMine.View.Forms
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new GameView(new GameLogic()));
+            using (GameView view = new GameView(new GameLogic()))
+            {
+                view.Show();
+                view.GameLoop();
+            }
         }
     }
 }

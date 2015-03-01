@@ -42,6 +42,7 @@
   <ItemGroup>
     <Compile Include="GameConstants.cs" />
     <Compile Include="GameLogic.cs" />
+    <Compile Include="GameTimer.cs" />
     <Compile Include="Models\GameStateModel.cs" />
     <Compile Include="Models\MineModel.cs" />
     <Compile Include="Models\JewelModel.cs" />

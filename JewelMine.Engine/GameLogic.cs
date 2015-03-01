@@ -14,10 +14,9 @@ namespace JewelMine.Engine
     /// </summary>
     public class GameLogic
     {
-        public event EventHandler<GameStateModel> GameStateChanged;
+        public GameStateModel GameStateModel { get; private set; }
         public Random Random { get; private set; }
         private string[] jewelNames = null;
-        private bool tickerActive = false;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GameLogic"/> class.
@@ -26,8 +25,6 @@ namespace JewelMine.Engine
         {
             jewelNames = Enum.GetNames(typeof(JewelType)).Where(x => x != JewelType.Unknown.ToString()).ToArray();
             GameStateModel = new GameStateModel();
-            GameTicker = new Timer(GameStateModel.GameTickSpeedMilliseconds);
-            GameTicker.Elapsed += GameTickEventHandler;
             Random = new Random();
         }
 
@@ -37,7 +34,7 @@ namespace JewelMine.Engine
         /// </summary>
         public void StartGame()
         {
-            GameTicker.Start();
+            GameStateModel.GamePlayState = GamePlayState.Playing;
         }
 
         /// <summary>
@@ -45,18 +42,35 @@ namespace JewelMine.Engine
         /// </summary>
         public void StopGame()
         {
-            GameTicker.Stop();
+            GameStateModel.GamePlayState = GamePlayState.NotStarted;
         }
 
         /// <summary>
-        /// Handles the game tick event.
+        /// Pauses the game.
         /// </summary>
-        /// <param name="sender">The sender.</param>
-        /// <param name="e">The <see cref="ElapsedEventArgs"/> instance containing the event data.</param>
-        private void GameTickEventHandler(object sender, ElapsedEventArgs e)
+        public void PauseGame()
         {
-            if (tickerActive) return;
-            tickerActive = true;
+            GameStateModel.GamePlayState = GamePlayState.Paused;
+        }
+
+        /// <summary>
+        /// Games the over.
+        /// </summary>
+        public void GameOver()
+        {
+            GameStateModel.GamePlayState = GamePlayState.GameOver;
+        }
+
+        /// <summary>
+        /// Performs the game logic.
+        /// </summary>
+        /// <exception cref="System.NotImplementedException">
+        /// Game Over
+        /// or
+        /// Game Over
+        /// </exception>
+        public void PerformGameLogic()
+        {
             if(GameStateModel.MineModel.Delta == null)
             {
                 bool added = AddDeltaJewel();
@@ -76,12 +90,7 @@ namespace JewelMine.Engine
                     if (!added) { throw new NotImplementedException("Game Over"); }
                 }
             }
-            if (GameStateChanged != null) GameStateChanged(this, GameStateModel);
-            tickerActive = false;
         }
-
-        private Timer GameTicker { get; set; }
-        public GameStateModel GameStateModel { get; private set; }
 
         /// <summary>
         /// Adds the delta jewel.

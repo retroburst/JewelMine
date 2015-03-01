@@ -83,7 +83,7 @@ namespace JewelMine.View.Forms
             Assembly a = Assembly.GetExecutingAssembly();
             Dictionary<JewelType, Bitmap> result = new Dictionary<JewelType, Bitmap>();
             string[] names = Enum.GetNames(typeof(JewelType)).Where(x => x != JewelType.Unknown.ToString()).ToArray();
-            foreach(string name in names)
+            foreach (string name in names)
             {
                 JewelType type = (JewelType)Enum.Parse(typeof(JewelType), name);
                 string resourceName = string.Format(ViewConstants.JEWEL_IMAGE_RESOURCE_PATTERN, name);
@@ -91,6 +91,14 @@ namespace JewelMine.View.Forms
                 result.Add(type, bitmap);
             }
             return (result);
+        }
+
+        public static Bitmap GetBackgroundImage()
+        {
+            Assembly a = Assembly.GetExecutingAssembly();
+            string resourceName = "JewelMine.View.Forms.Resources.Cave.jpg";
+            Bitmap bitmap = new Bitmap(a.GetManifestResourceStream(resourceName), true);
+            return (bitmap);
         }
 
     }

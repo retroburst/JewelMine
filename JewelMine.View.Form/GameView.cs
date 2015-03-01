@@ -21,12 +21,14 @@ namespace JewelMine.View.Forms
     /// </summary>
     public partial class GameView : Form
     {
+        private GameTimer timer = null;
         private GameLogic gameEngine = null;
         private Dictionary<JewelType, Bitmap> imageResourceDictionary = Helpers.GenerateImageResourceDictionary();
         private Rectangle[,] cells = null;
         private int cellHeight = 0;
         private int cellWidth = 0;
         private int bitmapOffset = 2;
+        private long startTime = 0;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GameView" /> class.
@@ -37,10 +39,10 @@ namespace JewelMine.View.Forms
             InitializeComponent();
             gameEngine = engine;
             SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.DoubleBuffer | ControlStyles.OptimizedDoubleBuffer, true);
+            timer = new GameTimer();
             cells = new Rectangle[engine.GameStateModel.MineModel.Columns, engine.GameStateModel.MineModel.Depth];
             FormClosed += GameView_FormClosed;
             Layout += GameView_Layout;
-            gameEngine.GameStateChanged += gameEngine_GameStateChanged;
             gameEngine.StartGame();
         }
 
@@ -63,6 +65,24 @@ namespace JewelMine.View.Forms
         }
 
         /// <summary>
+        /// The main game loop.
+        /// </summary>
+        public void GameLoop()
+        {
+            timer.Start();
+            while (gameEngine.GameStateModel.GamePlayState == GamePlayState.Playing)
+            {
+                startTime = timer.ElapsedMilliseconds;
+                // TODO get the movement information to send to view for invalidation regions
+                gameEngine.PerformGameLogic();
+                Invalidate();
+                Application.DoEvents();
+                while (timer.ElapsedMilliseconds - startTime < gameEngine.GameStateModel.GameTickSpeedMilliseconds) { }
+            }
+            timer.Stop();
+        }
+
+        /// <summary>
         /// </summary>
         /// <param name="e">A <see cref="T:System.Windows.Forms.PaintEventArgs" /> that contains the event data.</param>
         protected override void OnPaint(PaintEventArgs e)
@@ -77,7 +97,7 @@ namespace JewelMine.View.Forms
         private void Draw(Graphics graphics)
         {
             graphics.SmoothingMode = SmoothingMode.HighQuality;
-            //DrawBackground(g, background);
+            DrawBackground(graphics, Helpers.GetBackgroundImage());
             DrawGrid(graphics, cells);
             //DrawObjects<Wall>(g, walls, squares);
             //DrawObjects<Block>(g, blocks, squares);
@@ -129,11 +149,14 @@ namespace JewelMine.View.Forms
         /// </summary>
         /// <param name="g">The g.</param>
         /// <param name="bg">The bg.</param>
-        //private void DrawBackground(Graphics g, Image bg)
-        //{
-        //   if (bg != null)
-        //       g.DrawImage(bg, new Rectangle(0, 0, tarWdth, tarHgt));
-        //}
+        private void DrawBackground(Graphics g, Image bg)
+        {
+           if (bg == null) return;
+           using (TextureBrush brush = new TextureBrush(bg, WrapMode.Tile))
+           {
+               g.FillRectangle(brush, 0, 0, ClientRectangle.Width, ClientRectangle.Height);
+           }
+        }
 
         /// <summary>
         /// Draws the grid.
@@ -175,10 +198,6 @@ namespace JewelMine.View.Forms
         /// <summary>
         /// Draws the objects.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="graphics">The graphics.</param>
-        /// <param name="objects">The objects.</param>
-        /// <param name="squares">The squares.</param>
         //private void DrawObjects<T>(Graphics graphics, T[,] objects, Rectangle[,] squares)
         //    where T : IDrawable
         //{
@@ -192,6 +211,6 @@ namespace JewelMine.View.Forms
         //        }
         //    }
         //}
-
+         
     }
 }
