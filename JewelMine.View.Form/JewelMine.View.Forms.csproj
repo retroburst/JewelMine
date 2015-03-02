@@ -87,7 +87,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Resources\Cave.jpg" />
+    <EmbeddedResource Include="Resources\Background.Cave.1.jpg" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\Amethyst.gif" />
@@ -101,6 +101,14 @@
     <EmbeddedResource Include="Resources\Stone.gif" />
     <EmbeddedResource Include="Resources\Topaz.gif" />
     <EmbeddedResource Include="Resources\Wood.gif" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\Background.Cave.2.jpg" />
+    <EmbeddedResource Include="Resources\Background.Cave.3.jpg" />
+    <EmbeddedResource Include="Resources\Background.Cave.4.jpg" />
+    <EmbeddedResource Include="Resources\Background.Stone.1.jpg" />
+    <EmbeddedResource Include="Resources\Background.Stone.2.jpg" />
+    <EmbeddedResource Include="Resources\Background.Stone.3.jpg" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

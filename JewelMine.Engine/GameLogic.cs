@@ -64,39 +64,41 @@ namespace JewelMine.Engine
         /// <summary>
         /// Performs the game logic.
         /// </summary>
-        /// <exception cref="System.NotImplementedException">
-        /// Game Over
+        /// <returns></returns>
+        /// <exception cref="System.NotImplementedException">Game Over
         /// or
-        /// Game Over
-        /// </exception>
-        public void PerformGameLogic()
+        /// Game Over</exception>
+        public GameLogicUpdate PerformGameLogic()
         {
+            GameLogicUpdate logicUpdate = new GameLogicUpdate();
             if(GameStateModel.MineModel.Delta == null)
             {
-                bool added = AddDeltaJewel();
+                bool added = AddDeltaJewel(logicUpdate);
                 if (!added) { throw new NotImplementedException("Game Over"); }
             }
             else
             {
                 // move delta down
-                bool moved = MoveJewel(GameStateModel.MineModel.DeltaX, GameStateModel.MineModel.DeltaY, MovementType.Down, true);
+                bool moved = MoveJewel(GameStateModel.MineModel.DeltaX, GameStateModel.MineModel.DeltaY, MovementType.Down, true, logicUpdate);
                 if(!moved)
                 {
                     GameStateModel.MineModel.Delta = null;
                     GameStateModel.MineModel.DeltaX = 0;
                     GameStateModel.MineModel.DeltaY = 0;
-                    bool added = AddDeltaJewel();
+                    bool added = AddDeltaJewel(logicUpdate);
                     //TODO
                     if (!added) { throw new NotImplementedException("Game Over"); }
                 }
             }
+            return (logicUpdate);
         }
 
         /// <summary>
         /// Adds the delta jewel.
         /// </summary>
+        /// <param name="logicUpdate">The logic update.</param>
         /// <returns></returns>
-        private bool AddDeltaJewel()
+        private bool AddDeltaJewel(GameLogicUpdate logicUpdate)
         {
             int[] free = FindFreeCoordinatesForDelta();
             if (free.Length == 0)
@@ -110,6 +112,7 @@ namespace JewelMine.Engine
             GameStateModel.MineModel.Mine[targetCoorindinate, 0] = jewel;
             GameStateModel.MineModel.DeltaX = targetCoorindinate;
             GameStateModel.MineModel.DeltaY = 0;
+            logicUpdate.NewJewels.Add(new NewJewel() { Jewel = jewel, X = targetCoorindinate, Y = 0 });
             return (true);
         }
 
@@ -145,8 +148,10 @@ namespace JewelMine.Engine
         /// <param name="x">The x.</param>
         /// <param name="y">The y.</param>
         /// <param name="movement">The movement.</param>
+        /// <param name="isDelta">if set to <c>true</c> [is delta].</param>
+        /// <param name="logicUpdate">The logic update.</param>
         /// <returns></returns>
-        private bool MoveJewel(int x, int y, MovementType movement, bool isDelta)
+        private bool MoveJewel(int x, int y, MovementType movement, bool isDelta, GameLogicUpdate logicUpdate)
         {
             bool moved = false;
             if (CoordinatesInBounds(x, y))
@@ -165,9 +170,10 @@ namespace JewelMine.Engine
                 }
                 if (CoordinatesInBounds(targetX, targetY) && CoordinatesAvailable(targetX, targetY))
                 {
-                    MineObjectModel target = GameStateModel.MineModel.Mine[x, y];
+                    JewelModel target = (JewelModel)GameStateModel.MineModel.Mine[x, y];
                     GameStateModel.MineModel.Mine[targetX, targetY] = target;
                     GameStateModel.MineModel.Mine[x, y] = null;
+                    logicUpdate.JewelMovements.Add(new JewelMovement() { Jewel = target, OriginalX = x, OriginalY = y, NewX = targetX, NewY = targetY });
                     moved = true;
                     if(isDelta)
                     {
@@ -203,4 +209,5 @@ namespace JewelMine.Engine
         }
 
     }
+
 }

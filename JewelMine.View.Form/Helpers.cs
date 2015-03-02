@@ -78,7 +78,7 @@ namespace JewelMine.View.Forms
         /// Generates the image resource dictionary.
         /// </summary>
         /// <returns></returns>
-        public static Dictionary<JewelType, Bitmap> GenerateImageResourceDictionary()
+        public static Dictionary<JewelType, Bitmap> GenerateJewelImageResourceDictionary()
         {
             Assembly a = Assembly.GetExecutingAssembly();
             Dictionary<JewelType, Bitmap> result = new Dictionary<JewelType, Bitmap>();
@@ -93,13 +93,42 @@ namespace JewelMine.View.Forms
             return (result);
         }
 
-        public static Bitmap GetBackgroundImage()
+        /// <summary>
+        /// Generates the background image array.
+        /// </summary>
+        /// <returns></returns>
+        public static Bitmap[] GenerateBackgroundImageArray()
         {
             Assembly a = Assembly.GetExecutingAssembly();
-            string resourceName = "JewelMine.View.Forms.Resources.Cave.jpg";
-            Bitmap bitmap = new Bitmap(a.GetManifestResourceStream(resourceName), true);
-            return (bitmap);
+            List<Bitmap> result = new List<Bitmap>();
+            string[] names = ViewConstants.BACKGROUND_TEXTURE_NAMES;
+            foreach (string name in names)
+            {
+                string resourceName = string.Format(ViewConstants.BACKGROUND_IMAGE_RESOURCE_PATTERN, name);
+                Bitmap bitmap = new Bitmap(a.GetManifestResourceStream(resourceName), true);
+                result.Add(bitmap);
+            }
+            return (result.ToArray());
         }
+
+        /// <summary>
+        /// Generates the random index.
+        /// </summary>
+        /// <param name="target">The target.</param>
+        /// <param name="rand">The rand.</param>
+        /// <returns></returns>
+        public static int GenerateRandomIndex(Array target, Random rand)
+        {
+            int result = 0;
+            if(target != null && target.Length > 0)
+            {
+                result = rand.Next(0, target.Length - 1);
+            }
+            return (result);
+        }
+
+        
+
 
     }
 }
