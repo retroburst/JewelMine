@@ -29,7 +29,7 @@ namespace JewelMine.View.Forms
         {
             ImageCodecInfo[] imageEncoders = ImageCodecInfo.GetImageEncoders();
             EncoderParameters encoderParameters = new EncoderParameters(1);
-            encoderParameters.Param[0] = new EncoderParameter(System.Drawing.Imaging.Encoder.Quality, 100L);
+            encoderParameters.Param[0] = new EncoderParameter(System.Drawing.Imaging.Encoder.Quality, 50L);
             int canvasWidth = maximumWidth;
             int canvasHeight = maximumHeight;
             int newImageWidth = maximumWidth;
@@ -127,8 +127,24 @@ namespace JewelMine.View.Forms
             return (result);
         }
 
-        
-
-
+        /// <summary>
+        /// Generates the resized jewel image resource dictionary.
+        /// </summary>
+        /// <param name="resources">The resources.</param>
+        /// <param name="cellWidth">Width of the cell.</param>
+        /// <param name="cellHeight">Height of the cell.</param>
+        /// <param name="bitmapOffset">The bitmap offset.</param>
+        /// <returns></returns>
+        /// <exception cref="System.NotImplementedException"></exception>
+        public static Dictionary<JewelType, Bitmap> GenerateResizedJewelImageResourceDictionary(Dictionary<JewelType, Bitmap> resources, int cellWidth, int cellHeight, int bitmapOffset)
+        {
+            Dictionary<JewelType, Bitmap> result = new Dictionary<JewelType, Bitmap>();
+            foreach(var pair in resources)
+            {
+                Bitmap resized = ResizeImage(pair.Value, cellWidth - bitmapOffset, cellHeight - bitmapOffset, true, true);
+                result.Add(pair.Key, resized);
+            }
+            return (result);
+        }
     }
 }

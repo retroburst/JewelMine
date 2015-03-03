@@ -23,9 +23,10 @@ namespace JewelMine.View.Forms
     {
         private GameTimer timer = null;
         private GameLogic gameEngine = null;
-        private Dictionary<JewelType, Bitmap> jewelImageResourceDictionary = Helpers.GenerateJewelImageResourceDictionary();
+        public Dictionary<JewelType, Bitmap> jewelImageResourceDictionary = null;
+        private Dictionary<JewelType, Bitmap> jewelResizedImageResourceDictionary = null;
         private Bitmap[] backgroundImageArray = Helpers.GenerateBackgroundImageArray();
-        private Dictionary<int, Bitmap> levelBackgroundDictionary = new Dictionary<int, Bitmap>();
+        private Dictionary<int, TextureBrush> levelBackgroundDictionary = new Dictionary<int, TextureBrush>();
         private Random rand = new Random();
         private Rectangle[,] cells = null;
         private int cellHeight = 0;
@@ -50,7 +51,7 @@ namespace JewelMine.View.Forms
             Layout += GameView_Layout;
             gameEngine.StartGame(); if (pen == null)
                 // TODO: put in own init meth
-            pen = new Pen(Color.SlateGray);
+                pen = new Pen(Color.SlateGray);
             pen.Alignment = PenAlignment.Center;
             pen.DashStyle = DashStyle.Dot;
             pen.DashCap = DashCap.Round;
@@ -58,13 +59,12 @@ namespace JewelMine.View.Forms
             pen.LineJoin = LineJoin.Round;
             pen.StartCap = LineCap.DiamondAnchor;
 
-        }
-
-        private void gameEngine_GameStateChanged(object sender, GameStateModel e)
-        {
-            // TODO need to know what has changed so can calculate invalidate region
-            // and re-draw just that.
-            Invalidate(ClientRectangle);
+            // calculate cell dimensions
+            cellWidth = ClientRectangle.Width / cells.GetLength(0);
+            cellHeight = ClientRectangle.Height / cells.GetLength(1);
+            // generate the resized versions of jewels
+            jewelImageResourceDictionary = Helpers.GenerateJewelImageResourceDictionary();
+            jewelResizedImageResourceDictionary = Helpers.GenerateResizedJewelImageResourceDictionary(jewelImageResourceDictionary, cellWidth, cellHeight, bitmapOffset);
         }
 
         /// <summary>
@@ -142,8 +142,9 @@ namespace JewelMine.View.Forms
         /// <param name="graphics">The graphics.</param>
         private void Draw(Graphics graphics)
         {
-            graphics.SmoothingMode = SmoothingMode.HighQuality;
-            //DrawBackground(graphics);
+            graphics.SmoothingMode = SmoothingMode.AntiAlias;
+
+            DrawBackground(graphics);
             DrawGrid(graphics, cells);
             //DrawObjects<Wall>(g, walls, squares);
             //DrawObjects<Block>(g, blocks, squares);
@@ -170,8 +171,8 @@ namespace JewelMine.View.Forms
                     if (jewel != null)
                     {
                         Rectangle cell = cells[i, j];
-                        Bitmap target = jewelImageResourceDictionary[jewel.JewelType];
-                        graphics.DrawImage(Helpers.ResizeImage(target, cell.Width - bitmapOffset, cell.Height - bitmapOffset, true, true), new Rectangle(cell.X + bitmapOffset, cell.Y + bitmapOffset, cell.Width - bitmapOffset, cell.Height - bitmapOffset), new Rectangle(0, 0, cell.Width, cell.Height), GraphicsUnit.Pixel);
+                        Bitmap target = jewelResizedImageResourceDictionary[jewel.JewelType];
+                        graphics.DrawImage(target, new Rectangle(cell.X + bitmapOffset, cell.Y + bitmapOffset, cell.Width - bitmapOffset, cell.Height - bitmapOffset), new Rectangle(0, 0, cell.Width, cell.Height), GraphicsUnit.Pixel);
                     }
                 }
             }
@@ -185,6 +186,11 @@ namespace JewelMine.View.Forms
         /// <param name="e">The <see cref="LayoutEventArgs"/> instance containing the event data.</param>
         private void GameView_Layout(object sender, LayoutEventArgs e)
         {
+            // calculate new cell dimensions
+            cellWidth = ClientRectangle.Width / cells.GetLength(0);
+            cellHeight = ClientRectangle.Height / cells.GetLength(1);
+            // calculate new image sizes
+            jewelResizedImageResourceDictionary = Helpers.GenerateResizedJewelImageResourceDictionary(jewelImageResourceDictionary, cellWidth, cellHeight, bitmapOffset);
             // invalidate the whole view so it is
             // all re-painted
             Invalidate(ClientRectangle);
@@ -196,46 +202,43 @@ namespace JewelMine.View.Forms
         /// <param name="g">The g.</param>
         private void DrawBackground(Graphics g)
         {
-            Bitmap background = null;
+            TextureBrush brush = null;
             if (levelBackgroundDictionary.ContainsKey(gameEngine.GameStateModel.GameLevel))
             {
-                background = levelBackgroundDictionary[gameEngine.GameStateModel.GameLevel];
+                brush = levelBackgroundDictionary[gameEngine.GameStateModel.GameLevel];
             }
             else
             {
                 int randomIndex = Helpers.GenerateRandomIndex(backgroundImageArray, rand);
-                background = backgroundImageArray[randomIndex];
-                levelBackgroundDictionary.Add(gameEngine.GameStateModel.GameLevel, background);
+                brush = new TextureBrush(backgroundImageArray[randomIndex], WrapMode.Tile);
+                levelBackgroundDictionary.Add(gameEngine.GameStateModel.GameLevel, brush);
             }
-            using (TextureBrush brush = new TextureBrush(background, WrapMode.Tile))
-            {
-                g.FillRectangle(brush, 0, 0, ClientRectangle.Width, ClientRectangle.Height);
-            }
+            g.FillRectangle(brush, 0, 0, ClientRectangle.Width, ClientRectangle.Height);
         }
 
         /// <summary>
         /// Draws the grid.
         /// </summary>
         /// <param name="g">The g.</param>
-        /// <param name="s">The s.</param>
-        private void DrawGrid(Graphics g, Rectangle[,] s)
+        /// <param name="cells">The cells.</param>
+        private void DrawGrid(Graphics g, Rectangle[,] cells)
         {
 
 
-            cellWidth = ClientRectangle.Width / s.GetLength(0);
-            cellHeight = ClientRectangle.Height / s.GetLength(1);
-            int leftOverWidth = ClientRectangle.Width - (cellWidth * s.GetLength(0));
-            int leftOverHeight = ClientRectangle.Height - (cellHeight * s.GetLength(1));
+            cellWidth = ClientRectangle.Width / cells.GetLength(0);
+            cellHeight = ClientRectangle.Height / cells.GetLength(1);
+            int leftOverWidth = ClientRectangle.Width - (cellWidth * cells.GetLength(0));
+            int leftOverHeight = ClientRectangle.Height - (cellHeight * cells.GetLength(1));
 
             int heightOffset = leftOverHeight / 2;
             int widthOffset = leftOverWidth / 2;
 
-            for (int i = 0; i <= s.GetUpperBound(0); i++)
+            for (int i = 0; i <= cells.GetUpperBound(0); i++)
             {
-                for (int j = 0; j <= s.GetUpperBound(1); j++)
+                for (int j = 0; j <= cells.GetUpperBound(1); j++)
                 {
-                    s[i, j] = new Rectangle(i * cellWidth + widthOffset, j * cellHeight + heightOffset, cellWidth, cellHeight);
-                    g.DrawRectangle(pen, s[i, j]);
+                    cells[i, j] = new Rectangle(i * cellWidth + widthOffset, j * cellHeight + heightOffset, cellWidth, cellHeight);
+                    g.DrawRectangle(pen, cells[i, j]);
                 }
             }
         }
