@@ -14,7 +14,7 @@ namespace JewelMine.Engine
         public const int MINE_DEFAULT_COLUMN_SIZE = 20;
         public const int MINE_DEFAULT_DEPTH_SIZE = 20;
         public const int GAME_DEFAULT_LEVEL = 1;
-        public const double GAME_DEFAULT_TICK_SPEED_MILLISECONDS = 1.0;
+        public const double GAME_DEFAULT_TICK_SPEED_MILLISECONDS = 100.0;
         public const int GAME_DEFAULT_LEVEL_INITIAL_LINES = 3;
         
 

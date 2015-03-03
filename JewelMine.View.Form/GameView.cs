@@ -25,16 +25,15 @@ namespace JewelMine.View.Forms
         private GameLogic gameEngine = null;
         public Dictionary<JewelType, Bitmap> jewelImageResourceDictionary = null;
         private Dictionary<JewelType, Bitmap> jewelResizedImageResourceDictionary = null;
-        private Bitmap[] backgroundImageArray = Helpers.GenerateBackgroundImageArray();
+        private Bitmap[] backgroundImageArray = null;
         private Dictionary<int, TextureBrush> levelBackgroundDictionary = new Dictionary<int, TextureBrush>();
         private Random rand = new Random();
         private Rectangle[,] cells = null;
         private int cellHeight = 0;
         private int cellWidth = 0;
-        private int bitmapOffset = 2;
+        private int jewelBitmapOffset = 2;
         private long startTime = 0;
-        Pen pen = null;
-
+        Pen gridPen = null;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GameView" /> class.
@@ -43,28 +42,50 @@ namespace JewelMine.View.Forms
         public GameView(GameLogic engine)
         {
             InitializeComponent();
+            // save our game engine into a variable
             gameEngine = engine;
+            // set paint styles
             SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.DoubleBuffer | ControlStyles.OptimizedDoubleBuffer, true);
             timer = new GameTimer();
             cells = new Rectangle[engine.GameStateModel.MineModel.Columns, engine.GameStateModel.MineModel.Depth];
+            // hook into interesting form events
             FormClosed += GameView_FormClosed;
-            Layout += GameView_Layout;
-            gameEngine.StartGame(); if (pen == null)
-                // TODO: put in own init meth
-                pen = new Pen(Color.SlateGray);
-            pen.Alignment = PenAlignment.Center;
-            pen.DashStyle = DashStyle.Dot;
-            pen.DashCap = DashCap.Round;
-            pen.EndCap = LineCap.DiamondAnchor;
-            pen.LineJoin = LineJoin.Round;
-            pen.StartCap = LineCap.DiamondAnchor;
-
+            Layout += GameView_Layout;          
+            InitialiseGridPen();
+            backgroundImageArray = ViewHelpers.GenerateBackgroundImageArray();
             // calculate cell dimensions
+            CalculateGridCellDimensions();
+            // generate the resized versions of jewels
+            jewelImageResourceDictionary = ViewHelpers.GenerateJewelImageResourceDictionary();
+            // generate and store resized images for this form size - we do 
+            // this once here instead of resizing every time we
+            // draw a jewel - which is a very expensive operation
+            jewelResizedImageResourceDictionary = ViewHelpers.GenerateResizedJewelImageResourceDictionary(jewelImageResourceDictionary, cellWidth, cellHeight, jewelBitmapOffset);
+            // signal game start
+            gameEngine.StartGame();
+        }
+
+        /// <summary>
+        /// Calculates the grid cell dimensions.
+        /// </summary>
+        private void CalculateGridCellDimensions()
+        {
             cellWidth = ClientRectangle.Width / cells.GetLength(0);
             cellHeight = ClientRectangle.Height / cells.GetLength(1);
-            // generate the resized versions of jewels
-            jewelImageResourceDictionary = Helpers.GenerateJewelImageResourceDictionary();
-            jewelResizedImageResourceDictionary = Helpers.GenerateResizedJewelImageResourceDictionary(jewelImageResourceDictionary, cellWidth, cellHeight, bitmapOffset);
+        }
+
+        /// <summary>
+        /// Initialises the grid gridPen.
+        /// </summary>
+        private void InitialiseGridPen()
+        {
+            gridPen = new Pen(Color.SlateGray);
+            gridPen.Alignment = PenAlignment.Center;
+            gridPen.DashStyle = DashStyle.Dot;
+            gridPen.DashCap = DashCap.Round;
+            gridPen.EndCap = LineCap.DiamondAnchor;
+            gridPen.LineJoin = LineJoin.Round;
+            gridPen.StartCap = LineCap.DiamondAnchor;
         }
 
         /// <summary>
@@ -89,7 +110,6 @@ namespace JewelMine.View.Forms
             {
                 //Console.WriteLine("Looping");
                 startTime = timer.ElapsedMilliseconds;
-                // TODO get the movement information to send to view for invalidation regions
                 GameLogicUpdate logicUpdate = gameEngine.PerformGameLogic();
                 Invalidate(logicUpdate);
                 Application.DoEvents();
@@ -116,14 +136,8 @@ namespace JewelMine.View.Forms
                 }
                 else
                 {
-                    foreach (NewJewel nj in logicUpdate.NewJewels)
-                    {
-                        Invalidate(CalculateInvalidationRegion(nj.Jewel, nj.X, nj.Y));
-                    }
-                    foreach (JewelMovement jm in logicUpdate.JewelMovements)
-                    {
-                        Invalidate(CalculateInvalidationRegion(jm.Jewel, jm.OriginalX, jm.OriginalY, jm.NewX, jm.NewY));
-                    }
+                    logicUpdate.NewJewels.ForEach(nj => Invalidate(CalculateInvalidationRegion(nj.Jewel, nj.X, nj.Y)));
+                    logicUpdate.JewelMovements.ForEach(jm => Invalidate(CalculateInvalidationRegion(jm.Jewel, jm.OriginalX, jm.OriginalY, jm.NewX, jm.NewY)));
                 }
             }
         }
@@ -142,27 +156,23 @@ namespace JewelMine.View.Forms
         /// <param name="graphics">The graphics.</param>
         private void Draw(Graphics graphics)
         {
-            graphics.SmoothingMode = SmoothingMode.AntiAlias;
-
+            graphics.SmoothingMode = SmoothingMode.HighSpeed;
             DrawBackground(graphics);
             DrawGrid(graphics, cells);
+            DrawJewels(graphics);
+
             //DrawObjects<Wall>(g, walls, squares);
             //DrawObjects<Block>(g, blocks, squares);
             //DrawObjects<IStructure>(g, structures, squares);
             //DrawControlStrings(g, cstrings);
+        }
 
-            //Random r = new Random();
-            //string[] jewelNames = Enum.GetNames(typeof(JewelType)).Where(x => x != JewelType.Unknown.ToString()).ToArray();
-            //foreach (var cell in cells)
-            //{
-            //    int randomIndex = r.Next(0, jewelNames.Length);
-            //    string jewelName = jewelNames[randomIndex];
-            //    JewelType type = (JewelType)Enum.Parse(typeof(JewelType), jewelName);
-            //    Bitmap target = jewelImageResourceDictionary[type];
-            //    graphics.DrawImage(Helpers.ResizeImage(target, cell.Width - bitmapOffset, cell.Height - bitmapOffset, true, true), new Rectangle(cell.X + bitmapOffset, cell.Y + bitmapOffset, cell.Width - bitmapOffset, cell.Height - bitmapOffset), new Rectangle(0, 0, cell.Width, cell.Height), GraphicsUnit.Pixel);
-
-            //}
-
+        /// <summary>
+        /// Draws the jewels.
+        /// </summary>
+        /// <param name="graphics">The graphics.</param>
+        private void DrawJewels(Graphics graphics)
+        {
             for (int i = 0; i < gameEngine.GameStateModel.MineModel.Columns; i++)
             {
                 for (int j = 0; j < gameEngine.GameStateModel.MineModel.Depth; j++)
@@ -172,11 +182,10 @@ namespace JewelMine.View.Forms
                     {
                         Rectangle cell = cells[i, j];
                         Bitmap target = jewelResizedImageResourceDictionary[jewel.JewelType];
-                        graphics.DrawImage(target, new Rectangle(cell.X + bitmapOffset, cell.Y + bitmapOffset, cell.Width - bitmapOffset, cell.Height - bitmapOffset), new Rectangle(0, 0, cell.Width, cell.Height), GraphicsUnit.Pixel);
+                        graphics.DrawImage(target, new Rectangle(cell.X + jewelBitmapOffset, cell.Y + jewelBitmapOffset, cell.Width - jewelBitmapOffset, cell.Height - jewelBitmapOffset), new Rectangle(0, 0, cell.Width, cell.Height), GraphicsUnit.Pixel);
                     }
                 }
             }
-
         }
 
         /// <summary>
@@ -187,10 +196,11 @@ namespace JewelMine.View.Forms
         private void GameView_Layout(object sender, LayoutEventArgs e)
         {
             // calculate new cell dimensions
-            cellWidth = ClientRectangle.Width / cells.GetLength(0);
-            cellHeight = ClientRectangle.Height / cells.GetLength(1);
-            // calculate new image sizes
-            jewelResizedImageResourceDictionary = Helpers.GenerateResizedJewelImageResourceDictionary(jewelImageResourceDictionary, cellWidth, cellHeight, bitmapOffset);
+            CalculateGridCellDimensions();
+            // calculate new image sizes for this form size - we do 
+            // this once here instead of resizing every time we
+            // draw a jewel - which is a very expensive operation
+            jewelResizedImageResourceDictionary = ViewHelpers.GenerateResizedJewelImageResourceDictionary(jewelImageResourceDictionary, cellWidth, cellHeight, jewelBitmapOffset);
             // invalidate the whole view so it is
             // all re-painted
             Invalidate(ClientRectangle);
@@ -202,6 +212,7 @@ namespace JewelMine.View.Forms
         /// <param name="g">The g.</param>
         private void DrawBackground(Graphics g)
         {
+            // assigns a random background to each level
             TextureBrush brush = null;
             if (levelBackgroundDictionary.ContainsKey(gameEngine.GameStateModel.GameLevel))
             {
@@ -209,7 +220,7 @@ namespace JewelMine.View.Forms
             }
             else
             {
-                int randomIndex = Helpers.GenerateRandomIndex(backgroundImageArray, rand);
+                int randomIndex = ViewHelpers.GenerateRandomIndex(backgroundImageArray, rand);
                 brush = new TextureBrush(backgroundImageArray[randomIndex], WrapMode.Tile);
                 levelBackgroundDictionary.Add(gameEngine.GameStateModel.GameLevel, brush);
             }
@@ -223,22 +234,17 @@ namespace JewelMine.View.Forms
         /// <param name="cells">The cells.</param>
         private void DrawGrid(Graphics g, Rectangle[,] cells)
         {
-
-
-            cellWidth = ClientRectangle.Width / cells.GetLength(0);
-            cellHeight = ClientRectangle.Height / cells.GetLength(1);
             int leftOverWidth = ClientRectangle.Width - (cellWidth * cells.GetLength(0));
             int leftOverHeight = ClientRectangle.Height - (cellHeight * cells.GetLength(1));
-
             int heightOffset = leftOverHeight / 2;
             int widthOffset = leftOverWidth / 2;
-
+            // draw the grid onto the control
             for (int i = 0; i <= cells.GetUpperBound(0); i++)
             {
                 for (int j = 0; j <= cells.GetUpperBound(1); j++)
                 {
                     cells[i, j] = new Rectangle(i * cellWidth + widthOffset, j * cellHeight + heightOffset, cellWidth, cellHeight);
-                    g.DrawRectangle(pen, cells[i, j]);
+                    g.DrawRectangle(gridPen, cells[i, j]);
                 }
             }
         }

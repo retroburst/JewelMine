@@ -14,7 +14,7 @@ namespace JewelMine.View.Forms
     /// <summary>
     /// Utility helper methods for game view.
     /// </summary>
-    public static class Helpers
+    public static class ViewHelpers
     {
         /// <summary>
         /// Resizes the image.
@@ -133,7 +133,7 @@ namespace JewelMine.View.Forms
         /// <param name="resources">The resources.</param>
         /// <param name="cellWidth">Width of the cell.</param>
         /// <param name="cellHeight">Height of the cell.</param>
-        /// <param name="bitmapOffset">The bitmap offset.</param>
+        /// <param name="jewelBitmapOffset">The bitmap offset.</param>
         /// <returns></returns>
         /// <exception cref="System.NotImplementedException"></exception>
         public static Dictionary<JewelType, Bitmap> GenerateResizedJewelImageResourceDictionary(Dictionary<JewelType, Bitmap> resources, int cellWidth, int cellHeight, int bitmapOffset)

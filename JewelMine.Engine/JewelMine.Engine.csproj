@@ -41,6 +41,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="GameConstants.cs" />
+    <Compile Include="GameHelpers.cs" />
     <Compile Include="GameLogic.cs" />
     <Compile Include="GameLogicUpdate.cs" />
     <Compile Include="GameTimer.cs" />

@@ -7,6 +7,9 @@ using JewelMine.Engine;
 
 namespace JewelMine.View.Forms
 {
+    /// <summary>
+    /// Constants for use by the view.
+    /// </summary>
     public static class ViewConstants
     {
         public const string IMAGE_RESOURCE_PATTERN = "JewelMine.View.Forms.Resources";
