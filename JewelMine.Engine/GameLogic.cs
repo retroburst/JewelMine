@@ -14,9 +14,9 @@ namespace JewelMine.Engine
     /// </summary>
     public class GameLogic
     {
-        public GameStateModel GameStateModel { get; private set; }
         public Random Random { get; private set; }
         private string[] jewelNames = null;
+        private GameStateModel state = null;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GameLogic"/> class.
@@ -24,8 +24,19 @@ namespace JewelMine.Engine
         public GameLogic()
         {
             jewelNames = Enum.GetNames(typeof(JewelType)).Where(x => x != JewelType.Unknown.ToString()).ToArray();
-            GameStateModel = new GameStateModel();
+            state = new GameStateModel();
             Random = new Random();
+        }
+
+        /// <summary>
+        /// Gets the game state model.
+        /// </summary>
+        /// <value>
+        /// The game state model.
+        /// </value>
+        public GameStateModel GameStateModel
+        {
+            get { return (state); }
         }
 
         // TODO update game states
@@ -34,7 +45,7 @@ namespace JewelMine.Engine
         /// </summary>
         public void StartGame()
         {
-            GameStateModel.GamePlayState = GamePlayState.Playing;
+            state.GamePlayState = GamePlayState.Playing;
         }
 
         /// <summary>
@@ -42,7 +53,7 @@ namespace JewelMine.Engine
         /// </summary>
         public void StopGame()
         {
-            GameStateModel.GamePlayState = GamePlayState.NotStarted;
+            state.GamePlayState = GamePlayState.NotStarted;
         }
 
         /// <summary>
@@ -50,7 +61,7 @@ namespace JewelMine.Engine
         /// </summary>
         public void PauseGame()
         {
-            GameStateModel.GamePlayState = GamePlayState.Paused;
+            state.GamePlayState = GamePlayState.Paused;
         }
 
         /// <summary>
@@ -58,7 +69,7 @@ namespace JewelMine.Engine
         /// </summary>
         public void GameOver()
         {
-            GameStateModel.GamePlayState = GamePlayState.GameOver;
+            state.GamePlayState = GamePlayState.GameOver;
         }
 
         /// <summary>
@@ -81,40 +92,75 @@ namespace JewelMine.Engine
 
             // check for collisions
 
-            if(GameStateModel.MineModel.Delta == null)
+
+
+            // move delta based on input or down by default if no input
+            MovementType deltaMovement = MovementType.Down;
+            if (inputBuffer.Count == 0) inputBuffer.Enqueue(MovementType.Down);
+
+            foreach (var movement in inputBuffer)
+            {
+                bool deltaStationary = false;
+                bool moved = false;
+                deltaMovement = movement;
+                // if delta is up against a boundary on either side that the movement is towards, override and move delta down instead
+                if (IsDeltaAgainstBoundary(deltaMovement)) deltaMovement = MovementType.Down;
+                // if delta is up against another block or bounadry on underside ignore input - do not move delta and add new delta
+                if (IsDeltaStationary()) deltaStationary = true;
+
+                if (!deltaStationary)
+                {
+                    moved = MoveJewel(state.MineModel.DeltaX, state.MineModel.DeltaY, deltaMovement, true, logicUpdate);
+                }
+                else if (deltaStationary || !moved)
+                {
+                    ClearDelta();
+                }
+            }
+            // if no delta, add a new one
+            if (state.MineModel.Delta == null)
             {
                 bool added = AddDeltaJewel(logicUpdate);
                 if (!added) { throw new NotImplementedException("Game Over"); }
             }
-            else
-            {
-                // move delta based on input or down by default if no input
-                MovementType deltaMovement = MovementType.Down;
-                if (inputBuffer.Count == 0) inputBuffer.Enqueue(MovementType.Down);
 
-                
-                //TODO: if delta is up against another block or bounadry on underside ignore input - do not move delta and add new delta 
-                foreach (var movement in inputBuffer)
-                {
-                    deltaMovement = movement;
-                    // if delta is up against a boundary on either side that the movement is towards, move delta down instead
-                    if (deltaMovement == MovementType.Left && GameStateModel.MineModel.DeltaX == 0) deltaMovement = MovementType.Down;
-                    else if (deltaMovement == MovementType.Right && GameStateModel.MineModel.DeltaX == GameStateModel.MineModel.Mine.GetUpperBound(0)) deltaMovement = MovementType.Down;
-
-
-                    bool moved = MoveJewel(GameStateModel.MineModel.DeltaX, GameStateModel.MineModel.DeltaY, deltaMovement, true, logicUpdate);
-                    if (!moved && deltaMovement == MovementType.Down)
-                    {
-                        GameStateModel.MineModel.Delta = null;
-                        GameStateModel.MineModel.DeltaX = 0;
-                        GameStateModel.MineModel.DeltaY = 0;
-                        bool added = AddDeltaJewel(logicUpdate);
-                        //TODO
-                        if (!added) { throw new NotImplementedException("Game Over"); }
-                    }
-                }
-            }
             return (logicUpdate);
+        }
+
+        /// <summary>
+        /// Clears the delta.
+        /// </summary>
+        private void ClearDelta()
+        {
+            state.MineModel.Delta = null;
+            state.MineModel.DeltaX = 0;
+            state.MineModel.DeltaY = 0;
+        }
+
+        /// <summary>
+        /// Determines whether [is delta against boundary] [the specified delta movement].
+        /// </summary>
+        /// <param name="deltaMovement">The delta movement.</param>
+        /// <returns></returns>
+        private bool IsDeltaAgainstBoundary(MovementType deltaMovement)
+        {
+            bool result = false;
+            if ((deltaMovement == MovementType.Left && state.MineModel.DeltaX == 0)
+            || (deltaMovement == MovementType.Right && state.MineModel.DeltaX == state.MineModel.Mine.GetUpperBound(0)))
+            {
+                result = true;
+            }
+            return (result);
+        }
+
+        /// <summary>
+        /// Determines whether [is delta stationary].
+        /// </summary>
+        /// <returns></returns>
+        private bool IsDeltaStationary()
+        {
+            return (state.MineModel.DeltaY == state.MineModel.Mine.GetUpperBound(1)
+                || state.MineModel.Mine[state.MineModel.DeltaX, state.MineModel.DeltaY + 1] != null);
         }
 
         /// <summary>
@@ -132,10 +178,10 @@ namespace JewelMine.Engine
             int randomIndex = Random.Next(0, free.Length);
             int targetCoorindinate = free[randomIndex];
             JewelModel jewel = GenerateRandomDeltaJewel();
-            GameStateModel.MineModel.Delta = jewel;
-            GameStateModel.MineModel.Mine[targetCoorindinate, 0] = jewel;
-            GameStateModel.MineModel.DeltaX = targetCoorindinate;
-            GameStateModel.MineModel.DeltaY = 0;
+            state.MineModel.Delta = jewel;
+            state.MineModel.Mine[targetCoorindinate, 0] = jewel;
+            state.MineModel.DeltaX = targetCoorindinate;
+            state.MineModel.DeltaY = 0;
             logicUpdate.NewJewels.Add(new NewJewel() { Jewel = jewel, X = targetCoorindinate, Y = 0 });
             return (true);
         }
@@ -147,11 +193,11 @@ namespace JewelMine.Engine
         private int[] FindFreeCoordinatesForDelta()
         {
             List<int> free = new List<int>();
-            for(int i = 0; i < GameStateModel.MineModel.Columns; i++)
+            for (int i = 0; i < state.MineModel.Columns; i++)
             {
-                if (GameStateModel.MineModel.Mine[i, 0] == null) free.Add(i);
+                if (state.MineModel.Mine[i, 0] == null) free.Add(i);
             }
-            return(free.ToArray());
+            return (free.ToArray());
         }
 
         /// <summary>
@@ -188,21 +234,21 @@ namespace JewelMine.Engine
                     case MovementType.Down:
                         if (CoordinatesInBounds(x, y + 1)) targetY++; break;
                     case MovementType.Left:
-                        if (CoordinatesInBounds(x-1, y)) targetX--; break;
+                        if (CoordinatesInBounds(x - 1, y)) targetX--; break;
                     case MovementType.Right:
                         if (CoordinatesInBounds(x + 1, y)) targetX++; break;
                 }
                 if (CoordinatesInBounds(targetX, targetY) && CoordinatesAvailable(targetX, targetY))
                 {
-                    JewelModel target = (JewelModel)GameStateModel.MineModel.Mine[x, y];
-                    GameStateModel.MineModel.Mine[targetX, targetY] = target;
-                    GameStateModel.MineModel.Mine[x, y] = null;
+                    JewelModel target = (JewelModel)state.MineModel.Mine[x, y];
+                    state.MineModel.Mine[targetX, targetY] = target;
+                    state.MineModel.Mine[x, y] = null;
                     logicUpdate.JewelMovements.Add(new JewelMovement() { Jewel = target, OriginalX = x, OriginalY = y, NewX = targetX, NewY = targetY });
                     moved = true;
-                    if(isDelta)
+                    if (isDelta)
                     {
-                        GameStateModel.MineModel.DeltaX = targetX;
-                        GameStateModel.MineModel.DeltaY = targetY;
+                        state.MineModel.DeltaX = targetX;
+                        state.MineModel.DeltaY = targetY;
                     }
                 }
             }
@@ -217,7 +263,7 @@ namespace JewelMine.Engine
         /// <returns></returns>
         private bool CoordinatesAvailable(int x, int y)
         {
-            return (GameStateModel.MineModel.Mine[x, y] == null);
+            return (state.MineModel.Mine[x, y] == null);
         }
 
         /// <summary>
@@ -228,8 +274,8 @@ namespace JewelMine.Engine
         /// <returns></returns>
         private bool CoordinatesInBounds(int x, int y)
         {
-            return (x >= 0 && x < GameStateModel.MineModel.Columns
-                && y >= 0 && y < GameStateModel.MineModel.Depth);
+            return (x >= 0 && x < state.MineModel.Columns
+                && y >= 0 && y < state.MineModel.Depth);
         }
 
     }
