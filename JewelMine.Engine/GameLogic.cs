@@ -64,13 +64,23 @@ namespace JewelMine.Engine
         /// <summary>
         /// Performs the game logic.
         /// </summary>
+        /// <param name="inputBuffer">The input buffer.</param>
         /// <returns></returns>
+        /// <exception cref="NotImplementedException">
+        /// Game Over
+        /// or
+        /// Game Over
+        /// </exception>
         /// <exception cref="System.NotImplementedException">Game Over
         /// or
         /// Game Over</exception>
-        public GameLogicUpdate PerformGameLogic()
+        public GameLogicUpdate PerformGameLogic(Queue<MovementType> inputBuffer)
         {
             GameLogicUpdate logicUpdate = new GameLogicUpdate();
+            // check for blocks that need to move down
+
+            // check for collisions
+
             if(GameStateModel.MineModel.Delta == null)
             {
                 bool added = AddDeltaJewel(logicUpdate);
@@ -78,16 +88,30 @@ namespace JewelMine.Engine
             }
             else
             {
-                // move delta down
-                bool moved = MoveJewel(GameStateModel.MineModel.DeltaX, GameStateModel.MineModel.DeltaY, MovementType.Down, true, logicUpdate);
-                if(!moved)
+                // move delta based on input or down by default if no input
+                MovementType deltaMovement = MovementType.Down;
+                if (inputBuffer.Count == 0) inputBuffer.Enqueue(MovementType.Down);
+
+                
+                //TODO: if delta is up against another block or bounadry on underside ignore input - do not move delta and add new delta 
+                foreach (var movement in inputBuffer)
                 {
-                    GameStateModel.MineModel.Delta = null;
-                    GameStateModel.MineModel.DeltaX = 0;
-                    GameStateModel.MineModel.DeltaY = 0;
-                    bool added = AddDeltaJewel(logicUpdate);
-                    //TODO
-                    if (!added) { throw new NotImplementedException("Game Over"); }
+                    deltaMovement = movement;
+                    // if delta is up against a boundary on either side that the movement is towards, move delta down instead
+                    if (deltaMovement == MovementType.Left && GameStateModel.MineModel.DeltaX == 0) deltaMovement = MovementType.Down;
+                    else if (deltaMovement == MovementType.Right && GameStateModel.MineModel.DeltaX == GameStateModel.MineModel.Mine.GetUpperBound(0)) deltaMovement = MovementType.Down;
+
+
+                    bool moved = MoveJewel(GameStateModel.MineModel.DeltaX, GameStateModel.MineModel.DeltaY, deltaMovement, true, logicUpdate);
+                    if (!moved && deltaMovement == MovementType.Down)
+                    {
+                        GameStateModel.MineModel.Delta = null;
+                        GameStateModel.MineModel.DeltaX = 0;
+                        GameStateModel.MineModel.DeltaY = 0;
+                        bool added = AddDeltaJewel(logicUpdate);
+                        //TODO
+                        if (!added) { throw new NotImplementedException("Game Over"); }
+                    }
                 }
             }
             return (logicUpdate);

@@ -23,6 +23,7 @@ namespace JewelMine.View.Forms
     {
         private GameTimer timer = null;
         private GameLogic gameEngine = null;
+        private Queue<MovementType> inputBuffer = null;
         public Dictionary<JewelType, Bitmap> jewelImageResourceDictionary = null;
         private Dictionary<JewelType, Bitmap> jewelResizedImageResourceDictionary = null;
         private Bitmap[] backgroundImageArray = null;
@@ -44,13 +45,16 @@ namespace JewelMine.View.Forms
             InitializeComponent();
             // save our game engine into a variable
             gameEngine = engine;
+            // buffer for user input
+            inputBuffer = new Queue<MovementType>();
             // set paint styles
             SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.DoubleBuffer | ControlStyles.OptimizedDoubleBuffer, true);
             timer = new GameTimer();
             cells = new Rectangle[engine.GameStateModel.MineModel.Columns, engine.GameStateModel.MineModel.Depth];
             // hook into interesting form events
-            FormClosed += GameView_FormClosed;
-            Layout += GameView_Layout;          
+            FormClosed += FormClosedHandler;
+            Layout += LayoutHandler;
+            KeyDown += InputHandler;
             InitialiseGridPen();
             backgroundImageArray = ViewHelpers.GenerateBackgroundImageArray();
             // calculate cell dimensions
@@ -63,6 +67,30 @@ namespace JewelMine.View.Forms
             jewelResizedImageResourceDictionary = ViewHelpers.GenerateResizedJewelImageResourceDictionary(jewelImageResourceDictionary, cellWidth, cellHeight, jewelBitmapOffset);
             // signal game start
             gameEngine.StartGame();
+        }
+
+        /// <summary>
+        /// Handles the input event of the GameView control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="KeyEventArgs"/> instance containing the event data.</param>
+        public void InputHandler(object sender, KeyEventArgs e)
+        {
+            switch(e.KeyCode)
+            {
+                case Keys.Left:
+                case Keys.A:
+                    inputBuffer.Enqueue(MovementType.Left);
+                    break;
+                case Keys.Right:
+                case Keys.D:
+                    inputBuffer.Enqueue(MovementType.Right);
+                    break;
+                case Keys.Down:
+                case Keys.S:
+                    inputBuffer.Enqueue(MovementType.Down);
+                    break;
+            }
         }
 
         /// <summary>
@@ -93,7 +121,7 @@ namespace JewelMine.View.Forms
         /// </summary>
         /// <param name="sender">The source of the event.</param>
         /// <param name="e">The <see cref="FormClosedEventArgs"/> instance containing the event data.</param>
-        private void GameView_FormClosed(object sender, FormClosedEventArgs e)
+        private void FormClosedHandler(object sender, FormClosedEventArgs e)
         {
             gameEngine.StopGame();
             Application.Exit();
@@ -110,13 +138,14 @@ namespace JewelMine.View.Forms
             {
                 //Console.WriteLine("Looping");
                 startTime = timer.ElapsedMilliseconds;
-                GameLogicUpdate logicUpdate = gameEngine.PerformGameLogic();
-                Invalidate(logicUpdate);
                 Application.DoEvents();
+                GameLogicUpdate logicUpdate = gameEngine.PerformGameLogic(inputBuffer);
+                Invalidate(logicUpdate);
                 while ((timer.ElapsedMilliseconds - startTime) < gameEngine.GameStateModel.GameTickSpeedMilliseconds)
                 {
                     //Console.WriteLine("Waiting..");
                 }
+                inputBuffer.Clear();
             }
             timer.Stop();
             Console.WriteLine("Exited game loop..");
@@ -193,7 +222,7 @@ namespace JewelMine.View.Forms
         /// </summary>
         /// <param name="sender">The source of the event.</param>
         /// <param name="e">The <see cref="LayoutEventArgs"/> instance containing the event data.</param>
-        private void GameView_Layout(object sender, LayoutEventArgs e)
+        private void LayoutHandler(object sender, LayoutEventArgs e)
         {
             // calculate new cell dimensions
             CalculateGridCellDimensions();

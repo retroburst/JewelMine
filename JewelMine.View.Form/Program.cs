@@ -8,7 +8,10 @@ using System.Windows.Forms;
 
 namespace JewelMine.View.Forms
 {
-    static class Program
+    /// <summary>
+    /// Entry point for game execution.
+    /// </summary>
+    public static class Program
     {
         /// <summary>
         /// The main entry point for the application.
