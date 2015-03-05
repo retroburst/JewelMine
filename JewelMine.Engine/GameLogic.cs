@@ -95,22 +95,28 @@ namespace JewelMine.Engine
 
 
             // move delta based on input or down by default if no input
+            bool userInputMovement = true;
             MovementType deltaMovement = MovementType.Down;
-            if (inputBuffer.Count == 0) inputBuffer.Enqueue(MovementType.Down);
+            if (inputBuffer.Count == 0)
+            {
+                inputBuffer.Enqueue(MovementType.Down);
+                userInputMovement = false;
+            }
 
             foreach (var movement in inputBuffer)
             {
                 bool deltaStationary = false;
                 bool moved = false;
+                int numPositionsToMove = 1;
                 deltaMovement = movement;
                 // if delta is up against a boundary on either side that the movement is towards, override and move delta down instead
                 if (IsDeltaAgainstBoundary(deltaMovement)) deltaMovement = MovementType.Down;
                 // if delta is up against another block or bounadry on underside ignore input - do not move delta and add new delta
                 if (IsDeltaStationary()) deltaStationary = true;
-
+                if (userInputMovement && deltaMovement == MovementType.Down) numPositionsToMove = 2;
                 if (!deltaStationary)
                 {
-                    moved = MoveJewel(state.MineModel.DeltaX, state.MineModel.DeltaY, deltaMovement, true, logicUpdate);
+                    moved = MoveJewel(state.MineModel.DeltaX, state.MineModel.DeltaY, deltaMovement, true, logicUpdate, numPositionsToMove);
                 }
                 else if (deltaStationary || !moved)
                 {
@@ -123,7 +129,6 @@ namespace JewelMine.Engine
                 bool added = AddDeltaJewel(logicUpdate);
                 if (!added) { throw new NotImplementedException("Game Over"); }
             }
-
             return (logicUpdate);
         }
 
@@ -220,10 +225,10 @@ namespace JewelMine.Engine
         /// <param name="movement">The movement.</param>
         /// <param name="isDelta">if set to <c>true</c> [is delta].</param>
         /// <param name="logicUpdate">The logic update.</param>
+        /// <param name="numPositionsToMove">The number of positions to move.</param>
         /// <returns></returns>
-        private bool MoveJewel(int x, int y, MovementType movement, bool isDelta, GameLogicUpdate logicUpdate)
+        private bool MoveJewel(int x, int y, MovementType movement, bool isDelta, GameLogicUpdate logicUpdate, int numPositionsToMove = 1)
         {
-            bool moved = false;
             if (CoordinatesInBounds(x, y))
             {
                 int targetX = x;
@@ -232,27 +237,81 @@ namespace JewelMine.Engine
                 switch (movement)
                 {
                     case MovementType.Down:
-                        if (CoordinatesInBounds(x, y + 1)) targetY++; break;
+                        targetY = FindClosestDownPosition(x, y, numPositionsToMove); break;
                     case MovementType.Left:
-                        if (CoordinatesInBounds(x - 1, y)) targetX--; break;
+                        targetX = FindClosestLeftPosition(x, y, numPositionsToMove); break;
                     case MovementType.Right:
-                        if (CoordinatesInBounds(x + 1, y)) targetX++; break;
+                        targetX = FindClosestRightPosition(x, y, numPositionsToMove); break;
                 }
-                if (CoordinatesInBounds(targetX, targetY) && CoordinatesAvailable(targetX, targetY))
+                // if the position of jewel cannot be changed - return not moved
+                if (x == targetX && y == targetY) return (false);
+                // otherwise we can move the jewel to the required or closest position
+                JewelModel target = (JewelModel)state.MineModel.Mine[x, y];
+                state.MineModel.Mine[targetX, targetY] = target;
+                state.MineModel.Mine[x, y] = null;
+                logicUpdate.JewelMovements.Add(new JewelMovement() { Jewel = target, OriginalX = x, OriginalY = y, NewX = targetX, NewY = targetY });
+                if (isDelta)
                 {
-                    JewelModel target = (JewelModel)state.MineModel.Mine[x, y];
-                    state.MineModel.Mine[targetX, targetY] = target;
-                    state.MineModel.Mine[x, y] = null;
-                    logicUpdate.JewelMovements.Add(new JewelMovement() { Jewel = target, OriginalX = x, OriginalY = y, NewX = targetX, NewY = targetY });
-                    moved = true;
-                    if (isDelta)
-                    {
-                        state.MineModel.DeltaX = targetX;
-                        state.MineModel.DeltaY = targetY;
-                    }
+                    state.MineModel.DeltaX = targetX;
+                    state.MineModel.DeltaY = targetY;
                 }
+                return (true);
             }
-            return (moved);
+            return (false);
+        }
+
+        /// <summary>
+        /// Finds the closest down position.
+        /// </summary>
+        /// <param name="x">The x.</param>
+        /// <param name="y">The y.</param>
+        /// <param name="numPositionsToMove">The number positions to move.</param>
+        /// <returns></returns>
+        private int FindClosestDownPosition(int x, int y, int numPositionsToMove)
+        {
+            int targetY = y;
+            for (int i = 1; i <= numPositionsToMove; i++)
+            {
+                if (CoordinatesInBounds(x, y + i) && CoordinatesAvailable(x, y + i)) targetY = y + i;
+                else break;
+            }
+            return (targetY);
+        }
+
+        /// <summary>
+        /// Finds the closest left position.
+        /// </summary>
+        /// <param name="x">The x.</param>
+        /// <param name="y">The y.</param>
+        /// <param name="numPositionsToMove">The number positions to move.</param>
+        /// <returns></returns>
+        private int FindClosestLeftPosition(int x, int y, int numPositionsToMove)
+        {
+            int targetX = x;
+            for (int i = 1; i <= numPositionsToMove; i++)
+            {
+                if (CoordinatesInBounds(x - i, y) && CoordinatesAvailable(x - i, y)) targetX = x - i;
+                else break;
+            }
+            return (targetX);
+        }
+
+        /// <summary>
+        /// Finds the closest right position.
+        /// </summary>
+        /// <param name="x">The x.</param>
+        /// <param name="y">The y.</param>
+        /// <param name="numPositionsToMove">The number positions to move.</param>
+        /// <returns></returns>
+        private int FindClosestRightPosition(int x, int y, int numPositionsToMove)
+        {
+            int targetX = x;
+            for (int i = 1; i <= numPositionsToMove; i++)
+            {
+                if (CoordinatesInBounds(x + i, y) && CoordinatesAvailable(x + i, y)) targetX = x + i;
+                else break;
+            }
+            return (targetX);
         }
 
         /// <summary>

@@ -312,14 +312,16 @@ namespace JewelMine.View.Forms
             // movement down
             if (newY > originalY)
             {
-                region.Height = cellHeight * 2;
+                int difference = newY - originalY;
+                region.Height = cellHeight * (difference + 1);
                 region.Width = cellWidth;
             }
             // movement right or left
             else
             {
+                int difference = Math.Max(originalX, newX) - Math.Min(originalX, newX);
                 region.Height = cellHeight;
-                region.Width = cellWidth * 2;
+                region.Width = cellWidth * (difference + 1);
             }
             return (region);
         }
