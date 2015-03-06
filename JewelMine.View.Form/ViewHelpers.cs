@@ -128,7 +128,7 @@ namespace JewelMine.View.Forms
         }
 
         /// <summary>
-        /// Generates the resized jewel image resource dictionary.
+        /// Generates the resized delta image resource dictionary.
         /// </summary>
         /// <param name="resources">The resources.</param>
         /// <param name="cellWidth">Width of the cell.</param>

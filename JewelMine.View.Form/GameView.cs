@@ -50,7 +50,7 @@ namespace JewelMine.View.Forms
             // set paint styles
             SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.DoubleBuffer | ControlStyles.OptimizedDoubleBuffer, true);
             timer = new GameTimer();
-            cells = new Rectangle[engine.GameStateModel.MineModel.Columns, engine.GameStateModel.MineModel.Depth];
+            cells = new Rectangle[engine.GameStateModel.Mine.Columns, engine.GameStateModel.Mine.Depth];
             // hook into interesting form events
             FormClosed += FormClosedHandler;
             Layout += LayoutHandler;
@@ -63,7 +63,7 @@ namespace JewelMine.View.Forms
             jewelImageResourceDictionary = ViewHelpers.GenerateJewelImageResourceDictionary();
             // generate and store resized images for this form size - we do 
             // this once here instead of resizing every time we
-            // draw a jewel - which is a very expensive operation
+            // draw a delta - which is a very expensive operation
             jewelResizedImageResourceDictionary = ViewHelpers.GenerateResizedJewelImageResourceDictionary(jewelImageResourceDictionary, cellWidth, cellHeight, jewelBitmapOffset);
             // signal game start
             gameEngine.StartGame();
@@ -159,14 +159,13 @@ namespace JewelMine.View.Forms
         {
             if (logicUpdate != null)
             {
-                if (logicUpdate.JewelMovements.Count == 0 && logicUpdate.NewJewels.Count == 0)
+                if (logicUpdate.JewelMovements.Count == 0)
                 {
                     Invalidate();
                 }
                 else
                 {
-                    logicUpdate.NewJewels.ForEach(nj => Invalidate(CalculateInvalidationRegion(nj.Jewel, nj.X, nj.Y)));
-                    logicUpdate.JewelMovements.ForEach(jm => Invalidate(CalculateInvalidationRegion(jm.Jewel, jm.OriginalX, jm.OriginalY, jm.NewX, jm.NewY)));
+                    logicUpdate.JewelMovements.ForEach(jm => Invalidate(CalculateInvalidationRegion(jm.Jewel, jm.Original, jm.New)));
                 }
             }
         }
@@ -202,11 +201,11 @@ namespace JewelMine.View.Forms
         /// <param name="graphics">The graphics.</param>
         private void DrawJewels(Graphics graphics)
         {
-            for (int i = 0; i < gameEngine.GameStateModel.MineModel.Columns; i++)
+            for (int i = 0; i < gameEngine.GameStateModel.Mine.Columns; i++)
             {
-                for (int j = 0; j < gameEngine.GameStateModel.MineModel.Depth; j++)
+                for (int j = 0; j < gameEngine.GameStateModel.Mine.Depth; j++)
                 {
-                    JewelModel jewel = (JewelModel)gameEngine.GameStateModel.MineModel.Mine[i, j];
+                    Jewel jewel = (Jewel)gameEngine.GameStateModel.Mine.Grid[i, j];
                     if (jewel != null)
                     {
                         Rectangle cell = cells[i, j];
@@ -228,7 +227,7 @@ namespace JewelMine.View.Forms
             CalculateGridCellDimensions();
             // calculate new image sizes for this form size - we do 
             // this once here instead of resizing every time we
-            // draw a jewel - which is a very expensive operation
+            // draw a delta - which is a very expensive operation
             jewelResizedImageResourceDictionary = ViewHelpers.GenerateResizedJewelImageResourceDictionary(jewelImageResourceDictionary, cellWidth, cellHeight, jewelBitmapOffset);
             // invalidate the whole view so it is
             // all re-painted
@@ -281,12 +280,13 @@ namespace JewelMine.View.Forms
         /// <summary>
         /// Calculates the invalidation region.
         /// </summary>
-        /// <param name="jewelModel">The jewelModel.</param>
+        /// <param name="jewel">The jewel.</param>
+        /// <param name="coordinates">The coordinates.</param>
         /// <returns></returns>
-        public Rectangle CalculateInvalidationRegion(JewelModel jewelModel, int x, int y)
+        public Rectangle CalculateInvalidationRegion(Jewel jewelModel, Coordinates coordinates)
         {
             Rectangle region = new Rectangle();
-            region = cells[x, y];
+            region = cells[coordinates.X, coordinates.Y];
             region.Width = cellWidth;
             region.Height = cellHeight;
             return (region);
@@ -295,31 +295,30 @@ namespace JewelMine.View.Forms
         /// <summary>
         /// Calculates the invalidation region.
         /// </summary>
-        /// <param name="jewelModel">The jewelModel.</param>
-        /// <param name="originalX">The original x.</param>
-        /// <param name="originalY">The original y.</param>
-        /// <param name="newX">The new x.</param>
-        /// <param name="newY">The new y.</param>
+        /// <param name="jewel">The jewel.</param>
+        /// <param name="originalCoordinates">The original coordinates.</param>
+        /// <param name="newCoordinates">The new coordinates.</param>
         /// <returns></returns>
-        public Rectangle CalculateInvalidationRegion(JewelModel jewelModel, int originalX, int originalY, int newX, int newY)
+        public Rectangle CalculateInvalidationRegion(Jewel jewel, Coordinates originalCoordinates, Coordinates newCoordinates)
         {
+            if (originalCoordinates.IsInvalidated()) return CalculateInvalidationRegion(jewel, newCoordinates);
             Rectangle region = new Rectangle();
-            int minX = Math.Min(originalX, newX);
-            int minY = Math.Min(originalY, newY);
+            int minX = Math.Min(originalCoordinates.X, newCoordinates.X);
+            int minY = Math.Min(originalCoordinates.Y, newCoordinates.Y);
             Rectangle targetCell = cells[minX, minY];
             region.X = targetCell.X;
             region.Y = targetCell.Y;
             // movement down
-            if (newY > originalY)
+            if (newCoordinates.Y > originalCoordinates.Y)
             {
-                int difference = newY - originalY;
+                int difference = newCoordinates.Y - originalCoordinates.Y;
                 region.Height = cellHeight * (difference + 1);
                 region.Width = cellWidth;
             }
             // movement right or left
             else
             {
-                int difference = Math.Max(originalX, newX) - Math.Min(originalX, newX);
+                int difference = Math.Max(originalCoordinates.X, newCoordinates.X) - Math.Min(originalCoordinates.X, newCoordinates.X);
                 region.Height = cellHeight;
                 region.Width = cellWidth * (difference + 1);
             }

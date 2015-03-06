@@ -11,8 +11,8 @@ namespace JewelMine.Engine
     /// </summary>
     public static class GameConstants
     {
-        public const int MINE_DEFAULT_COLUMN_SIZE = 20;
-        public const int MINE_DEFAULT_DEPTH_SIZE = 20;
+        public const int MINE_DEFAULT_COLUMN_SIZE = 16;
+        public const int MINE_DEFAULT_DEPTH_SIZE = 16;
         public const int GAME_DEFAULT_LEVEL = 1;
         public const double GAME_DEFAULT_TICK_SPEED_MILLISECONDS = 125.00;
         public const int GAME_DEFAULT_LEVEL_INITIAL_LINES = 3;
@@ -44,7 +44,7 @@ namespace JewelMine.Engine
     }
 
     /// <summary>
-    /// All available jewel types.
+    /// All available delta types.
     /// </summary>
     public enum JewelType
     {

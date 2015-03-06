@@ -10,32 +10,30 @@ namespace JewelMine.Engine.Models
     /// <summary>
     /// Represents the mine, all the
     /// jewels and wall positions.
-    /// Also defines which jewel is the delta.
+    /// Also defines which delta is the delta.
     /// </summary>
-    public class MineModel
+    public class Mine
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="MineModel"/> class.
+        /// Initializes a new instance of the <see cref="Mine"/> class.
         /// </summary>
-        public MineModel()
+        public Mine()
             : this(GameConstants.MINE_DEFAULT_COLUMN_SIZE, GameConstants.MINE_DEFAULT_DEPTH_SIZE)
         { }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="MineModel"/> class.
+        /// Initializes a new instance of the <see cref="Mine"/> class.
         /// </summary>
         /// <param name="columns">The columns.</param>
         /// <param name="depth">The depth.</param>
-        public MineModel(int columns, int depth)
+        public Mine(int columns, int depth)
         {
             if (Columns < 0) Columns = GameConstants.MINE_DEFAULT_COLUMN_SIZE;
             if (Depth < 0) Depth = GameConstants.MINE_DEFAULT_DEPTH_SIZE;
             Columns = columns;
             Depth = depth;
             Delta = null;
-            DeltaX = 0;
-            DeltaY = 0;
-            Mine = new MineObjectModel[Columns, Depth];
+            Grid = new MineObject[Columns, Depth];
         }
 
         /// <summary>
@@ -60,30 +58,35 @@ namespace JewelMine.Engine.Models
         /// <value>
         /// The delta.
         /// </value>
-        public JewelModel Delta { get; internal set; }
+        public JewelGroup Delta { get; internal set; }
 
         /// <summary>
-        /// Gets the delta x.
-        /// </summary>
-        /// <value>
-        /// The delta x.
-        /// </value>
-        public int DeltaX { get; internal set; }
-
-        /// <summary>
-        /// Gets the delta y.
-        /// </summary>
-        /// <value>
-        /// The delta y.
-        /// </value>
-        public int DeltaY { get; internal set; }
-
-        /// <summary>
-        /// Gets the mine.
+        /// Gets the grid.
         /// </summary>
         /// <value>
         /// The mine.
         /// </value>
-        public MineObjectModel[,] Mine { get; private set; }
+        public MineObject[,] Grid { get; private set; }
+
+        /// <summary>
+        /// Gets or sets the <see cref="MineObject"/> with the specified coordinates.
+        /// </summary>
+        /// <value>
+        /// The <see cref="MineObject"/>.
+        /// </value>
+        /// <param name="coordinates">The coordinates.</param>
+        /// <returns></returns>
+        public MineObject this[Coordinates coordinates]
+        {
+            get
+            {
+                return (Grid[coordinates.X, coordinates.Y]);
+            }
+            set
+            {
+                Grid[coordinates.X, coordinates.Y] = value;
+            }
+        }
+
     }
 }

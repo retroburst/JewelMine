@@ -7,38 +7,38 @@ using System.Threading.Tasks;
 namespace JewelMine.Engine.Models
 {
     /// <summary>
-    /// Represents a wall (obstruction) in the mine.
+    /// Represents a delta in the mine.
     /// </summary>
-    public class WallModel : MineObjectModel
+    public class Jewel : MineObject
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="WallModel"/> class.
+        /// Initializes a new instance of the <see cref="Jewel"/> class.
         /// </summary>
         /// <param name="type">The type.</param>
-        public WallModel(WallType type)
+        public Jewel(JewelType type)
         {
-            WallType = type;
+            JewelType = type;
         }
 
         /// <summary>
-        /// Gets the type of the wall.
+        /// Gets the type of the delta.
         /// </summary>
         /// <value>
-        /// The type of the wall.
+        /// The type of the delta.
         /// </value>
-        public WallType WallType { get; private set; }
+        public JewelType JewelType { get; private set; }
 
         /// <summary>
-        /// Gets the wall type string.
+        /// Gets the delta type string.
         /// </summary>
         /// <value>
-        /// The wall type string.
+        /// The delta type string.
         /// </value>
-        public string WallTypeString 
+        public string JewelTypeString 
         { 
             get
             {
-                return(WallType.ToString());
+                return(JewelType.ToString());
             }
         }
     }

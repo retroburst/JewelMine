@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace JewelMine.Engine.Models
 {
-    public class MineObjectModel
+    public class MineObject
     {
 
     }

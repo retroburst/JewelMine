@@ -10,14 +10,14 @@ namespace JewelMine.Engine.Models
     /// <summary>
     /// Represents the game state at any given time.
     /// </summary>
-    public class GameStateModel
+    public class GameState
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="GameStateModel"/> class.
+        /// Initializes a new instance of the <see cref="GameState"/> class.
         /// </summary>
-        public GameStateModel()
+        public GameState()
         {
-            MineModel = new MineModel();
+            Mine = new Mine();
             GamePlayState = GamePlayState.NotStarted;
             GameLevel = GameConstants.GAME_DEFAULT_LEVEL;
             GameLevelInitialLines = GameConstants.GAME_DEFAULT_LEVEL_INITIAL_LINES;
@@ -25,13 +25,13 @@ namespace JewelMine.Engine.Models
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="GameStateModel"/> class.
+        /// Initializes a new instance of the <see cref="GameState"/> class.
         /// </summary>
         /// <param name="mineModel">The mine model.</param>
-        public GameStateModel(MineModel mineModel)
+        public GameState(Mine mineModel)
             : this()
         {
-            MineModel = mineModel;
+            Mine = mineModel;
         }
 
         /// <summary>
@@ -43,12 +43,12 @@ namespace JewelMine.Engine.Models
         public GamePlayState GamePlayState { get; internal set; }
 
         /// <summary>
-        /// Gets the mine model.
+        /// Gets the grid.
         /// </summary>
         /// <value>
-        /// The mine model.
+        /// The grid.
         /// </value>
-        public MineModel MineModel { get; private set; }
+        public Mine Mine { get; private set; }
 
         /// <summary>
         /// Gets the game level.

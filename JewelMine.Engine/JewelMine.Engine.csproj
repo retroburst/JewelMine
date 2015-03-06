@@ -40,16 +40,19 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Models\Coordinates.cs" />
     <Compile Include="GameConstants.cs" />
     <Compile Include="GameHelpers.cs" />
     <Compile Include="GameLogic.cs" />
     <Compile Include="GameLogicUpdate.cs" />
     <Compile Include="GameTimer.cs" />
-    <Compile Include="Models\GameStateModel.cs" />
-    <Compile Include="Models\MineModel.cs" />
-    <Compile Include="Models\JewelModel.cs" />
-    <Compile Include="Models\MineObjectModel.cs" />
-    <Compile Include="Models\WallModel.cs" />
+    <Compile Include="Models\GameState.cs" />
+    <Compile Include="Models\JewelGroup.cs" />
+    <Compile Include="Models\JewelGroupMember.cs" />
+    <Compile Include="Models\Mine.cs" />
+    <Compile Include="Models\Jewel.cs" />
+    <Compile Include="Models\MineObject.cs" />
+    <Compile Include="Models\Wall.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

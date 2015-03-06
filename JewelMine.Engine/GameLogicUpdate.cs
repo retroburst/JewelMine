@@ -15,18 +15,10 @@ namespace JewelMine.Engine
     public class GameLogicUpdate
     {
         /// <summary>
-        /// Gets the new jewels.
+        /// Gets the delta movements.
         /// </summary>
         /// <value>
-        /// The new jewels.
-        /// </value>
-        public List<NewJewel> NewJewels { get; private set; }
-
-        /// <summary>
-        /// Gets the jewel movements.
-        /// </summary>
-        /// <value>
-        /// The jewel movements.
+        /// The delta movements.
         /// </value>
         public List<JewelMovement> JewelMovements { get; private set; }
 
@@ -35,30 +27,17 @@ namespace JewelMine.Engine
         /// </summary>
         public GameLogicUpdate()
         {
-            NewJewels = new List<NewJewel>();
             JewelMovements = new List<JewelMovement>();
         }
     }
 
     /// <summary>
-    /// Represents a new jewel added.
-    /// </summary>
-    public class NewJewel
-    {
-        public JewelModel Jewel { get; set; }
-        public int X { get; set; }
-        public int Y { get; set; }
-    }
-
-    /// <summary>
-    /// Represents a jewel movement.
+    /// Represents a delta movement.
     /// </summary>
     public class JewelMovement
     {
-        public JewelModel Jewel { get; set; }
-        public int OriginalX { get; set; }
-        public int OriginalY { get; set; }
-        public int NewX { get; set; }
-        public int NewY { get; set; }
+        public Jewel Jewel { get; set; }
+        public Coordinates Original { get; set; }
+        public Coordinates New { get; set; }
     }
 }
