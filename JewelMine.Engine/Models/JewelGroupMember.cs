@@ -17,7 +17,7 @@ namespace JewelMine.Engine.Models
         /// <value>
         /// The delta.
         /// </value>
-        public Jewel Jewel { get; private set; }
+        public Jewel Jewel { get; internal set; }
 
         /// <summary>
         /// Gets the coordinates.
@@ -25,7 +25,15 @@ namespace JewelMine.Engine.Models
         /// <value>
         /// The coordinates.
         /// </value>
-        public Coordinates Coordinates { get; private set; }
+        public Coordinates Coordinates { get; internal set; }
+
+        /// <summary>
+        /// Gets a value indicating whether this instance has entered bounds.
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if this instance has entered bounds; otherwise, <c>false</c>.
+        /// </value>
+        public bool HasEnteredBounds { get; internal set; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="JewelGroupMember"/> class.
@@ -36,6 +44,21 @@ namespace JewelMine.Engine.Models
         {
             Jewel = jewel;
             Coordinates = coordinates;
+            HasEnteredBounds = false;
         }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="JewelGroupMember"/> class.
+        /// </summary>
+        /// <param name="jewel">The jewel.</param>
+        /// <param name="coordinates">The coordinates.</param>
+        /// <param name="hasEnteredBounds">if set to <c>true</c> [has entered bounds].</param>
+        public JewelGroupMember(Jewel jewel, Coordinates coordinates, bool hasEnteredBounds)
+        {
+            Jewel = jewel;
+            Coordinates = coordinates;
+            HasEnteredBounds = hasEnteredBounds;
+        }
+
     }
 }

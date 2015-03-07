@@ -75,56 +75,54 @@ namespace JewelMine.Engine
         /// <summary>
         /// Performs the game logic.
         /// </summary>
-        /// <param name="inputBuffer">The input buffer.</param>
+        /// <param name="input">The input.</param>
         /// <returns></returns>
-        /// <exception cref="NotImplementedException">
+        /// <exception cref="System.NotImplementedException">
         /// Game Over
         /// or
         /// Game Over
         /// </exception>
-        /// <exception cref="System.NotImplementedException">Game Over
-        /// or
-        /// Game Over</exception>
-        public GameLogicUpdate PerformGameLogic(Queue<MovementType> inputBuffer)
+        public GameLogicUpdate PerformGameLogic(GameLogicInput input)
         {
             GameLogicUpdate logicUpdate = new GameLogicUpdate();
             // check for jewels that need to move down because of successful collisions
 
-            // check for new collisions
+            
 
             // move delta based on input or down by default if no input
-            bool userInputMovement = true;
-            MovementType deltaMovement = MovementType.Down;
-            if (inputBuffer.Count == 0)
-            {
-                inputBuffer.Enqueue(MovementType.Down);
-                userInputMovement = false;
-            }
-
+            bool userInputMovement = input.DeltaMovement.HasValue;
+            MovementType deltaMovement = input.DeltaMovement.HasValue ? input.DeltaMovement.Value : MovementType.Down;
             if (state.Mine.Delta != null)
             {
-                foreach (var movement in inputBuffer)
+                bool deltaStationary = false;
+                int numPositionsToMove = 1;
+                // if delta is up against a boundary on either side that the movement is towards, override and move delta down instead
+                if (IsDeltaAgainstBoundary(deltaMovement)) deltaMovement = MovementType.Down;
+                // if delta is up against another block or bounadry on underside ignore input - do not move delta and add new delta
+                if (userInputMovement && deltaMovement == MovementType.Down) numPositionsToMove = 2;
+                MoveDelta(deltaMovement, logicUpdate, numPositionsToMove);
+                if (IsDeltaStationary()) deltaStationary = true;
+                if (deltaStationary)
                 {
-                    bool deltaStationary = false;
-                    bool moved = false;
-                    int numPositionsToMove = 1;
-                    deltaMovement = movement;
-                    // if delta is up against a boundary on either side that the movement is towards, override and move delta down instead
-                    if (IsDeltaAgainstBoundary(deltaMovement)) deltaMovement = MovementType.Down;
-                    // if delta is up against another block or bounadry on underside ignore input - do not move delta and add new delta
-                    if (IsDeltaStationary()) deltaStationary = true;
-                    if (userInputMovement && deltaMovement == MovementType.Down) numPositionsToMove = 2;
-                    if (!deltaStationary)
+                    if (state.Mine.Delta.StationaryTickCount >= 5)
                     {
-                        moved = MoveDelta(movement, logicUpdate, numPositionsToMove);
-                    }
-                    else if (deltaStationary || !moved)
-                    {
+                        // delta is now in position and a new one will be added
                         state.Mine.Delta = null;
                     }
+                    else
+                    {
+                        state.Mine.Delta.StationaryTickCount++;
+                    }
+                }
+                else
+                {
+                    state.Mine.Delta.StationaryTickCount = 0;
                 }
             }
-            // if no delta, add a new one
+
+            // check for new collisions - ONLY DO THE BELOW IF NO COLLISIONS!!!!!!!!!!!
+
+            // if no delta and no collision, add a new one
             if (state.Mine.Delta == null)
             {
                 bool added = AddDelta(logicUpdate);
@@ -178,8 +176,7 @@ namespace JewelMine.Engine
             state.Mine.Grid[targetCoorindinate, 0] = delta.Bottom.Jewel;
             delta.Bottom.Coordinates.X = targetCoorindinate;
             delta.Bottom.Coordinates.Y = 0;
-            delta.Top.Coordinates.Invalidate();
-            delta.Middle.Coordinates.Invalidate();
+            delta.Bottom.HasEnteredBounds = true;
             logicUpdate.JewelMovements.Add(new JewelMovement() { Jewel = delta.Bottom.Jewel, Original = Coordinates.CreateInvalidatedCoordinates(), New = new Coordinates(targetCoorindinate, 0) });
             return (true);
         }
@@ -228,47 +225,132 @@ namespace JewelMine.Engine
             switch (movement)
             {
                 case MovementType.Down:
-                    targetCoordinates = FindClosestDownPosition(delta.Bottom.Coordinates, numPositionsToMove);
-                    if (targetCoordinates == null) return (false);
-                    // save current positions
-                    Coordinates originalTop = delta.Top.Coordinates.Clone();
-                    Coordinates originalMiddle = delta.Middle.Coordinates.Clone();
-                    Coordinates originalBottom = delta.Bottom.Coordinates.Clone();
-                    // clear grid
-                    if (!delta.Top.Coordinates.IsInvalidated()) state.Mine[delta.Top.Coordinates] = null;
-                    if (!delta.Middle.Coordinates.IsInvalidated()) state.Mine[delta.Middle.Coordinates] = null;
-                    if (!delta.Bottom.Coordinates.IsInvalidated()) state.Mine[delta.Bottom.Coordinates] = null;
-                    // shuffle down
-                    delta.Top.Coordinates.CopyFrom(delta.Middle.Coordinates);
-                    delta.Middle.Coordinates.CopyFrom(delta.Bottom.Coordinates);
-                    delta.Bottom.Coordinates.CopyFrom(targetCoordinates);
-                    if (!delta.Top.Coordinates.IsInvalidated())
-                    {
-                        state.Mine[delta.Top.Coordinates] = delta.Top.Jewel;
-                        logicUpdate.JewelMovements.Add(new JewelMovement() { Jewel = delta.Top.Jewel, Original = originalTop, New = delta.Top.Coordinates });
-                    }
-                    if (!delta.Middle.Coordinates.IsInvalidated())
-                    {
-                        state.Mine[delta.Middle.Coordinates] = delta.Middle.Jewel;
-                        logicUpdate.JewelMovements.Add(new JewelMovement() { Jewel = delta.Middle.Jewel, Original = originalMiddle, New = delta.Middle.Coordinates });
-                    }
-                    if (!delta.Bottom.Coordinates.IsInvalidated())
-                    {
-                        state.Mine[delta.Bottom.Coordinates] = delta.Bottom.Jewel;
-                        logicUpdate.JewelMovements.Add(new JewelMovement() { Jewel = delta.Bottom.Jewel, Original = originalBottom, New = delta.Bottom.Coordinates });
-                    }
-                    return (true);
-                    
+                    targetCoordinates = FindClosestDownPositionForDelta(delta, numPositionsToMove); break;
                 case MovementType.Left:
-                    targetCoordinates = FindClosestLeftPosition(delta.Bottom.Coordinates, numPositionsToMove); break;
-                // check other in group if not invalidated
-
+                    targetCoordinates = FindClosestLeftPositionForDelta(delta, numPositionsToMove); break;
                 case MovementType.Right:
-                    targetCoordinates = FindClosestRightPosition(delta.Bottom.Coordinates, numPositionsToMove); break;
-                // check other in group if not invalidated
+                    targetCoordinates = FindClosestRightPositionForDelta(delta, numPositionsToMove); break;
             }
-            return (false);
 
+            if (targetCoordinates == null) return (false);
+            // save current positions
+            Coordinates originalTop = delta.Top.Coordinates;
+            Coordinates originalMiddle = delta.Middle.Coordinates;
+            Coordinates originalBottom = delta.Bottom.Coordinates;
+            // clear grid
+            ClearGridPosition(delta.Top.Coordinates);
+            ClearGridPosition(delta.Middle.Coordinates);
+            ClearGridPosition(delta.Bottom.Coordinates);
+            // shuffle down
+            delta.Top.Coordinates = new Coordinates(targetCoordinates.X, targetCoordinates.Y - 2);
+            delta.Middle.Coordinates = new Coordinates(targetCoordinates.X, targetCoordinates.Y - 1);
+            delta.Bottom.Coordinates = targetCoordinates;
+            if (CoordinatesInBounds(delta.Top.Coordinates))
+            {
+                if (!delta.Top.HasEnteredBounds) delta.Top.HasEnteredBounds = true;
+                state.Mine[delta.Top.Coordinates] = delta.Top.Jewel;
+                logicUpdate.JewelMovements.Add(new JewelMovement() { Jewel = delta.Top.Jewel, Original = originalTop, New = delta.Top.Coordinates });
+            }
+            if (CoordinatesInBounds(delta.Middle.Coordinates))
+            {
+                if (!delta.Middle.HasEnteredBounds) delta.Middle.HasEnteredBounds = true;
+                state.Mine[delta.Middle.Coordinates] = delta.Middle.Jewel;
+                logicUpdate.JewelMovements.Add(new JewelMovement() { Jewel = delta.Middle.Jewel, Original = originalMiddle, New = delta.Middle.Coordinates });
+            }
+            if (CoordinatesInBounds(delta.Bottom.Coordinates))
+            {
+                if (!delta.Bottom.HasEnteredBounds) delta.Bottom.HasEnteredBounds = true;
+                state.Mine[delta.Bottom.Coordinates] = delta.Bottom.Jewel;
+                logicUpdate.JewelMovements.Add(new JewelMovement() { Jewel = delta.Bottom.Jewel, Original = originalBottom, New = delta.Bottom.Coordinates });
+            }
+            return (true);
+        }
+
+        /// <summary>
+        /// Finds the closest down position for delta.
+        /// </summary>
+        /// <param name="delta">The delta.</param>
+        /// <param name="numPositionsToMove">The number positions to move.</param>
+        /// <returns></returns>
+        private Coordinates FindClosestDownPositionForDelta(JewelGroup delta, int numPositionsToMove)
+        {
+            Coordinates result = null;
+            for (int i = 1; i <= numPositionsToMove; i++)
+            {
+                Coordinates newBottom = new Coordinates(delta.Bottom.Coordinates.X, delta.Bottom.Coordinates.Y + i);
+                Coordinates newMiddle = new Coordinates(delta.Middle.Coordinates.X, delta.Middle.Coordinates.Y + i);
+                Coordinates newTop = new Coordinates(delta.Top.Coordinates.X, delta.Top.Coordinates.Y + i);
+
+                if (CoordinatesInBounds(newBottom) && CoordinatesAvailable(newBottom)
+                    && (!delta.Middle.HasEnteredBounds || (CoordinatesInBounds(newMiddle)))
+                    && (!delta.Top.HasEnteredBounds || (CoordinatesInBounds(newTop))))
+                {
+                    result = newBottom;
+                }
+                else
+                {
+                    break;
+                }
+            }
+            return (result);
+        }
+
+        /// <summary>
+        /// Finds the closest left position for delta.
+        /// </summary>
+        /// <param name="delta">The delta.</param>
+        /// <param name="numPositionsToMove">The number positions to move.</param>
+        /// <returns></returns>
+        private Coordinates FindClosestLeftPositionForDelta(JewelGroup delta, int numPositionsToMove)
+        {
+            Coordinates result = null;
+            for (int i = 1; i <= numPositionsToMove; i++)
+            {
+                Coordinates newBottom = new Coordinates(delta.Bottom.Coordinates.X - i, delta.Bottom.Coordinates.Y);
+                Coordinates newMiddle = new Coordinates(delta.Middle.Coordinates.X - i, delta.Middle.Coordinates.Y);
+                Coordinates newTop = new Coordinates(delta.Top.Coordinates.X - i, delta.Top.Coordinates.Y);
+
+                if (CoordinatesInBounds(newBottom) && CoordinatesAvailable(newBottom)
+                    && (!delta.Middle.HasEnteredBounds || (CoordinatesInBounds(newMiddle) && CoordinatesAvailable(newMiddle)))
+                    && (!delta.Top.HasEnteredBounds || (CoordinatesInBounds(newTop) && CoordinatesAvailable(newTop))))
+                {
+                    result = newBottom;
+                }
+                else
+                {
+                    break;
+                }
+            }
+            return (result);
+        }
+
+        /// <summary>
+        /// Finds the closest right position for delta.
+        /// </summary>
+        /// <param name="delta">The delta.</param>
+        /// <param name="numPositionsToMove">The number positions to move.</param>
+        /// <returns></returns>
+        private Coordinates FindClosestRightPositionForDelta(JewelGroup delta, int numPositionsToMove)
+        {
+            Coordinates result = null;
+            for (int i = 1; i <= numPositionsToMove; i++)
+            {
+                Coordinates newBottom = new Coordinates(delta.Bottom.Coordinates.X + i, delta.Bottom.Coordinates.Y);
+                Coordinates newMiddle = new Coordinates(delta.Middle.Coordinates.X + i, delta.Middle.Coordinates.Y);
+                Coordinates newTop = new Coordinates(delta.Top.Coordinates.X + i, delta.Top.Coordinates.Y);
+
+                if (CoordinatesInBounds(newBottom) && CoordinatesAvailable(newBottom)
+                    && (!delta.Middle.HasEnteredBounds || (CoordinatesInBounds(newMiddle) && CoordinatesAvailable(newMiddle)))
+                    && (!delta.Top.HasEnteredBounds || (CoordinatesInBounds(newTop) && CoordinatesAvailable(newTop))))
+                {
+                    result = newBottom;
+                }
+                else
+                {
+                    break;
+                }
+            }
+            return (result);
         }
 
         /// <summary>
@@ -375,7 +457,7 @@ namespace JewelMine.Engine
         /// </summary>
         /// <param name="target">The target.</param>
         /// <returns></returns>
-        private bool CoordinatesAvailable(Coordinates target)
+        public bool CoordinatesAvailable(Coordinates target)
         {
             if (target == null) throw new ArgumentException("Argument cannot be null.", "target");
             return (state.Mine.Grid[target.X, target.Y] == null);
@@ -386,11 +468,23 @@ namespace JewelMine.Engine
         /// </summary>
         /// <param name="target">The target.</param>
         /// <returns></returns>
-        private bool CoordinatesInBounds(Coordinates target)
+        public bool CoordinatesInBounds(Coordinates target)
         {
             if (target == null) throw new ArgumentException("Argument cannot be null.", "target");
             return (target.X >= 0 && target.X < state.Mine.Columns
                 && target.Y >= 0 && target.Y < state.Mine.Depth);
+        }
+
+        /// <summary>
+        /// Clears the grid position.
+        /// </summary>
+        /// <param name="coordinates">The coordinates.</param>
+        private void ClearGridPosition(Coordinates coordinates)
+        {
+            if (coordinates != null && CoordinatesInBounds(coordinates))
+            {
+                state.Mine[coordinates] = null;
+            }
         }
 
     }

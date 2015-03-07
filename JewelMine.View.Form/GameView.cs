@@ -23,7 +23,7 @@ namespace JewelMine.View.Forms
     {
         private GameTimer timer = null;
         private GameLogic gameEngine = null;
-        private Queue<MovementType> inputBuffer = null;
+        private MovementType? inputMovement = null;
         public Dictionary<JewelType, Bitmap> jewelImageResourceDictionary = null;
         private Dictionary<JewelType, Bitmap> jewelResizedImageResourceDictionary = null;
         private Bitmap[] backgroundImageArray = null;
@@ -45,8 +45,6 @@ namespace JewelMine.View.Forms
             InitializeComponent();
             // save our game engine into a variable
             gameEngine = engine;
-            // buffer for user input
-            inputBuffer = new Queue<MovementType>();
             // set paint styles
             SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.DoubleBuffer | ControlStyles.OptimizedDoubleBuffer, true);
             timer = new GameTimer();
@@ -80,15 +78,15 @@ namespace JewelMine.View.Forms
             {
                 case Keys.Left:
                 case Keys.A:
-                    inputBuffer.Enqueue(MovementType.Left);
+                    inputMovement = MovementType.Left;
                     break;
                 case Keys.Right:
                 case Keys.D:
-                    inputBuffer.Enqueue(MovementType.Right);
+                    inputMovement = MovementType.Right;
                     break;
                 case Keys.Down:
                 case Keys.S:
-                    inputBuffer.Enqueue(MovementType.Down);
+                    inputMovement = MovementType.Down;
                     break;
             }
         }
@@ -139,13 +137,13 @@ namespace JewelMine.View.Forms
                 //Console.WriteLine("Looping");
                 startTime = timer.ElapsedMilliseconds;
                 Application.DoEvents();
-                GameLogicUpdate logicUpdate = gameEngine.PerformGameLogic(inputBuffer);
+                GameLogicUpdate logicUpdate = gameEngine.PerformGameLogic(new GameLogicInput() { DeltaMovement = inputMovement });
                 Invalidate(logicUpdate);
                 while ((timer.ElapsedMilliseconds - startTime) < gameEngine.GameStateModel.GameTickSpeedMilliseconds)
                 {
                     //Console.WriteLine("Waiting..");
                 }
-                inputBuffer.Clear();
+                inputMovement = null;
             }
             timer.Stop();
             Console.WriteLine("Exited game loop..");
@@ -301,7 +299,7 @@ namespace JewelMine.View.Forms
         /// <returns></returns>
         public Rectangle CalculateInvalidationRegion(Jewel jewel, Coordinates originalCoordinates, Coordinates newCoordinates)
         {
-            if (originalCoordinates.IsInvalidated()) return CalculateInvalidationRegion(jewel, newCoordinates);
+            if (!gameEngine.CoordinatesInBounds(originalCoordinates)) return CalculateInvalidationRegion(jewel, newCoordinates);
             Rectangle region = new Rectangle();
             int minX = Math.Min(originalCoordinates.X, newCoordinates.X);
             int minY = Math.Min(originalCoordinates.Y, newCoordinates.Y);

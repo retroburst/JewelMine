@@ -83,7 +83,7 @@ namespace JewelMine.Engine.Models
         /// <returns></returns>
         public bool IsInvalidated()
         {
-            return (X == -1 && Y == -1);
+            return (X == -1 || Y == -1);
         }
 
         /// <summary>

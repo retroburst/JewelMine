@@ -38,10 +38,35 @@ namespace JewelMine.Engine.Models
         /// <param name="bottom">The bottom.</param>
         public JewelGroup(Jewel top, Jewel middle, Jewel bottom)
         {
-            Top = new JewelGroupMember(top, new Coordinates());
-            Middle = new JewelGroupMember(middle, new Coordinates());
-            Bottom = new JewelGroupMember(bottom, new Coordinates());
+            Top = new JewelGroupMember(top, Coordinates.CreateInvalidatedCoordinates());
+            Middle = new JewelGroupMember(middle, Coordinates.CreateInvalidatedCoordinates());
+            Bottom = new JewelGroupMember(bottom, Coordinates.CreateInvalidatedCoordinates());
         }
 
+        /// <summary>
+        /// Gets the stationary tick count.
+        /// </summary>
+        /// <value>
+        /// The stationary tick count.
+        /// </value>
+        public int StationaryTickCount
+        {
+            get;
+            internal set;
+        }
+
+        /// <summary>
+        /// Gets a value indicating whether this instance has whole group entered bounds.
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if this instance has whole group entered bounds; otherwise, <c>false</c>.
+        /// </value>
+        public bool HasWholeGroupEnteredBounds
+        {
+            get
+            {
+                return (Top.HasEnteredBounds && Middle.HasEnteredBounds && Bottom.HasEnteredBounds);
+            }
+        }
     }
 }
