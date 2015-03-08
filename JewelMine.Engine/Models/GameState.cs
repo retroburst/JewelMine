@@ -20,7 +20,6 @@ namespace JewelMine.Engine.Models
             Mine = new Mine();
             GamePlayState = GamePlayState.NotStarted;
             GameLevel = GameConstants.GAME_DEFAULT_LEVEL;
-            GameLevelInitialLines = GameConstants.GAME_DEFAULT_LEVEL_INITIAL_LINES;
             GameTickSpeedMilliseconds = GameConstants.GAME_DEFAULT_TICK_SPEED_MILLISECONDS;
         }
 
@@ -57,14 +56,6 @@ namespace JewelMine.Engine.Models
         /// The game level.
         /// </value>
         public int GameLevel { get; internal set; }
-
-        /// <summary>
-        /// Gets the game level initial lines.
-        /// </summary>
-        /// <value>
-        /// The game level initial lines.
-        /// </value>
-        public int GameLevelInitialLines { get; internal set; }
 
         /// <summary>
         /// Gets the game tick speed milliseconds.

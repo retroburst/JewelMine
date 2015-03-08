@@ -94,6 +94,7 @@ namespace JewelMine.Engine
             MovementType deltaMovement = input.DeltaMovement.HasValue ? input.DeltaMovement.Value : MovementType.Down;
             if (state.Mine.Delta != null)
             {
+                if (input.DeltaSwapJewels) { SwapDeltaJewels(); }
                 bool deltaStationary = false;
                 int numPositionsToMove = 1;
                 // if delta is up against a boundary on either side that the movement is towards, override and move delta down instead
@@ -132,6 +133,21 @@ namespace JewelMine.Engine
         }
 
         /// <summary>
+        /// Swaps the delta jewels downwards.
+        /// </summary>
+        private void SwapDeltaJewels()
+        {
+            JewelGroup delta = state.Mine.Delta;
+            Jewel top = delta.Top.Jewel;
+            delta.Top.Jewel = delta.Bottom.Jewel;
+            delta.Bottom.Jewel = delta.Middle.Jewel;
+            delta.Middle.Jewel = top;
+            if (CoordinatesInBounds(delta.Top.Coordinates)) state.Mine[delta.Top.Coordinates] = delta.Top.Jewel;
+            if (CoordinatesInBounds(delta.Middle.Coordinates)) state.Mine[delta.Middle.Coordinates] = delta.Middle.Jewel;
+            if (CoordinatesInBounds(delta.Bottom.Coordinates)) state.Mine[delta.Bottom.Coordinates] = delta.Bottom.Jewel;
+        }
+
+        /// <summary>
         /// Determines whether [is delta against boundary] [the specified delta movement].
         /// </summary>
         /// <param name="deltaMovement">The delta movement.</param>
@@ -139,8 +155,9 @@ namespace JewelMine.Engine
         private bool IsDeltaAgainstBoundary(MovementType deltaMovement)
         {
             bool result = false;
-            if ((deltaMovement == MovementType.Left && state.Mine.Delta.Bottom.Coordinates.X == 0)
-            || (deltaMovement == MovementType.Right && state.Mine.Delta.Bottom.Coordinates.X == state.Mine.Grid.GetUpperBound(0)))
+            JewelGroup delta = state.Mine.Delta;
+            if ((deltaMovement == MovementType.Left && delta.Bottom.Coordinates.X == 0)
+            || (deltaMovement == MovementType.Right && delta.Bottom.Coordinates.X == state.Mine.Grid.GetUpperBound(0)))
             {
                 result = true;
             }
@@ -153,8 +170,9 @@ namespace JewelMine.Engine
         /// <returns></returns>
         private bool IsDeltaStationary()
         {
-            return (state.Mine.Delta.Bottom.Coordinates.Y == state.Mine.Grid.GetUpperBound(1)
-                || state.Mine.Grid[state.Mine.Delta.Bottom.Coordinates.X, state.Mine.Delta.Bottom.Coordinates.Y + 1] != null);
+            JewelGroup delta = state.Mine.Delta;
+            return (delta.Bottom.Coordinates.Y == state.Mine.Grid.GetUpperBound(1)
+                || state.Mine.Grid[delta.Bottom.Coordinates.X, delta.Bottom.Coordinates.Y + 1] != null);
         }
 
         /// <summary>

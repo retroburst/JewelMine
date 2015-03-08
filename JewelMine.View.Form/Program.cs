@@ -19,13 +19,13 @@ namespace JewelMine.View.Forms
         [STAThread]
         static void Main()
         {
-            //TODO: user input -> keyboard buffer and logic for movement 
+            //DONE: user input -> keyboard buffer and logic for movement 
             //TODO: collisions -> detecting collisions in logic and sending in update to view
-            //TODO: add initial lines and walls to a level randomly 
+            //TODO: add some initial jewels to start level randomly 
             //      (need smarts to make sure no initial collisions and walls do not impair gameplay totally)
             //      (with walls, only allow up to 50% of width and 20% of height)
             //      (with jewels need to check surrounding similar to collision checks)
-            //TODO: level win and transition to new level including increasing difficulty
+            //TODO: level win and transition to new level including increasing difficulty - increases speed and adds walls
             //TODO: game over
 
             Application.EnableVisualStyles();

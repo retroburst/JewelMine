@@ -21,5 +21,9 @@ namespace JewelMine.Engine
         /// </value>
         public MovementType? DeltaMovement = null;
 
+        /// <summary>
+        /// The delta swap jewels
+        /// </summary>
+        public bool DeltaSwapJewels = false; 
     }
 }
