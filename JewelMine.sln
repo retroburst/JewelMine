@@ -7,6 +7,13 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JewelMine.Engine", "JewelMi
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JewelMine.View.Forms", "JewelMine.View.Form\JewelMine.View.Forms.csproj", "{A7886F94-D2D3-4A81-8A35-82DF1FF8A6DC}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{4CDF61DA-54B9-4921-8337-C81A790C53CE}"
+	ProjectSection(SolutionItems) = preProject
+		readme.md = readme.md
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JewelMine.Resources", "JewelMine.Resources\JewelMine.Resources.csproj", "{22B7D22A-39A3-4647-B2D8-FCBF01C089DF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +28,10 @@ Global
 		{A7886F94-D2D3-4A81-8A35-82DF1FF8A6DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A7886F94-D2D3-4A81-8A35-82DF1FF8A6DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A7886F94-D2D3-4A81-8A35-82DF1FF8A6DC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{22B7D22A-39A3-4647-B2D8-FCBF01C089DF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{22B7D22A-39A3-4647-B2D8-FCBF01C089DF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{22B7D22A-39A3-4647-B2D8-FCBF01C089DF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{22B7D22A-39A3-4647-B2D8-FCBF01C089DF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

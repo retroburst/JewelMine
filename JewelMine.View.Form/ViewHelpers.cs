@@ -1,4 +1,5 @@
 ﻿using JewelMine.Engine;
+using JewelMine.Resources;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -80,7 +81,7 @@ namespace JewelMine.View.Forms
         /// <returns></returns>
         public static Dictionary<JewelType, Bitmap> GenerateJewelImageResourceDictionary()
         {
-            Assembly a = Assembly.GetExecutingAssembly();
+            Assembly a = Assembly.GetAssembly(typeof(GameResources));
             Dictionary<JewelType, Bitmap> result = new Dictionary<JewelType, Bitmap>();
             string[] names = Enum.GetNames(typeof(JewelType)).Where(x => x != JewelType.Unknown.ToString()).ToArray();
             foreach (string name in names)
@@ -99,7 +100,7 @@ namespace JewelMine.View.Forms
         /// <returns></returns>
         public static Bitmap[] GenerateBackgroundImageArray()
         {
-            Assembly a = Assembly.GetExecutingAssembly();
+            Assembly a = Assembly.GetAssembly(typeof(GameResources));
             List<Bitmap> result = new List<Bitmap>();
             string[] names = ViewConstants.BACKGROUND_TEXTURE_NAMES;
             foreach (string name in names)
