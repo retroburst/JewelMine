@@ -27,6 +27,14 @@ namespace JewelMine.View.Forms
             //      (with jewels need to check surrounding similar to collision checks)
             //TODO: level win and transition to new level including increasing difficulty - increases speed and adds walls
             //TODO: game over
+            //TODO: add music and sound for swaps and placement, supposed example below for NAudio
+            /*
+             * reader = new Mp3FileReader("test.mp3");
+                var waveOut = new WaveOut(); // or WaveOutEvent()
+                waveOut.Init(reader); 
+                waveOut.Play();
+            */
+
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
