@@ -86,9 +86,7 @@ namespace JewelMine.Engine
         {
             GameLogicUpdate logicUpdate = new GameLogicUpdate();
             // check for jewels that need to move down because of successful collisions
-
-            
-
+            MoveDownJewelsInLimbo(logicUpdate);
             // move delta based on input or down by default if no input
             bool userInputMovement = input.DeltaMovement.HasValue;
             MovementType deltaMovement = input.DeltaMovement.HasValue ? input.DeltaMovement.Value : MovementType.Down;
@@ -130,6 +128,30 @@ namespace JewelMine.Engine
                 if (!added) { throw new NotImplementedException("Game Over"); }
             }
             return (logicUpdate);
+        }
+
+        /// <summary>
+        /// Moves down jewels in limbo.
+        /// </summary>
+        /// <param name="logicUpdate">The logic update.</param>
+        private void MoveDownJewelsInLimbo(GameLogicUpdate logicUpdate)
+        {
+            for (int x = state.Mine.Grid.GetUpperBound(0); x >= 0; x--)
+            {
+                for (int y = state.Mine.Grid.GetUpperBound(1); y >= 0; y--)
+                {
+                    MineObject mineObject = state.Mine.Grid[x, y];
+                    if (!(mineObject is Jewel)) continue;
+                    if (state.Mine.Grid[x, y] != null && (state.Mine.Delta == null || !state.Mine.Delta.IsGroupMember((Jewel)mineObject)))
+                    {
+                        if (CoordinatesInBounds(new Coordinates(x, y + 1)))
+                        {
+                            // if the position under has nothing, need to move the jewel down
+                            if (state.Mine.Grid[x, y + 1] == null) MoveJewel(new Coordinates(x, y), MovementType.Down, logicUpdate);
+                        }
+                    }
+                }
+            }
         }
 
         /// <summary>

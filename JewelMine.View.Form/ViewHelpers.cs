@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -147,5 +148,20 @@ namespace JewelMine.View.Forms
             }
             return (result);
         }
+
+        /// <summary>
+        /// Gets the music resource.
+        /// </summary>
+        /// <param name="fileName">Name of the file.</param>
+        /// <returns></returns>
+        public static Stream GetMusicResource(string fileName)
+        {
+            Stream result = null;
+            Assembly a = Assembly.GetAssembly(typeof(GameResources));
+            string resourceName = string.Format(ViewConstants.MUSIC_RESOURCE_PATTERN, fileName);
+            result = a.GetManifestResourceStream(resourceName);
+            return (result);
+        }
+
     }
 }

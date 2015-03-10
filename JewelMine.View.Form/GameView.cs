@@ -38,6 +38,7 @@ namespace JewelMine.View.Forms
         private Pen gridPen = null;
         private Pen deltaBorderPen = null;
         private Rectangle deltaBorder = Rectangle.Empty;
+        private AudioPlayer player = null;
         
         /// <summary>
         /// Initializes a new instance of the <see cref="GameView" /> class.
@@ -66,6 +67,9 @@ namespace JewelMine.View.Forms
             // this once here instead of resizing every time we
             // draw a delta - which is a very expensive operation
             jewelResizedImageResourceDictionary = ViewHelpers.GenerateResizedJewelImageResourceDictionary(jewelImageResourceDictionary, cellWidth, cellHeight, jewelBitmapOffset);
+            //TODO: background music
+            //player = new AudioPlayer();
+            //player.Play(ViewHelpers.GetMusicResource(ViewConstants.BACKGROUND_MUSIC_TRACK_NAME));
             // signal game start
             gameEngine.StartGame();
         }
@@ -375,13 +379,13 @@ namespace JewelMine.View.Forms
         //private void DrawObjects<T>(Graphics graphics, T[,] objects, Rectangle[,] squares)
         //    where T : IDrawable
         //{
-        //    for (int i = 0; i <= squares.GetUpperBound(0); i++)
+        //    for (int x = 0; x <= squares.GetUpperBound(0); x++)
         //    {
-        //        for (int j = 0; j <= squares.GetUpperBound(1); j++)
+        //        for (int y = 0; y <= squares.GetUpperBound(1); y++)
         //        {
-        //            T obj = objects[i, j];
+        //            T obj = objects[x, y];
         //            if (obj != null)
-        //                obj.Draw(squares[i, j], this, graphics);
+        //                obj.Draw(squares[x, y], this, graphics);
         //        }
         //    }
         //}

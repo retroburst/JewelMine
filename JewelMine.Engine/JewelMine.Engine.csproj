@@ -40,6 +40,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="GameCollisionDetector.cs" />
     <Compile Include="GameLogicInput.cs" />
     <Compile Include="Models\Coordinates.cs" />
     <Compile Include="GameConstants.cs" />

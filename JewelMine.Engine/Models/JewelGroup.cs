@@ -68,5 +68,18 @@ namespace JewelMine.Engine.Models
                 return (Top.HasEnteredBounds && Middle.HasEnteredBounds && Bottom.HasEnteredBounds);
             }
         }
+
+        /// <summary>
+        /// Determines whether [is group member] [the specified jewel].
+        /// </summary>
+        /// <param name="jewel">The jewel.</param>
+        /// <returns></returns>
+        public bool IsGroupMember(Jewel jewel)
+        {
+            return(jewel == Top.Jewel 
+                || jewel == Middle.Jewel
+                || jewel == Bottom.Jewel);
+        }
+
     }
 }
