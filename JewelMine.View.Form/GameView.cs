@@ -68,8 +68,8 @@ namespace JewelMine.View.Forms
             // draw a delta - which is a very expensive operation
             jewelResizedImageResourceDictionary = ViewHelpers.GenerateResizedJewelImageResourceDictionary(jewelImageResourceDictionary, cellWidth, cellHeight, jewelBitmapOffset);
             //TODO: background music
-            //player = new AudioPlayer();
-            //player.Play(ViewHelpers.GetMusicResource(ViewConstants.BACKGROUND_MUSIC_TRACK_NAME));
+            player = new AudioPlayer();
+            player.Play(ViewHelpers.GetMusicResource(ViewConstants.BACKGROUND_MUSIC_TRACK_NAME));
             // signal game start
             gameEngine.StartGame();
         }
@@ -163,6 +163,7 @@ namespace JewelMine.View.Forms
                 {
                     //Console.WriteLine("Waiting..");
                 }
+                // reset input descriptors
                 inputMovement = null;
                 inputSwapDeltaJewels = false;
             }

@@ -17,6 +17,7 @@ namespace JewelMine.Engine
         public Random Random { get; private set; }
         private string[] jewelNames = null;
         private GameState state = null;
+        private GameCollisionDetector collisionDetector = null;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GameLogic"/> class.
@@ -26,6 +27,7 @@ namespace JewelMine.Engine
             jewelNames = Enum.GetNames(typeof(JewelType)).Where(x => x != JewelType.Unknown.ToString()).ToArray();
             state = new GameState();
             Random = new Random();
+            collisionDetector = new GameCollisionDetector(state);
         }
 
         /// <summary>
@@ -119,9 +121,13 @@ namespace JewelMine.Engine
                 }
             }
 
-            // check for new collisions - ONLY DO THE BELOW IF NO COLLISIONS!!!!!!!!!!!
+            // check for new collisions and update existing
+            collisionDetector.MarkedCollisions.ForEach(x => x.CollisionTickCount++);
+            var markedCollisionsForFinalising = collisionDetector.MarkedCollisions.Where(x => x.CollisionTickCount >= 5).ToArray();
+            collisionDetector.FinaliseCollisions(logicUpdate, markedCollisionsForFinalising);
+            collisionDetector.MarkCollisions(logicUpdate);
 
-            // if no delta and no collision, add a new one
+            // if no delta add a new one
             if (state.Mine.Delta == null)
             {
                 bool added = AddDelta(logicUpdate);

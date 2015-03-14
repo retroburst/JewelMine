@@ -15,12 +15,28 @@ namespace JewelMine.Engine
     public class GameLogicUpdate
     {
         /// <summary>
-        /// Gets the delta movements.
+        /// Gets the jewel movements.
         /// </summary>
         /// <value>
-        /// The delta movements.
+        /// The jewel movements.
         /// </value>
         public List<JewelMovement> JewelMovements { get; private set; }
+
+        /// <summary>
+        /// Gets the collisions.
+        /// </summary>
+        /// <value>
+        /// The collisions.
+        /// </value>
+        public List<CollisionGroup> Collisions { get; private set; }
+
+        /// <summary>
+        /// Gets the finalised collisions.
+        /// </summary>
+        /// <value>
+        /// The finalised collisions.
+        /// </value>
+        public List<CollisionGroup> FinalisedCollisions { get; private set; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GameLogicUpdate"/> class.
@@ -28,16 +44,9 @@ namespace JewelMine.Engine
         public GameLogicUpdate()
         {
             JewelMovements = new List<JewelMovement>();
+            Collisions = new List<CollisionGroup>();
+            FinalisedCollisions = new List<CollisionGroup>();
         }
-    }
 
-    /// <summary>
-    /// Represents a delta movement.
-    /// </summary>
-    public class JewelMovement
-    {
-        public Jewel Jewel { get; set; }
-        public Coordinates Original { get; set; }
-        public Coordinates New { get; set; }
     }
 }
