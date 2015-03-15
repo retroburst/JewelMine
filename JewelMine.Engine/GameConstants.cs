@@ -64,4 +64,15 @@ namespace JewelMine.Engine
         Left,
         Right
     }
+
+    /// <summary>
+    /// Collision directions.
+    /// </summary>
+    public enum CollisionDirection
+    {
+        Vertical,
+        Horizontal,
+        DiagonallyLeft,
+        DiagonallyRight
+    }
 }

@@ -72,6 +72,7 @@ namespace JewelMine.Engine
         /// <param name="logicUpdate">The logic update.</param>
         public void MarkCollisions(GameLogicUpdate logicUpdate)
         {
+            List<MarkedCollisionGroup> foundCollisionGroups = new List<MarkedCollisionGroup>();
             // find new collisions and additions to existing marked collisions and mark
             // add new marks to logic update
             CheckMarkedCollisionsStillValid();
@@ -86,61 +87,81 @@ namespace JewelMine.Engine
                     if (IsAlreadyMarkedCollision(target)) continue;
                     if (state.Mine.Delta != null && state.Mine.Delta.IsGroupMember(target)) continue;
 
+                    MarkedCollisionGroup foundVertical = new MarkedCollisionGroup() { Direction = CollisionDirection.Vertical };
+                    MarkedCollisionGroup foundHorizontal = new MarkedCollisionGroup() { Direction = CollisionDirection.Horizontal };
+                    foundVertical.Members.AddRange(FindCollisions(target, new Coordinates(x, y), coordinates => new Coordinates(coordinates.X, coordinates.Y - 1), coordinates => new Coordinates(coordinates.X, coordinates.Y + 1), coordinates => coordinates.Y >= 0 && coordinates.Y < state.Mine.Depth));
+                    foundHorizontal.Members.AddRange(FindCollisions(target, new Coordinates(x, y), coordinates => new Coordinates(coordinates.X - 1, coordinates.Y), coordinates => new Coordinates(coordinates.X + 1, coordinates.Y), coordinates => coordinates.X >= 0 && coordinates.X < state.Mine.Columns));
+                    foundCollisionGroups.Add(foundVertical);
+                    foundCollisionGroups.Add(foundHorizontal);
 
-
-                    // check up
-                    List<CollisionGroupMember> found = new List<CollisionGroupMember>();
-                    found.Add(new CollisionGroupMember(target, new Coordinates(x, y)));
-                    // make sure can check up
-                    if ((y - 1) >= 0)
+                    var largestCollisionGroup = foundCollisionGroups.OrderByDescending(group => group.Members.Count).FirstOrDefault();
+                    // TODO: make min collision count a constant
+                    if (largestCollisionGroup != null && largestCollisionGroup.Members.Count >= 3)
                     {
-                        // see how many in a row up that are not already marked
-                        for (int searchY = y - 1; searchY >= 0; searchY--)
-                        {
-                            if (state.Mine.Grid[x, searchY] != null && state.Mine.Grid[x, searchY] is Jewel)
-                            {
-                                Jewel searchJewel = (Jewel)state.Mine.Grid[x, searchY];
-                                if (searchJewel.JewelType == target.JewelType)
-                                {
-                                    found.Add(new CollisionGroupMember(searchJewel, new Coordinates(x, searchY)));
-                                }
-                                else
-                                {
-                                    break;
-                                }
-                            }
-                            else
-                            {
-                                break;
-                            }
-                        }
+                        MarkedCollisions.Add(largestCollisionGroup);
                     }
 
-                    if (found.Count >= 3)
-                    {
-                        MarkedCollisionGroup group = new MarkedCollisionGroup();
-                        group.Members.AddRange(found);
-                        group.CollisionTickCount = 0;
-                        MarkedCollisions.Add(group);
-                    }
+                    // check diagonally left
 
-                    // check down
-
-                    // check left
-
-                    // check right
-
-                    // check diagonally upper left 
-
-                    // check diagonally upper right
-
-                    // check diagonally lower left
-
-                    // check diagnoally lower right
-
+                    // check diagonally right
                 }
             }
             // check for new additions to existing marked collisions
+        }
+
+        /// <summary>
+        /// Finds the collisions.
+        /// </summary>
+        /// <param name="target">The target.</param>
+        /// <param name="coordinates">The coordinates.</param>
+        /// <param name="incrementSearch">The increment search.</param>
+        /// <param name="inBounds">The in bounds.</param>
+        /// <returns></returns>
+        private List<CollisionGroupMember> FindCollisions(Jewel target, Coordinates coordinates, Func<Coordinates, Coordinates> incrementSearch, Func<Coordinates, Coordinates> decrementSearch, Func<Coordinates, bool> inBounds)
+        {
+            List<CollisionGroupMember> found = new List<CollisionGroupMember>();
+            found.Add(new CollisionGroupMember(target, coordinates));
+            // check by increment (up)
+            FindCollisionsByDirection(target, coordinates, incrementSearch, inBounds, found);
+            // check by decrement (down)
+            FindCollisionsByDirection(target, coordinates, decrementSearch, inBounds, found);
+            return (found);
+        }
+
+        /// <summary>
+        /// Finds the collisions by direction.
+        /// </summary>
+        /// <param name="target">The target.</param>
+        /// <param name="coordinates">The coordinates.</param>
+        /// <param name="moveSearch">The move search.</param>
+        /// <param name="inBounds">The in bounds.</param>
+        /// <param name="foundCollisions">The found collisions.</param>
+        private void FindCollisionsByDirection(Jewel target, Coordinates targetCoordinates, Func<Coordinates, Coordinates> moveSearch, Func<Coordinates, bool> inBounds, List<CollisionGroupMember> foundCollisions)
+        {
+            Coordinates coordinates = moveSearch(targetCoordinates);
+            while (inBounds(coordinates))
+            {
+                // see how many in a row up that are not already marked
+                if (state.Mine[coordinates] != null && state.Mine[coordinates] is Jewel)
+                {
+                    Jewel searchJewel = (Jewel)state.Mine[coordinates];
+                    if (searchJewel.JewelType == target.JewelType 
+                        && !IsAlreadyMarkedCollision(target)
+                        && (state.Mine.Delta == null || !state.Mine.Delta.IsGroupMember(searchJewel)))
+                    {
+                        foundCollisions.Add(new CollisionGroupMember(searchJewel, coordinates));
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+                else
+                {
+                    break;
+                }
+                coordinates = moveSearch(coordinates);
+            }
         }
 
         /// <summary>

@@ -13,6 +13,7 @@ namespace JewelMine.Engine.Models
     public class MarkedCollisionGroup : CollisionGroup
     {
         public int CollisionTickCount { get; internal set; }
+        public CollisionDirection Direction { get; set; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MarkedCollisionGroup"/> class.

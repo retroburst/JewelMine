@@ -248,11 +248,14 @@ namespace JewelMine.Engine
         private JewelGroup GenerateRandomDeltaJewelGroup()
         {
             Jewel[] randomJewels = new Jewel[3];
+            int doubleJewelChance = Random.Next(0, 100);
             for (int i = 0; i < randomJewels.Length; i++)
             {
                 int randomIndex = Random.Next(0, jewelNames.Length);
                 JewelType type = (JewelType)Enum.Parse(typeof(JewelType), jewelNames[randomIndex]);
                 randomJewels[i] = new Jewel(type);
+                /// for testing only
+                if(i == 2)randomJewels[i - 1] = new Jewel(type);
             }
             return (new JewelGroup(randomJewels[0], randomJewels[1], randomJewels[2]));
         }

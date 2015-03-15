@@ -214,7 +214,7 @@ namespace JewelMine.View.Forms
             DrawGrid(graphics, cells);
             DrawJewels(graphics);
             DrawDeltaBorder(graphics);
-
+            
             //DrawObjects<Wall>(g, walls, squares);
             //DrawObjects<Block>(g, blocks, squares);
             //DrawObjects<IStructure>(g, structures, squares);
