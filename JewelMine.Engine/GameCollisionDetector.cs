@@ -51,12 +51,12 @@ namespace JewelMine.Engine
             List<MarkedCollisionGroup> invalidCollisions = new List<MarkedCollisionGroup>();
             // for each collision group, check that each jewel is still
             // in it's position since the collision, if not remove it
-            foreach(MarkedCollisionGroup group in MarkedCollisions)
+            foreach (MarkedCollisionGroup group in MarkedCollisions)
             {
-                foreach(CollisionGroupMember member in group.Members)
+                foreach (CollisionGroupMember member in group.Members)
                 {
                     MineObject target = state.Mine[member.Coordinates];
-                    if(target == null || target != member.Jewel)
+                    if (target == null || target != member.Jewel)
                     {
                         invalidCollisions.Add(group);
                         break;
@@ -75,7 +75,82 @@ namespace JewelMine.Engine
             // find new collisions and additions to existing marked collisions and mark
             // add new marks to logic update
             CheckMarkedCollisionsStillValid();
+            // check for new collisions
+            for (int x = state.Mine.Columns - 1; x >= 0; x--)
+            {
+                for (int y = state.Mine.Depth - 1; y >= 0; y--)
+                {
+                    MineObject mineObject = state.Mine.Grid[x, y];
+                    if (mineObject == null || mineObject.GetType() != typeof(Jewel)) continue;
+                    Jewel target = (Jewel)mineObject;
+                    if (IsAlreadyMarkedCollision(target)) continue;
+                    if (state.Mine.Delta != null && state.Mine.Delta.IsGroupMember(target)) continue;
 
+
+
+                    // check up
+                    List<CollisionGroupMember> found = new List<CollisionGroupMember>();
+                    found.Add(new CollisionGroupMember(target, new Coordinates(x, y)));
+                    // make sure can check up
+                    if ((y - 1) >= 0)
+                    {
+                        // see how many in a row up that are not already marked
+                        for (int searchY = y - 1; searchY >= 0; searchY--)
+                        {
+                            if (state.Mine.Grid[x, searchY] != null && state.Mine.Grid[x, searchY] is Jewel)
+                            {
+                                Jewel searchJewel = (Jewel)state.Mine.Grid[x, searchY];
+                                if (searchJewel.JewelType == target.JewelType)
+                                {
+                                    found.Add(new CollisionGroupMember(searchJewel, new Coordinates(x, searchY)));
+                                }
+                                else
+                                {
+                                    break;
+                                }
+                            }
+                            else
+                            {
+                                break;
+                            }
+                        }
+                    }
+
+                    if (found.Count >= 3)
+                    {
+                        MarkedCollisionGroup group = new MarkedCollisionGroup();
+                        group.Members.AddRange(found);
+                        group.CollisionTickCount = 0;
+                        MarkedCollisions.Add(group);
+                    }
+
+                    // check down
+
+                    // check left
+
+                    // check right
+
+                    // check diagonally upper left 
+
+                    // check diagonally upper right
+
+                    // check diagonally lower left
+
+                    // check diagnoally lower right
+
+                }
+            }
+            // check for new additions to existing marked collisions
+        }
+
+        /// <summary>
+        /// Determines whether [is already marked collision] [the specified target].
+        /// </summary>
+        /// <param name="target">The target.</param>
+        /// <returns></returns>
+        private bool IsAlreadyMarkedCollision(Jewel target)
+        {
+            return (MarkedCollisions.Any(x => x.IsGroupMember(target)));
         }
 
         /// <summary>
@@ -102,7 +177,7 @@ namespace JewelMine.Engine
         private void RemoveFromMine(CollisionGroupMember member)
         {
             MineObject target = state.Mine[member.Coordinates];
-            if(target != null && target == member.Jewel)
+            if (target != null && target == member.Jewel)
             {
                 state.Mine[member.Coordinates] = null;
             }

@@ -123,7 +123,7 @@ namespace JewelMine.Engine
 
             // check for new collisions and update existing
             collisionDetector.MarkedCollisions.ForEach(x => x.CollisionTickCount++);
-            var markedCollisionsForFinalising = collisionDetector.MarkedCollisions.Where(x => x.CollisionTickCount >= 5).ToArray();
+            var markedCollisionsForFinalising = collisionDetector.MarkedCollisions.Where(x => x.CollisionTickCount >= 20).ToArray();
             collisionDetector.FinaliseCollisions(logicUpdate, markedCollisionsForFinalising);
             collisionDetector.MarkCollisions(logicUpdate);
 
