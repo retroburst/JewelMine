@@ -89,24 +89,35 @@ namespace JewelMine.Engine
 
                     MarkedCollisionGroup foundVertical = new MarkedCollisionGroup() { Direction = CollisionDirection.Vertical };
                     MarkedCollisionGroup foundHorizontal = new MarkedCollisionGroup() { Direction = CollisionDirection.Horizontal };
+                    MarkedCollisionGroup foundDiagonallyLeft = new MarkedCollisionGroup() { Direction = CollisionDirection.DiagonallyLeft };
+                    MarkedCollisionGroup foundDiagnoallyRight = new MarkedCollisionGroup() { Direction = CollisionDirection.DiagonallyRight };
+
                     foundVertical.Members.AddRange(FindCollisions(target, new Coordinates(x, y), coordinates => new Coordinates(coordinates.X, coordinates.Y - 1), coordinates => new Coordinates(coordinates.X, coordinates.Y + 1), coordinates => coordinates.Y >= 0 && coordinates.Y < state.Mine.Depth));
                     foundHorizontal.Members.AddRange(FindCollisions(target, new Coordinates(x, y), coordinates => new Coordinates(coordinates.X - 1, coordinates.Y), coordinates => new Coordinates(coordinates.X + 1, coordinates.Y), coordinates => coordinates.X >= 0 && coordinates.X < state.Mine.Columns));
+                    foundDiagonallyLeft.Members.AddRange(FindCollisions(target, new Coordinates(x, y), coordinates => new Coordinates(coordinates.X - 1, coordinates.Y - 1), coordinates => new Coordinates(coordinates.X + 1, coordinates.Y + 1), coordinates => coordinates.X >= 0 && coordinates.X < state.Mine.Columns && coordinates.Y >= 0 && coordinates.Y < state.Mine.Depth));
+                    foundDiagnoallyRight.Members.AddRange(FindCollisions(target, new Coordinates(x, y), coordinates => new Coordinates(coordinates.X + 1, coordinates.Y - 1), coordinates => new Coordinates(coordinates.X - 1, coordinates.Y + 1), coordinates => coordinates.X >= 0 && coordinates.X < state.Mine.Columns && coordinates.Y >= 0 && coordinates.Y < state.Mine.Depth));
+
                     foundCollisionGroups.Add(foundVertical);
                     foundCollisionGroups.Add(foundHorizontal);
+                    foundCollisionGroups.Add(foundDiagonallyLeft);
+                    foundCollisionGroups.Add(foundDiagnoallyRight);
 
                     var largestCollisionGroup = foundCollisionGroups.OrderByDescending(group => group.Members.Count).FirstOrDefault();
-                    // TODO: make min collision count a constant
                     if (largestCollisionGroup != null && largestCollisionGroup.Members.Count >= 3)
                     {
                         MarkedCollisions.Add(largestCollisionGroup);
                     }
-
-                    // check diagonally left
-
-                    // check diagonally right
                 }
             }
+            // TODO: 
             // check for new additions to existing marked collisions
+                // loop through marked collisions collection
+                // based on direction of collision group look on ends for new collisions
+                // add to group if there and not in another group
+            
+            // add marked collisions to the logic update
+            logicUpdate.Collisions.Clear();
+            logicUpdate.Collisions.AddRange(MarkedCollisions);
         }
 
         /// <summary>
@@ -145,7 +156,7 @@ namespace JewelMine.Engine
                 if (state.Mine[coordinates] != null && state.Mine[coordinates] is Jewel)
                 {
                     Jewel searchJewel = (Jewel)state.Mine[coordinates];
-                    if (searchJewel.JewelType == target.JewelType 
+                    if (searchJewel.JewelType == target.JewelType
                         && !IsAlreadyMarkedCollision(target)
                         && (state.Mine.Delta == null || !state.Mine.Delta.IsGroupMember(searchJewel)))
                     {

@@ -28,7 +28,7 @@ namespace JewelMine.Engine
         /// <value>
         /// The collisions.
         /// </value>
-        public List<CollisionGroup> Collisions { get; private set; }
+        public List<MarkedCollisionGroup> Collisions { get; private set; }
 
         /// <summary>
         /// Gets the finalised collisions.
@@ -44,7 +44,7 @@ namespace JewelMine.Engine
         public GameLogicUpdate()
         {
             JewelMovements = new List<JewelMovement>();
-            Collisions = new List<CollisionGroup>();
+            Collisions = new List<MarkedCollisionGroup>();
             FinalisedCollisions = new List<CollisionGroup>();
         }
 
