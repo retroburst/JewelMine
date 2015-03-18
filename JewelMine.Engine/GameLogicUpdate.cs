@@ -31,6 +31,14 @@ namespace JewelMine.Engine
         public List<MarkedCollisionGroup> Collisions { get; private set; }
 
         /// <summary>
+        /// Gets the invalid collisions.
+        /// </summary>
+        /// <value>
+        /// The invalid collisions.
+        /// </value>
+        public List<MarkedCollisionGroup> InvalidCollisions { get; private set; }
+
+        /// <summary>
         /// Gets the finalised collisions.
         /// </summary>
         /// <value>
@@ -45,6 +53,7 @@ namespace JewelMine.Engine
         {
             JewelMovements = new List<JewelMovement>();
             Collisions = new List<MarkedCollisionGroup>();
+            InvalidCollisions = new List<MarkedCollisionGroup>();
             FinalisedCollisions = new List<CollisionGroup>();
         }
 

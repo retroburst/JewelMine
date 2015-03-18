@@ -18,6 +18,7 @@ namespace JewelMine.Engine.Models
         public Jewel(JewelType type)
         {
             JewelType = type;
+            Identifier = Guid.NewGuid();
         }
 
         /// <summary>
@@ -27,6 +28,14 @@ namespace JewelMine.Engine.Models
         /// The type of the delta.
         /// </value>
         public JewelType JewelType { get; private set; }
+
+        /// <summary>
+        /// Gets the identifier.
+        /// </summary>
+        /// <value>
+        /// The identifier.
+        /// </value>
+        public Guid Identifier { get; private set; }
 
         /// <summary>
         /// Gets the delta type string.

@@ -122,8 +122,8 @@ namespace JewelMine.Engine
             }
 
             // check for new collisions and update existing
-            collisionDetector.MarkedCollisions.ForEach(x => x.CollisionTickCount++);
-            var markedCollisionsForFinalising = collisionDetector.MarkedCollisions.Where(x => x.CollisionTickCount >= 20).ToArray();
+            state.Mine.MarkedCollisions.ForEach(x => x.IncrementCollisionTickCount());
+            var markedCollisionsForFinalising = state.Mine.MarkedCollisions.Where(x => x.CollisionTickCount >= 20).ToArray();
             collisionDetector.FinaliseCollisions(logicUpdate, markedCollisionsForFinalising);
             collisionDetector.MarkCollisions(logicUpdate);
 
@@ -254,8 +254,14 @@ namespace JewelMine.Engine
                 int randomIndex = Random.Next(0, jewelNames.Length);
                 JewelType type = (JewelType)Enum.Parse(typeof(JewelType), jewelNames[randomIndex]);
                 randomJewels[i] = new Jewel(type);
+
+                // TODO: remove - testing only
                 /// for testing only
-                if(i == 2)randomJewels[i - 1] = new Jewel(type);
+                if (i == 2)
+                {
+                    randomJewels[i - 1] = new Jewel(JewelType.Ruby);
+                    randomJewels[i - 2] = new Jewel(JewelType.Ruby);
+                }
             }
             return (new JewelGroup(randomJewels[0], randomJewels[1], randomJewels[2]));
         }

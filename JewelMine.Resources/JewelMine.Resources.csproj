@@ -99,8 +99,11 @@
   <ItemGroup>
     <EmbeddedResource Include="Music\Columns.mp3" />
   </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
-    <Folder Include="Sounds\" />
+    <EmbeddedResource Include="Sounds\Collision.mp3" />
+    <EmbeddedResource Include="Sounds\Swap.mp3" />
+    <EmbeddedResource Include="Sounds\Tick.mp3" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

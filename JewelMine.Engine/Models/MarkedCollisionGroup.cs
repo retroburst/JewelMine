@@ -22,5 +22,13 @@ namespace JewelMine.Engine.Models
             : base()
         {}
 
+        /// <summary>
+        /// Increments the collision tick count.
+        /// </summary>
+        public void IncrementCollisionTickCount()
+        {
+            CollisionTickCount++;
+        }
+
     }
 }

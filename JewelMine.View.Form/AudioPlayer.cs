@@ -19,13 +19,27 @@ namespace JewelMine.View.Forms
             
         }
 
+        /// <summary>
+        /// Plays the specified resource stream.
+        /// </summary>
+        /// <param name="resourceStream">The resource stream.</param>
         public void Play(Stream resourceStream)
         {
+            Play(resourceStream, 1.0f);
+        }
+
+        /// <summary>
+        /// Plays the specified resource stream.
+        /// </summary>
+        /// <param name="resourceStream">The resource stream.</param>
+        /// <param name="volume">The volume.</param>
+        public void Play(Stream resourceStream, float volume)
+        {
+            if (volume > 1.0f || volume < 0.0f) throw new ArgumentException("Argument must be between 0.0 and 1.0.", "volume");
             waveOutDevice = new WaveOutEvent();
             mp3FileReader = new Mp3FileReader(resourceStream);
             waveOutDevice.Init(mp3FileReader);
-            waveOutDevice.Volume = 0.25f;
-            
+            waveOutDevice.Volume = volume;
             waveOutDevice.Play();
         }
 

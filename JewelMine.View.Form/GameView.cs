@@ -37,9 +37,10 @@ namespace JewelMine.View.Forms
         private long startTime = 0;
         private Pen gridPen = null;
         private Pen deltaBorderPen = null;
+        private Brush collisionOverlayBrush = null;
         private Rectangle deltaBorder = Rectangle.Empty;
         private AudioPlayer player = null;
-        
+
         /// <summary>
         /// Initializes a new instance of the <see cref="GameView" /> class.
         /// </summary>
@@ -69,7 +70,7 @@ namespace JewelMine.View.Forms
             jewelResizedImageResourceDictionary = ViewHelpers.GenerateResizedJewelImageResourceDictionary(jewelImageResourceDictionary, cellWidth, cellHeight, jewelBitmapOffset);
             //TODO: background music
             player = new AudioPlayer();
-            player.Play(ViewHelpers.GetMusicResource(ViewConstants.BACKGROUND_MUSIC_TRACK_NAME));
+            player.Play(ViewHelpers.GetMusicResource(ViewConstants.BACKGROUND_MUSIC_TRACK_NAME), 0.25f);
             // signal game start
             gameEngine.StartGame();
         }
@@ -81,7 +82,7 @@ namespace JewelMine.View.Forms
         /// <param name="e">The <see cref="KeyEventArgs"/> instance containing the event data.</param>
         public void InputHandler(object sender, KeyEventArgs e)
         {
-            switch(e.KeyCode)
+            switch (e.KeyCode)
             {
                 case Keys.Left:
                 case Keys.A:
@@ -98,7 +99,7 @@ namespace JewelMine.View.Forms
                 case Keys.Space:
                 case Keys.C:
                     inputSwapDeltaJewels = true;
-                break;
+                    break;
             }
         }
 
@@ -132,6 +133,8 @@ namespace JewelMine.View.Forms
             deltaBorderPen.LineJoin = LineJoin.Bevel;
             deltaBorderPen.StartCap = LineCap.DiamondAnchor;
             deltaBorderPen.Width = 1.00f;
+
+            collisionOverlayBrush = new SolidBrush(Color.FromArgb(65, Color.AntiqueWhite));
         }
 
         /// <summary>
@@ -159,6 +162,7 @@ namespace JewelMine.View.Forms
                 Application.DoEvents();
                 GameLogicUpdate logicUpdate = gameEngine.PerformGameLogic(new GameLogicInput() { DeltaMovement = inputMovement, DeltaSwapJewels = inputSwapDeltaJewels });
                 Invalidate(logicUpdate);
+                PlaySounds(logicUpdate);
                 while ((timer.ElapsedMilliseconds - startTime) < gameEngine.GameStateModel.GameTickSpeedMilliseconds)
                 {
                     //Console.WriteLine("Waiting..");
@@ -172,6 +176,25 @@ namespace JewelMine.View.Forms
         }
 
         /// <summary>
+        /// Plays the sounds.
+        /// </summary>
+        /// <param name="logicUpdate">The logic update.</param>
+        private void PlaySounds(GameLogicUpdate logicUpdate)
+        {
+            if(logicUpdate.FinalisedCollisions.Count > 0)
+            {
+                AudioPlayer player = new AudioPlayer();
+                player.Play(ViewHelpers.GetSoundResource(ViewConstants.COLLISION_SOUND_NAME));
+            }
+            // TODO: this needs to come in logic update
+            if(inputSwapDeltaJewels)
+            {
+                AudioPlayer player = new AudioPlayer();
+                player.Play(ViewHelpers.GetSoundResource(ViewConstants.SWAP_SOUND_NAME));
+            }
+        }
+
+        /// <summary>
         /// Invalidates the view based on the specified logic update.
         /// </summary>
         /// <param name="logicUpdate">The logic update.</param>
@@ -179,16 +202,12 @@ namespace JewelMine.View.Forms
         {
             if (logicUpdate != null)
             {
-                if (logicUpdate.JewelMovements.Count == 0)
-                {
-                    Invalidate();
-                }
-                else
-                {
-                    logicUpdate.JewelMovements.ForEach(jm => Invalidate(CalculateInvalidationRegion(jm.Jewel, jm.Original, jm.New)));
-                }
+                logicUpdate.JewelMovements.ForEach(jm => Invalidate(CalculateInvalidationRegion(jm.Jewel, jm.Original, jm.New)));
+                logicUpdate.Collisions.ForEach(c => CalculateInvalidationRegions(c).ForEach(r => Invalidate(r)));
+                logicUpdate.InvalidCollisions.ForEach(ic => CalculateInvalidationRegions(ic).ForEach(r => Invalidate(r)));
+                logicUpdate.FinalisedCollisions.ForEach(fc => CalculateInvalidationRegions(fc).ForEach(r => Invalidate(r)));
             }
-            if(deltaBorder != Rectangle.Empty)
+            if (deltaBorder != Rectangle.Empty)
             {
                 Invalidate(new Rectangle(deltaBorder.X - 2, deltaBorder.Y - 2, deltaBorder.Width + 4, deltaBorder.Height + 4));
                 deltaBorder = Rectangle.Empty;
@@ -209,16 +228,35 @@ namespace JewelMine.View.Forms
         /// <param name="graphics">The graphics.</param>
         private void Draw(Graphics graphics)
         {
-            graphics.SmoothingMode = SmoothingMode.HighSpeed;
+            graphics.SmoothingMode = SmoothingMode.AntiAlias;
             DrawBackground(graphics);
             DrawGrid(graphics, cells);
             DrawJewels(graphics);
             DrawDeltaBorder(graphics);
-            
+            DrawCollisions(graphics);
+
             //DrawObjects<Wall>(g, walls, squares);
             //DrawObjects<Block>(g, blocks, squares);
             //DrawObjects<IStructure>(g, structures, squares);
             //DrawControlStrings(g, cstrings);
+        }
+
+        /// <summary>
+        /// Draws the collision animation.
+        /// </summary>
+        /// <param name="graphics">The graphics.</param>
+        /// <exception cref="System.NotImplementedException"></exception>
+        private void DrawCollisions(Graphics graphics)
+        {
+            GameState state = gameEngine.GameStateModel;
+            foreach (MarkedCollisionGroup mcg in state.Mine.MarkedCollisions)
+            {
+                if (mcg.CollisionTickCount % 2 != 0)
+                {
+                    List<Rectangle> regions = CalculateInvalidationRegions(mcg);
+                    graphics.FillRectangles(collisionOverlayBrush, regions.ToArray());
+                }
+            }
         }
 
         /// <summary>
@@ -229,7 +267,7 @@ namespace JewelMine.View.Forms
         private void DrawDeltaBorder(Graphics graphics)
         {
             JewelGroup delta = gameEngine.GameStateModel.Mine.Delta;
-            if(delta != null && delta.HasWholeGroupEnteredBounds)
+            if (delta != null && delta.HasWholeGroupEnteredBounds)
             {
                 Rectangle topLeft = cells[delta.Top.Coordinates.X, delta.Top.Coordinates.Y];
                 deltaBorder = new Rectangle();
@@ -324,6 +362,25 @@ namespace JewelMine.View.Forms
                     g.DrawRectangle(gridPen, cells[i, j]);
                 }
             }
+        }
+
+        /// <summary>
+        /// Calculates the invalidation region.
+        /// </summary>
+        /// <param name="cg">The cg.</param>
+        /// <returns></returns>
+        private List<Rectangle> CalculateInvalidationRegions(CollisionGroup cg)
+        {
+            List<Rectangle> regions = new List<Rectangle>();
+            foreach (CollisionGroupMember collision in cg.Members)
+            {
+                Rectangle region;
+                region = cells[collision.Coordinates.X, collision.Coordinates.Y];
+                region.Width = cellWidth;
+                region.Height = cellHeight;
+                regions.Add(region);
+            }
+            return (regions);
         }
 
         /// <summary>

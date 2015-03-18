@@ -34,6 +34,9 @@ namespace JewelMine.Engine.Models
             Depth = depth;
             Delta = null;
             Grid = new MineObject[Columns, Depth];
+            MarkedCollisions = new List<MarkedCollisionGroup>();
+            InvalidMarkedCollisions = new List<MarkedCollisionGroup>();
+            FinalisedCollisions = new List<CollisionGroup>();
         }
 
         /// <summary>
@@ -59,6 +62,30 @@ namespace JewelMine.Engine.Models
         /// The delta.
         /// </value>
         public JewelGroup Delta { get; internal set; }
+
+        /// <summary>
+        /// Gets the marked collisions.
+        /// </summary>
+        /// <value>
+        /// The marked collisions.
+        /// </value>
+        public List<MarkedCollisionGroup> MarkedCollisions { get; private set; }
+
+        /// <summary>
+        /// Gets the invalid marked collisions.
+        /// </summary>
+        /// <value>
+        /// The invalid marked collisions.
+        /// </value>
+        public List<MarkedCollisionGroup> InvalidMarkedCollisions { get; private set; }
+
+        /// <summary>
+        /// Gets the finalised collisions.
+        /// </summary>
+        /// <value>
+        /// The finalised collisions.
+        /// </value>
+        public List<CollisionGroup> FinalisedCollisions { get; private set; }
 
         /// <summary>
         /// Gets the grid.
