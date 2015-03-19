@@ -1,5 +1,7 @@
 ﻿using JewelMine.Engine;
 using JewelMine.Engine.Models;
+using JewelMine.View.Forms.Audio;
+using NAudio.Wave;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -39,7 +41,7 @@ namespace JewelMine.View.Forms
         private Pen deltaBorderPen = null;
         private Brush collisionOverlayBrush = null;
         private Rectangle deltaBorder = Rectangle.Empty;
-        private AudioPlayer player = null;
+        private GameAudioSystem gameAudioSystem = null;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GameView" /> class.
@@ -68,11 +70,10 @@ namespace JewelMine.View.Forms
             // this once here instead of resizing every time we
             // draw a delta - which is a very expensive operation
             jewelResizedImageResourceDictionary = ViewHelpers.GenerateResizedJewelImageResourceDictionary(jewelImageResourceDictionary, cellWidth, cellHeight, jewelBitmapOffset);
-            //TODO: background music
-            player = new AudioPlayer();
-            player.Play(ViewHelpers.GetMusicResource(ViewConstants.BACKGROUND_MUSIC_TRACK_NAME), 0.25f);
+            gameAudioSystem = GameAudioSystem.Instance;
             // signal game start
             gameEngine.StartGame();
+            gameAudioSystem.PlayBackgroundMusicLoop();
         }
 
         /// <summary>
@@ -183,14 +184,12 @@ namespace JewelMine.View.Forms
         {
             if(logicUpdate.FinalisedCollisions.Count > 0)
             {
-                AudioPlayer player = new AudioPlayer();
-                player.Play(ViewHelpers.GetSoundResource(ViewConstants.COLLISION_SOUND_NAME));
+                gameAudioSystem.PlayCollision();
             }
             // TODO: this needs to come in logic update
             if(inputSwapDeltaJewels)
             {
-                AudioPlayer player = new AudioPlayer();
-                player.Play(ViewHelpers.GetSoundResource(ViewConstants.SWAP_SOUND_NAME));
+                gameAudioSystem.PlaySwap();
             }
         }
 

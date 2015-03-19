@@ -50,7 +50,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AudioPlayer.cs" />
+    <Compile Include="Audio\AudioPlaybackEngine.cs" />
+    <Compile Include="Audio\AutoDisposeFileReader.cs" />
+    <Compile Include="Audio\CachedSound.cs" />
+    <Compile Include="Audio\CachedSoundSampleProvider.cs" />
+    <Compile Include="Audio\LoopStream.cs" />
+    <Compile Include="GameAudioSystem.cs" />
     <Compile Include="GameView.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -101,6 +106,7 @@
   <ItemGroup>
     <Content Include="JewelMine.ico" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

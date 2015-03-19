@@ -97,13 +97,15 @@
     <EmbeddedResource Include="Images\Wood.gif" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Music\Columns.mp3" />
-  </ItemGroup>
-  <ItemGroup />
-  <ItemGroup>
-    <EmbeddedResource Include="Sounds\Collision.mp3" />
-    <EmbeddedResource Include="Sounds\Swap.mp3" />
-    <EmbeddedResource Include="Sounds\Tick.mp3" />
+    <Content Include="Music\Ambient.wav">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Sounds\Collision.wav">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Sounds\Swap.wav">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

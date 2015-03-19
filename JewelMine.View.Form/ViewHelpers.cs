@@ -149,32 +149,5 @@ namespace JewelMine.View.Forms
             return (result);
         }
 
-        /// <summary>
-        /// Gets the music resource.
-        /// </summary>
-        /// <param name="name">Name of the file.</param>
-        /// <returns></returns>
-        public static Stream GetMusicResource(string name)
-        {
-            Stream result = null;
-            Assembly a = Assembly.GetAssembly(typeof(GameResources));
-            string resourceName = string.Format(ViewConstants.MUSIC_RESOURCE_PATTERN, name);
-            result = a.GetManifestResourceStream(resourceName);
-            return (result);
-        }
-
-        /// <summary>
-        /// Gets the sound resource.
-        /// </summary>
-        /// <param name="name">The name.</param>
-        /// <returns></returns>
-        public static Stream GetSoundResource(string name)
-        {
-            Stream result = null;
-            Assembly a = Assembly.GetAssembly(typeof(GameResources));
-            string resourceName = string.Format(ViewConstants.SOUND_RESOURCE_PATTERN, name);
-            result = a.GetManifestResourceStream(resourceName);
-            return (result);
-        }
     }
 }

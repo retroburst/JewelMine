@@ -85,12 +85,6 @@ namespace JewelMine.Engine
                     foundCollisionGroups.Add(foundDiagonallyLeft);
                     foundCollisionGroups.Add(foundDiagonllyRight);
 
-                    //TODO: just here because of a bug, remove it
-                    if (foundDiagonllyRight.Members.Count >= 3 || foundDiagonallyLeft.Members.Count >= 3)
-                    {
-                        foundDiagonllyRight.ToString();
-                    }
-
                     var largestCollisionGroup = foundCollisionGroups.OrderByDescending(group => group.Members.Count).FirstOrDefault();
                     if (largestCollisionGroup != null && largestCollisionGroup.Members.Count >= 3)
                     {

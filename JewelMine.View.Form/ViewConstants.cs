@@ -23,15 +23,11 @@ namespace JewelMine.View.Forms
             "Background.Stone.3" };
         
         // Music
-        public const string MUSIC_RESOURCE_PATTERN_NAMESPACE = "JewelMine.Resources.Music";
-        public const string MUSIC_RESOURCE_PATTERN = MUSIC_RESOURCE_PATTERN_NAMESPACE + ".{0}.mp3";
-        public const string BACKGROUND_MUSIC_TRACK_NAME = "Columns";
+        public const string BACKGROUND_MUSIC_FILENAME = "Music/Ambient.wav";
         
         // Sounds
-        public const string SOUNDS_RESOURCE_PATTERN_NAMESPACE = "JewelMine.Resources.Sounds";
-        public const string SOUND_RESOURCE_PATTERN = SOUNDS_RESOURCE_PATTERN_NAMESPACE + ".{0}.mp3";
-        public const string COLLISION_SOUND_NAME = "Collision";
-        public const string SWAP_SOUND_NAME = "Swap";
-        public const string TICK_SOUND_NAME = "Tick";
+        public const string SOUND_COLLISION_FILENAME = "Sounds/Collision.wav";
+        public const string SOUND_SWAP_FILENAME = "Sounds/Swap.wav";
+        
     }
 }
