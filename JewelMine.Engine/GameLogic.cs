@@ -94,7 +94,7 @@ namespace JewelMine.Engine
             MovementType deltaMovement = input.DeltaMovement.HasValue ? input.DeltaMovement.Value : MovementType.Down;
             if (state.Mine.Delta != null)
             {
-                if (input.DeltaSwapJewels) { SwapDeltaJewels(); }
+                if (input.DeltaSwapJewels) { SwapDeltaJewels(logicUpdate); }
                 bool deltaStationary = false;
                 int numPositionsToMove = 1;
                 // if delta is up against a boundary on either side that the movement is towards, override and move delta down instead
@@ -123,7 +123,7 @@ namespace JewelMine.Engine
 
             // check for new collisions and update existing
             state.Mine.MarkedCollisions.ForEach(x => x.IncrementCollisionTickCount());
-            var markedCollisionsForFinalising = state.Mine.MarkedCollisions.Where(x => x.CollisionTickCount >= 20).ToArray();
+            var markedCollisionsForFinalising = state.Mine.MarkedCollisions.Where(x => x.CollisionTickCount >= 60).ToArray();
             collisionDetector.FinaliseCollisions(logicUpdate, markedCollisionsForFinalising);
             collisionDetector.MarkCollisions(logicUpdate);
 
@@ -150,7 +150,7 @@ namespace JewelMine.Engine
                     if (!(mineObject is Jewel)) continue;
                     if (state.Mine.Grid[x, y] != null && (state.Mine.Delta == null || !state.Mine.Delta.IsGroupMember((Jewel)mineObject)))
                     {
-                        if (CoordinatesInBounds(new Coordinates(x, y + 1)))
+                        if (state.Mine.CoordinatesInBounds(new Coordinates(x, y + 1)))
                         {
                             // if the position under has nothing, need to move the jewel down
                             if (state.Mine.Grid[x, y + 1] == null) MoveJewel(new Coordinates(x, y), MovementType.Down, logicUpdate);
@@ -163,16 +163,18 @@ namespace JewelMine.Engine
         /// <summary>
         /// Swaps the delta jewels downwards.
         /// </summary>
-        private void SwapDeltaJewels()
+        /// <param name="logicUpdate">The logic update.</param>
+        private void SwapDeltaJewels(GameLogicUpdate logicUpdate)
         {
             JewelGroup delta = state.Mine.Delta;
             Jewel top = delta.Top.Jewel;
             delta.Top.Jewel = delta.Bottom.Jewel;
             delta.Bottom.Jewel = delta.Middle.Jewel;
             delta.Middle.Jewel = top;
-            if (CoordinatesInBounds(delta.Top.Coordinates)) state.Mine[delta.Top.Coordinates] = delta.Top.Jewel;
-            if (CoordinatesInBounds(delta.Middle.Coordinates)) state.Mine[delta.Middle.Coordinates] = delta.Middle.Jewel;
-            if (CoordinatesInBounds(delta.Bottom.Coordinates)) state.Mine[delta.Bottom.Coordinates] = delta.Bottom.Jewel;
+            if (state.Mine.CoordinatesInBounds(delta.Top.Coordinates)) state.Mine[delta.Top.Coordinates] = delta.Top.Jewel;
+            if (state.Mine.CoordinatesInBounds(delta.Middle.Coordinates)) state.Mine[delta.Middle.Coordinates] = delta.Middle.Jewel;
+            if (state.Mine.CoordinatesInBounds(delta.Bottom.Coordinates)) state.Mine[delta.Bottom.Coordinates] = delta.Bottom.Jewel;
+            logicUpdate.DeltaJewelsSwapped = true;
         }
 
         /// <summary>
@@ -260,7 +262,7 @@ namespace JewelMine.Engine
                 if (i == 2)
                 {
                     randomJewels[i - 1] = new Jewel(JewelType.Ruby);
-                    randomJewels[i - 2] = new Jewel(JewelType.Ruby);
+                    //randomJewels[i - 2] = new Jewel(JewelType.Ruby);
                 }
             }
             return (new JewelGroup(randomJewels[0], randomJewels[1], randomJewels[2]));
@@ -300,19 +302,19 @@ namespace JewelMine.Engine
             delta.Top.Coordinates = new Coordinates(targetCoordinates.X, targetCoordinates.Y - 2);
             delta.Middle.Coordinates = new Coordinates(targetCoordinates.X, targetCoordinates.Y - 1);
             delta.Bottom.Coordinates = targetCoordinates;
-            if (CoordinatesInBounds(delta.Top.Coordinates))
+            if (state.Mine.CoordinatesInBounds(delta.Top.Coordinates))
             {
                 if (!delta.Top.HasEnteredBounds) delta.Top.HasEnteredBounds = true;
                 state.Mine[delta.Top.Coordinates] = delta.Top.Jewel;
                 logicUpdate.JewelMovements.Add(new JewelMovement() { Jewel = delta.Top.Jewel, Original = originalTop, New = delta.Top.Coordinates });
             }
-            if (CoordinatesInBounds(delta.Middle.Coordinates))
+            if (state.Mine.CoordinatesInBounds(delta.Middle.Coordinates))
             {
                 if (!delta.Middle.HasEnteredBounds) delta.Middle.HasEnteredBounds = true;
                 state.Mine[delta.Middle.Coordinates] = delta.Middle.Jewel;
                 logicUpdate.JewelMovements.Add(new JewelMovement() { Jewel = delta.Middle.Jewel, Original = originalMiddle, New = delta.Middle.Coordinates });
             }
-            if (CoordinatesInBounds(delta.Bottom.Coordinates))
+            if (state.Mine.CoordinatesInBounds(delta.Bottom.Coordinates))
             {
                 if (!delta.Bottom.HasEnteredBounds) delta.Bottom.HasEnteredBounds = true;
                 state.Mine[delta.Bottom.Coordinates] = delta.Bottom.Jewel;
@@ -336,9 +338,9 @@ namespace JewelMine.Engine
                 Coordinates newMiddle = new Coordinates(delta.Middle.Coordinates.X, delta.Middle.Coordinates.Y + i);
                 Coordinates newTop = new Coordinates(delta.Top.Coordinates.X, delta.Top.Coordinates.Y + i);
 
-                if (CoordinatesInBounds(newBottom) && CoordinatesAvailable(newBottom)
-                    && (!delta.Middle.HasEnteredBounds || (CoordinatesInBounds(newMiddle)))
-                    && (!delta.Top.HasEnteredBounds || (CoordinatesInBounds(newTop))))
+                if (state.Mine.CoordinatesInBounds(newBottom) && state.Mine.CoordinatesAvailable(newBottom)
+                    && (!delta.Middle.HasEnteredBounds || (state.Mine.CoordinatesInBounds(newMiddle)))
+                    && (!delta.Top.HasEnteredBounds || (state.Mine.CoordinatesInBounds(newTop))))
                 {
                     result = newBottom;
                 }
@@ -365,9 +367,9 @@ namespace JewelMine.Engine
                 Coordinates newMiddle = new Coordinates(delta.Middle.Coordinates.X - i, delta.Middle.Coordinates.Y);
                 Coordinates newTop = new Coordinates(delta.Top.Coordinates.X - i, delta.Top.Coordinates.Y);
 
-                if (CoordinatesInBounds(newBottom) && CoordinatesAvailable(newBottom)
-                    && (!delta.Middle.HasEnteredBounds || (CoordinatesInBounds(newMiddle) && CoordinatesAvailable(newMiddle)))
-                    && (!delta.Top.HasEnteredBounds || (CoordinatesInBounds(newTop) && CoordinatesAvailable(newTop))))
+                if (state.Mine.CoordinatesInBounds(newBottom) && state.Mine.CoordinatesAvailable(newBottom)
+                    && (!delta.Middle.HasEnteredBounds || (state.Mine.CoordinatesInBounds(newMiddle) && state.Mine.CoordinatesAvailable(newMiddle)))
+                    && (!delta.Top.HasEnteredBounds || (state.Mine.CoordinatesInBounds(newTop) && state.Mine.CoordinatesAvailable(newTop))))
                 {
                     result = newBottom;
                 }
@@ -394,9 +396,9 @@ namespace JewelMine.Engine
                 Coordinates newMiddle = new Coordinates(delta.Middle.Coordinates.X + i, delta.Middle.Coordinates.Y);
                 Coordinates newTop = new Coordinates(delta.Top.Coordinates.X + i, delta.Top.Coordinates.Y);
 
-                if (CoordinatesInBounds(newBottom) && CoordinatesAvailable(newBottom)
-                    && (!delta.Middle.HasEnteredBounds || (CoordinatesInBounds(newMiddle) && CoordinatesAvailable(newMiddle)))
-                    && (!delta.Top.HasEnteredBounds || (CoordinatesInBounds(newTop) && CoordinatesAvailable(newTop))))
+                if (state.Mine.CoordinatesInBounds(newBottom) && state.Mine.CoordinatesAvailable(newBottom)
+                    && (!delta.Middle.HasEnteredBounds || (state.Mine.CoordinatesInBounds(newMiddle) && state.Mine.CoordinatesAvailable(newMiddle)))
+                    && (!delta.Top.HasEnteredBounds || (state.Mine.CoordinatesInBounds(newTop) && state.Mine.CoordinatesAvailable(newTop))))
                 {
                     result = newBottom;
                 }
@@ -418,7 +420,7 @@ namespace JewelMine.Engine
         private bool MoveJewel(Coordinates coordinates, MovementType movement, GameLogicUpdate logicUpdate)
         {
             if (coordinates == null) throw new ArgumentException("Argument cannot be null.", "coordinates");
-            if (CoordinatesInBounds(coordinates))
+            if (state.Mine.CoordinatesInBounds(coordinates))
             {
                 Coordinates targetCoordinates = null;
                 switch (movement)
@@ -455,8 +457,8 @@ namespace JewelMine.Engine
             int? closestY = null;
             for (int i = 1; i <= numPositionsToMove; i++)
             {
-                if (CoordinatesInBounds(new Coordinates(target.X, target.Y + i))
-                    && CoordinatesAvailable(new Coordinates(target.X, target.Y + i))) closestY = target.Y + i;
+                if (state.Mine.CoordinatesInBounds(new Coordinates(target.X, target.Y + i))
+                    && state.Mine.CoordinatesAvailable(new Coordinates(target.X, target.Y + i))) closestY = target.Y + i;
                 else break;
             }
             if (closestY.HasValue) result = new Coordinates(target.X, closestY.Value);
@@ -477,8 +479,8 @@ namespace JewelMine.Engine
             int? closestX = null;
             for (int i = 1; i <= numPositionsToMove; i++)
             {
-                if (CoordinatesInBounds(new Coordinates(target.X - i, target.Y))
-                    && CoordinatesAvailable(new Coordinates(target.X - i, target.Y))) closestX = target.X - i;
+                if (state.Mine.CoordinatesInBounds(new Coordinates(target.X - i, target.Y))
+                    && state.Mine.CoordinatesAvailable(new Coordinates(target.X - i, target.Y))) closestX = target.X - i;
                 else break;
             }
             if (closestX.HasValue) result = new Coordinates(closestX.Value, target.Y);
@@ -499,35 +501,12 @@ namespace JewelMine.Engine
             int? closestX = null;
             for (int i = 1; i <= numPositionsToMove; i++)
             {
-                if (CoordinatesInBounds(new Coordinates(target.X + i, target.Y))
-                    && CoordinatesAvailable(new Coordinates(target.X + i, target.Y))) closestX = target.X + i;
+                if (state.Mine.CoordinatesInBounds(new Coordinates(target.X + i, target.Y))
+                    && state.Mine.CoordinatesAvailable(new Coordinates(target.X + i, target.Y))) closestX = target.X + i;
                 else break;
             }
             if (closestX.HasValue) result = new Coordinates(closestX.Value, target.Y);
             return (result);
-        }
-
-        /// <summary>
-        /// Coordinateses the available.
-        /// </summary>
-        /// <param name="target">The target.</param>
-        /// <returns></returns>
-        public bool CoordinatesAvailable(Coordinates target)
-        {
-            if (target == null) throw new ArgumentException("Argument cannot be null.", "target");
-            return (state.Mine.Grid[target.X, target.Y] == null);
-        }
-
-        /// <summary>
-        /// Coordinateses the in bounds.
-        /// </summary>
-        /// <param name="target">The target.</param>
-        /// <returns></returns>
-        public bool CoordinatesInBounds(Coordinates target)
-        {
-            if (target == null) throw new ArgumentException("Argument cannot be null.", "target");
-            return (target.X >= 0 && target.X < state.Mine.Columns
-                && target.Y >= 0 && target.Y < state.Mine.Depth);
         }
 
         /// <summary>
@@ -536,7 +515,7 @@ namespace JewelMine.Engine
         /// <param name="coordinates">The coordinates.</param>
         private void ClearGridPosition(Coordinates coordinates)
         {
-            if (coordinates != null && CoordinatesInBounds(coordinates))
+            if (coordinates != null && state.Mine.CoordinatesInBounds(coordinates))
             {
                 state.Mine[coordinates] = null;
             }

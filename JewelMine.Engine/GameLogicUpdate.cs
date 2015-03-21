@@ -47,6 +47,14 @@ namespace JewelMine.Engine
         public List<CollisionGroup> FinalisedCollisions { get; private set; }
 
         /// <summary>
+        /// Gets or sets a value indicating whether [delta jewels swapped].
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if [delta jewels swapped]; otherwise, <c>false</c>.
+        /// </value>
+        public bool DeltaJewelsSwapped { get; set; }
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="GameLogicUpdate"/> class.
         /// </summary>
         public GameLogicUpdate()

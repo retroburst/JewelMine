@@ -115,5 +115,29 @@ namespace JewelMine.Engine.Models
             }
         }
 
+        /// <summary>
+        /// Coordinateses the available.
+        /// </summary>
+        /// <param name="target">The target.</param>
+        /// <returns></returns>
+        public bool CoordinatesAvailable(Coordinates target)
+        {
+            if (target == null) throw new ArgumentException("Argument cannot be null.", "target");
+            return (Grid[target.X, target.Y] == null);
+        }
+
+        /// <summary>
+        /// Coordinateses the in bounds.
+        /// </summary>
+        /// <param name="target">The target.</param>
+        /// <returns></returns>
+        public bool CoordinatesInBounds(Coordinates target)
+        {
+            if (target == null) throw new ArgumentException("Argument cannot be null.", "target");
+            return (target.X >= 0 && target.X < Columns
+                && target.Y >= 0 && target.Y < Depth);
+        }
+
+
     }
 }

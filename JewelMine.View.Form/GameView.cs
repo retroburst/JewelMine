@@ -186,8 +186,7 @@ namespace JewelMine.View.Forms
             {
                 gameAudioSystem.PlayCollision();
             }
-            // TODO: this needs to come in logic update
-            if(inputSwapDeltaJewels)
+            if(logicUpdate.DeltaJewelsSwapped)
             {
                 gameAudioSystem.PlaySwap();
             }
@@ -406,7 +405,7 @@ namespace JewelMine.View.Forms
         /// <returns></returns>
         public Rectangle CalculateInvalidationRegion(Jewel jewel, Coordinates originalCoordinates, Coordinates newCoordinates)
         {
-            if (!gameEngine.CoordinatesInBounds(originalCoordinates)) return CalculateInvalidationRegion(jewel, newCoordinates);
+            if (!gameEngine.GameStateModel.Mine.CoordinatesInBounds(originalCoordinates)) return CalculateInvalidationRegion(jewel, newCoordinates);
             Rectangle region = new Rectangle();
             int minX = Math.Min(originalCoordinates.X, newCoordinates.X);
             int minY = Math.Min(originalCoordinates.Y, newCoordinates.Y);
@@ -436,13 +435,13 @@ namespace JewelMine.View.Forms
         //private void DrawObjects<T>(Graphics graphics, T[,] objects, Rectangle[,] squares)
         //    where T : IDrawable
         //{
-        //    for (int x = 0; x <= squares.GetUpperBound(0); x++)
+        //    for (int coordinates = 0; coordinates <= squares.GetUpperBound(0); coordinates++)
         //    {
         //        for (int y = 0; y <= squares.GetUpperBound(1); y++)
         //        {
-        //            T obj = objects[x, y];
+        //            T obj = objects[coordinates, y];
         //            if (obj != null)
-        //                obj.Draw(squares[x, y], this, graphics);
+        //                obj.Draw(squares[coordinates, y], this, graphics);
         //        }
         //    }
         //}

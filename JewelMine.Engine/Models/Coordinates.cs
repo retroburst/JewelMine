@@ -19,7 +19,7 @@ namespace JewelMine.Engine.Models
         /// <summary>
         /// Initializes a new instance of the <see cref="Coordinates"/> class.
         /// </summary>
-        /// <param name="x">The x.</param>
+        /// <param name="coordinates">The coordinates.</param>
         /// <param name="y">The y.</param>
         public Coordinates(int x, int y)
         {
@@ -87,10 +87,10 @@ namespace JewelMine.Engine.Models
         }
 
         /// <summary>
-        /// Gets or sets the x.
+        /// Gets or sets the coordinates.
         /// </summary>
         /// <value>
-        /// The x.
+        /// The coordinates.
         /// </value>
         public int X { get; set; }
 
