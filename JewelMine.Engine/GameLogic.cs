@@ -47,7 +47,7 @@ namespace JewelMine.Engine
         /// </summary>
         public void StartGame()
         {
-            state.GamePlayState = GamePlayState.Playing;
+            state.PlayState = GamePlayState.Playing;
         }
 
         /// <summary>
@@ -55,7 +55,7 @@ namespace JewelMine.Engine
         /// </summary>
         public void StopGame()
         {
-            state.GamePlayState = GamePlayState.NotStarted;
+            state.PlayState = GamePlayState.NotStarted;
         }
 
         /// <summary>
@@ -63,7 +63,7 @@ namespace JewelMine.Engine
         /// </summary>
         public void PauseGame()
         {
-            state.GamePlayState = GamePlayState.Paused;
+            state.PlayState = GamePlayState.Paused;
         }
 
         /// <summary>
@@ -71,7 +71,7 @@ namespace JewelMine.Engine
         /// </summary>
         public void GameOver()
         {
-            state.GamePlayState = GamePlayState.GameOver;
+            state.PlayState = GamePlayState.GameOver;
         }
 
         /// <summary>
@@ -87,6 +87,7 @@ namespace JewelMine.Engine
         public GameLogicUpdate PerformGameLogic(GameLogicInput input)
         {
             GameLogicUpdate logicUpdate = new GameLogicUpdate();
+            if (LevelThresholdReached()) IncrementLevel(logicUpdate);
             // check for jewels that need to move down because of successful collisions
             MoveDownJewelsInLimbo(logicUpdate);
             // move delta based on input or down by default if no input
@@ -105,7 +106,7 @@ namespace JewelMine.Engine
                 if (IsDeltaStationary()) deltaStationary = true;
                 if (deltaStationary)
                 {
-                    if (state.Mine.Delta.StationaryTickCount >= 5)
+                    if (state.Mine.Delta.StationaryTickCount >= GameConstants.GAME_DELTA_STATIONARY_TICK_COUNT)
                     {
                         // delta is now in position and a new one will be added
                         state.Mine.Delta = null;
@@ -123,8 +124,10 @@ namespace JewelMine.Engine
 
             // check for new collisions and update existing
             state.Mine.MarkedCollisions.ForEach(x => x.IncrementCollisionTickCount());
-            var markedCollisionsForFinalising = state.Mine.MarkedCollisions.Where(x => x.CollisionTickCount >= 60).ToArray();
+            var markedCollisionsForFinalising = state.Mine.MarkedCollisions.Where(x => x.CollisionTickCount >= GameConstants.GAME_COLLISION_FINALISE_TICK_COUNT).ToArray();
             collisionDetector.FinaliseCollisions(logicUpdate, markedCollisionsForFinalising);
+            //TODO: move this to a class or method that calculates the score
+            state.Score += markedCollisionsForFinalising.Sum(x => (long)Math.Pow(10, x.Members.Count));
             collisionDetector.MarkCollisions(logicUpdate);
 
             // if no delta add a new one
@@ -134,6 +137,28 @@ namespace JewelMine.Engine
                 if (!added) { throw new NotImplementedException("Game Over"); }
             }
             return (logicUpdate);
+        }
+
+        /// <summary>
+        /// Indicates if the level threshold was reached.
+        /// </summary>
+        /// <returns></returns>
+        private bool LevelThresholdReached()
+        {
+            return (state.Score >= state.Level * GameConstants.GAME_LEVEL_INCREMENT_SCORE_THRESHOLD);
+        }
+
+        /// <summary>
+        /// Increments the level.
+        /// </summary>
+        private void IncrementLevel(GameLogicUpdate logicUpdate)
+        {
+            logicUpdate.LevelIncremented = true;
+            state.Level += 1;
+            if (state.TickSpeedMilliseconds > GameConstants.GAME_LEVEL_INCREMENT_SPEED_CHANGE)
+            {
+                state.TickSpeedMilliseconds -= GameConstants.GAME_LEVEL_INCREMENT_SPEED_CHANGE;
+            }
         }
 
         /// <summary>
@@ -250,22 +275,39 @@ namespace JewelMine.Engine
         private JewelGroup GenerateRandomDeltaJewelGroup()
         {
             Jewel[] randomJewels = new Jewel[3];
+            int tripleJewelChance = Random.Next(0, 100);
             int doubleJewelChance = Random.Next(0, 100);
-            for (int i = 0; i < randomJewels.Length; i++)
-            {
-                int randomIndex = Random.Next(0, jewelNames.Length);
-                JewelType type = (JewelType)Enum.Parse(typeof(JewelType), jewelNames[randomIndex]);
-                randomJewels[i] = new Jewel(type);
 
-                // TODO: remove - testing only
-                /// for testing only
-                if (i == 2)
-                {
-                    randomJewels[i - 1] = new Jewel(JewelType.Ruby);
-                    //randomJewels[i - 2] = new Jewel(JewelType.Ruby);
-                }
+            JewelType firstRandomJewelType = GenerateRandomJewelType();
+            randomJewels[0] = new Jewel(firstRandomJewelType);
+
+            if (tripleJewelChance >= (GameConstants.GAME_TRIPLE_JEWEL_DELTA_CHANCE_ABOVE + state.Level))
+            {
+                randomJewels[1] = new Jewel(firstRandomJewelType);
+                randomJewels[2] = new Jewel(firstRandomJewelType);
+            }
+            else if (doubleJewelChance >= (GameConstants.GAME_DOUBLE_JEWEL_DELTA_CHANCE_ABOVE + state.Level))
+            {
+                randomJewels[1] = new Jewel(firstRandomJewelType);
+                randomJewels[2] = new Jewel(GenerateRandomJewelType());
+            }
+            else
+            {
+                randomJewels[1] = new Jewel(GenerateRandomJewelType());
+                randomJewels[2] = new Jewel(GenerateRandomJewelType());
             }
             return (new JewelGroup(randomJewels[0], randomJewels[1], randomJewels[2]));
+        }
+
+        /// <summary>
+        /// Generates the type of the random jewel.
+        /// </summary>
+        /// <returns></returns>
+        private JewelType GenerateRandomJewelType()
+        {
+            int randomIndex = Random.Next(0, jewelNames.Length);
+            JewelType type = (JewelType)Enum.Parse(typeof(JewelType), jewelNames[randomIndex]);
+            return (type);
         }
 
         /// <summary>

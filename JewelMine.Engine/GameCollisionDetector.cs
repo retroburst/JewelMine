@@ -98,20 +98,18 @@ namespace JewelMine.Engine
                         // find largest and smallest Y coordinate
                         CollisionGroupMember topRight = group.Members.OrderBy(x => x.Coordinates.Y).First();
                         CollisionGroupMember bottomLeft = group.Members.OrderByDescending(x => x.Coordinates.Y).First();
-                        AddNewMembersToMarkedCollisionByDirection(bottomLeft.Jewel, bottomLeft.Coordinates, coordinates => new Coordinates(coordinates.X - 1, coordinates.Y + 1), group);
-                        AddNewMembersToMarkedCollisionByDirection(topRight.Jewel, topRight.Coordinates, coordinates => new Coordinates(coordinates.X + 1, coordinates.Y - 1), group);
+                        AddNewMembersToMarkedCollisionByDirection(bottomLeft.Jewel, bottomLeft.Coordinates, coordinates => new Coordinates(coordinates.X - 1, coordinates.Y - 1), group);
+                        AddNewMembersToMarkedCollisionByDirection(topRight.Jewel, topRight.Coordinates, coordinates => new Coordinates(coordinates.X + 1, coordinates.Y + 1), group);
                         break;
                     case CollisionDirection.DiagonallyRight:
                         // find largest and smallest Y coordinate
                         CollisionGroupMember topLeft = group.Members.OrderBy(x => x.Coordinates.Y).First();
                         CollisionGroupMember bottomRight = group.Members.OrderByDescending(x => x.Coordinates.Y).First();
-                        AddNewMembersToMarkedCollisionByDirection(bottomRight.Jewel, bottomRight.Coordinates, coordinates => new Coordinates(coordinates.X + 1, coordinates.Y + 1), group);
-                        AddNewMembersToMarkedCollisionByDirection(topLeft.Jewel, topLeft.Coordinates, coordinates => new Coordinates(coordinates.X - 1, coordinates.Y - 1), group);
+                        AddNewMembersToMarkedCollisionByDirection(bottomRight.Jewel, bottomRight.Coordinates, coordinates => new Coordinates(coordinates.X - 1, coordinates.Y + 1), group);
+                        AddNewMembersToMarkedCollisionByDirection(topLeft.Jewel, topLeft.Coordinates, coordinates => new Coordinates(coordinates.X + 1, coordinates.Y - 1), group);
                         break;
                 }
             }
-
-
         }
 
         /// <summary>

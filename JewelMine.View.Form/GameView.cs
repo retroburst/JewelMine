@@ -40,8 +40,11 @@ namespace JewelMine.View.Forms
         private Pen gridPen = null;
         private Pen deltaBorderPen = null;
         private Brush collisionOverlayBrush = null;
+        private Brush informationOverlayBrush = null;
         private Rectangle deltaBorder = Rectangle.Empty;
         private GameAudioSystem gameAudioSystem = null;
+        private Font scoreFont = null;
+        private Rectangle scoreRectangle = Rectangle.Empty;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GameView" /> class.
@@ -60,7 +63,7 @@ namespace JewelMine.View.Forms
             FormClosed += FormClosedHandler;
             Layout += LayoutHandler;
             KeyDown += InputHandler;
-            InitialisePens();
+            InitialiseDrawingObjects();
             backgroundImageArray = ViewHelpers.GenerateBackgroundImageArray();
             // calculate cell dimensions
             CalculateGridCellDimensions();
@@ -114,9 +117,9 @@ namespace JewelMine.View.Forms
         }
 
         /// <summary>
-        /// Initialises the grid gridPen.
+        /// Initialises the drawing objects.
         /// </summary>
-        private void InitialisePens()
+        private void InitialiseDrawingObjects()
         {
             gridPen = new Pen(Color.SlateGray);
             gridPen.Alignment = PenAlignment.Center;
@@ -136,6 +139,9 @@ namespace JewelMine.View.Forms
             deltaBorderPen.Width = 1.00f;
 
             collisionOverlayBrush = new SolidBrush(Color.FromArgb(65, Color.AntiqueWhite));
+
+            informationOverlayBrush = new SolidBrush(Color.FromArgb(80, Color.White));
+            scoreFont = new Font(SystemInformation.MenuFont.FontFamily, 12.5f);
         }
 
         /// <summary>
@@ -156,7 +162,7 @@ namespace JewelMine.View.Forms
         {
             Console.WriteLine("Starting game loop..");
             timer.Start();
-            while (gameEngine.GameStateModel.GamePlayState == GamePlayState.Playing)
+            while (gameEngine.GameStateModel.PlayState == GamePlayState.Playing)
             {
                 //Console.WriteLine("Looping");
                 startTime = timer.ElapsedMilliseconds;
@@ -164,7 +170,7 @@ namespace JewelMine.View.Forms
                 GameLogicUpdate logicUpdate = gameEngine.PerformGameLogic(new GameLogicInput() { DeltaMovement = inputMovement, DeltaSwapJewels = inputSwapDeltaJewels });
                 Invalidate(logicUpdate);
                 PlaySounds(logicUpdate);
-                while ((timer.ElapsedMilliseconds - startTime) < gameEngine.GameStateModel.GameTickSpeedMilliseconds)
+                while ((timer.ElapsedMilliseconds - startTime) < gameEngine.GameStateModel.TickSpeedMilliseconds)
                 {
                     //Console.WriteLine("Waiting..");
                 }
@@ -200,6 +206,11 @@ namespace JewelMine.View.Forms
         {
             if (logicUpdate != null)
             {
+                if (logicUpdate.LevelIncremented)
+                {
+                    Invalidate();
+                    return;
+                }
                 logicUpdate.JewelMovements.ForEach(jm => Invalidate(CalculateInvalidationRegion(jm.Jewel, jm.Original, jm.New)));
                 logicUpdate.Collisions.ForEach(c => CalculateInvalidationRegions(c).ForEach(r => Invalidate(r)));
                 logicUpdate.InvalidCollisions.ForEach(ic => CalculateInvalidationRegions(ic).ForEach(r => Invalidate(r)));
@@ -209,6 +220,10 @@ namespace JewelMine.View.Forms
             {
                 Invalidate(new Rectangle(deltaBorder.X - 2, deltaBorder.Y - 2, deltaBorder.Width + 4, deltaBorder.Height + 4));
                 deltaBorder = Rectangle.Empty;
+            }
+            if(scoreRectangle != Rectangle.Empty)
+            {
+                Invalidate(scoreRectangle);
             }
         }
 
@@ -232,11 +247,23 @@ namespace JewelMine.View.Forms
             DrawJewels(graphics);
             DrawDeltaBorder(graphics);
             DrawCollisions(graphics);
-
+            DrawGameStateText(graphics);
             //DrawObjects<Wall>(g, walls, squares);
             //DrawObjects<Block>(g, blocks, squares);
             //DrawObjects<IStructure>(g, structures, squares);
             //DrawControlStrings(g, cstrings);
+        }
+
+        /// <summary>
+        /// Draws the game state text.
+        /// </summary>
+        /// <param name="graphics">The graphics.</param>
+        private void DrawGameStateText(Graphics graphics)
+        {
+            string score = string.Format("Level//{0} Score//{1} LevelUp//{2} Speed//{3}", gameEngine.GameStateModel.Level, gameEngine.GameStateModel.Score, gameEngine.GameStateModel.Level * GameConstants.GAME_LEVEL_INCREMENT_SCORE_THRESHOLD, gameEngine.GameStateModel.TickSpeedMilliseconds);
+            SizeF size = graphics.MeasureString(score, scoreFont);
+            scoreRectangle = new Rectangle(5, 5, (int)size.Width, (int)size.Height);
+            graphics.DrawString(score, scoreFont, informationOverlayBrush, new PointF(5, 5));
         }
 
         /// <summary>
@@ -327,15 +354,15 @@ namespace JewelMine.View.Forms
         {
             // assigns a random background to each level
             TextureBrush brush = null;
-            if (levelBackgroundDictionary.ContainsKey(gameEngine.GameStateModel.GameLevel))
+            if (levelBackgroundDictionary.ContainsKey(gameEngine.GameStateModel.Level))
             {
-                brush = levelBackgroundDictionary[gameEngine.GameStateModel.GameLevel];
+                brush = levelBackgroundDictionary[gameEngine.GameStateModel.Level];
             }
             else
             {
                 int randomIndex = ViewHelpers.GenerateRandomIndex(backgroundImageArray, rand);
                 brush = new TextureBrush(backgroundImageArray[randomIndex], WrapMode.Tile);
-                levelBackgroundDictionary.Add(gameEngine.GameStateModel.GameLevel, brush);
+                levelBackgroundDictionary.Add(gameEngine.GameStateModel.Level, brush);
             }
             g.FillRectangle(brush, 0, 0, ClientRectangle.Width, ClientRectangle.Height);
         }

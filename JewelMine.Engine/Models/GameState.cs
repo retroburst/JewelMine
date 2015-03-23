@@ -18,9 +18,10 @@ namespace JewelMine.Engine.Models
         public GameState()
         {
             Mine = new Mine();
-            GamePlayState = GamePlayState.NotStarted;
-            GameLevel = GameConstants.GAME_DEFAULT_LEVEL;
-            GameTickSpeedMilliseconds = GameConstants.GAME_DEFAULT_TICK_SPEED_MILLISECONDS;
+            PlayState = GamePlayState.NotStarted;
+            Level = GameConstants.GAME_DEFAULT_LEVEL;
+            TickSpeedMilliseconds = GameConstants.GAME_DEFAULT_TICK_SPEED_MILLISECONDS;
+            Score = 0;
         }
 
         /// <summary>
@@ -39,7 +40,7 @@ namespace JewelMine.Engine.Models
         /// <value>
         /// The state of the game play.
         /// </value>
-        public GamePlayState GamePlayState { get; internal set; }
+        public GamePlayState PlayState { get; internal set; }
 
         /// <summary>
         /// Gets the grid.
@@ -55,7 +56,15 @@ namespace JewelMine.Engine.Models
         /// <value>
         /// The game level.
         /// </value>
-        public int GameLevel { get; internal set; }
+        public int Level { get; internal set; }
+
+        /// <summary>
+        /// Gets the game score.
+        /// </summary>
+        /// <value>
+        /// The game score.
+        /// </value>
+        public long Score { get; internal set; }
 
         /// <summary>
         /// Gets the game tick speed milliseconds.
@@ -63,7 +72,7 @@ namespace JewelMine.Engine.Models
         /// <value>
         /// The game tick speed milliseconds.
         /// </value>
-        public double GameTickSpeedMilliseconds { get; internal set; }
+        public double TickSpeedMilliseconds { get; internal set; }
 
         /// <summary>
         /// Gets the game play state string.
@@ -71,11 +80,11 @@ namespace JewelMine.Engine.Models
         /// <value>
         /// The game play state string.
         /// </value>
-        public string GamePlayStateString
+        public string PlayStateString
         {
             get
             {
-                return (GamePlayState.ToString());
+                return (PlayState.ToString());
             }
         }
     }

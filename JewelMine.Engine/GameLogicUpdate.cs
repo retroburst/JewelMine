@@ -55,6 +55,14 @@ namespace JewelMine.Engine
         public bool DeltaJewelsSwapped { get; set; }
 
         /// <summary>
+        /// Gets or sets a value indicating whether [level incremented].
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if [level incremented]; otherwise, <c>false</c>.
+        /// </value>
+        public bool LevelIncremented { get; set; }
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="GameLogicUpdate"/> class.
         /// </summary>
         public GameLogicUpdate()
