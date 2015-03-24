@@ -11,16 +11,16 @@ namespace JewelMine.Engine
     /// </summary>
     public static class GameConstants
     {
-        public const int MINE_DEFAULT_COLUMN_SIZE = 16;
-        public const int MINE_DEFAULT_DEPTH_SIZE = 16;
+        public const int MINE_DEFAULT_COLUMN_SIZE = 21;
+        public const int MINE_DEFAULT_DEPTH_SIZE = 21;
         public const int GAME_DEFAULT_LEVEL = 1;
         public const int GAME_LEVEL_INCREMENT_SCORE_THRESHOLD = 50000;
-        public const int GAME_LEVEL_INCREMENT_SPEED_CHANGE = 10;
+        public const int GAME_LEVEL_INCREMENT_SPEED_CHANGE = 6;
         public const double GAME_DEFAULT_TICK_SPEED_MILLISECONDS = 280.0d;
-        public const int GAME_COLLISION_FINALISE_TICK_COUNT = 20;
-        public const int GAME_DELTA_STATIONARY_TICK_COUNT = 5;
-        public const int GAME_DOUBLE_JEWEL_DELTA_CHANCE_ABOVE = 70;
-        public const int GAME_TRIPLE_JEWEL_DELTA_CHANCE_ABOVE = 90; 
+        public const int GAME_COLLISION_FINALISE_TICK_COUNT = 25;
+        public const int GAME_DELTA_STATIONARY_TICK_COUNT = 8;
+        public const int GAME_DOUBLE_JEWEL_DELTA_CHANCE_ABOVE = 10;
+        public const int GAME_TRIPLE_JEWEL_DELTA_CHANCE_ABOVE = 80; 
     }
 
     /// <summary>

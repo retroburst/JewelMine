@@ -87,6 +87,7 @@ namespace JewelMine.Engine
         public GameLogicUpdate PerformGameLogic(GameLogicInput input)
         {
             GameLogicUpdate logicUpdate = new GameLogicUpdate();
+            // increment level if the score has reached the threshold for current level
             if (LevelThresholdReached()) IncrementLevel(logicUpdate);
             // check for jewels that need to move down because of successful collisions
             MoveDownJewelsInLimbo(logicUpdate);
@@ -100,7 +101,6 @@ namespace JewelMine.Engine
                 int numPositionsToMove = 1;
                 // if delta is up against a boundary on either side that the movement is towards, override and move delta down instead
                 if (IsDeltaAgainstBoundary(deltaMovement)) deltaMovement = MovementType.Down;
-                // if delta is up against another block or bounadry on underside ignore input - do not move delta and add new delta
                 if (userInputMovement && deltaMovement == MovementType.Down) numPositionsToMove = 2;
                 MoveDelta(deltaMovement, logicUpdate, numPositionsToMove);
                 if (IsDeltaStationary()) deltaStationary = true;

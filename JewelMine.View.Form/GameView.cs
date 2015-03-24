@@ -23,6 +23,7 @@ namespace JewelMine.View.Forms
     /// </summary>
     public partial class GameView : Form
     {
+        private bool disposing = false;
         private GameTimer timer = null;
         private GameLogic gameEngine = null;
         private MovementType? inputMovement = null;
@@ -151,6 +152,7 @@ namespace JewelMine.View.Forms
         /// <param name="e">The <see cref="FormClosedEventArgs"/> instance containing the event data.</param>
         private void FormClosedHandler(object sender, FormClosedEventArgs e)
         {
+            disposing = true;
             gameEngine.StopGame();
             Application.Exit();
         }
@@ -162,18 +164,18 @@ namespace JewelMine.View.Forms
         {
             Console.WriteLine("Starting game loop..");
             timer.Start();
-            while (gameEngine.GameStateModel.PlayState == GamePlayState.Playing)
+            while (!disposing)
             {
-                //Console.WriteLine("Looping");
                 startTime = timer.ElapsedMilliseconds;
                 Application.DoEvents();
-                GameLogicUpdate logicUpdate = gameEngine.PerformGameLogic(new GameLogicInput() { DeltaMovement = inputMovement, DeltaSwapJewels = inputSwapDeltaJewels });
-                Invalidate(logicUpdate);
-                PlaySounds(logicUpdate);
-                while ((timer.ElapsedMilliseconds - startTime) < gameEngine.GameStateModel.TickSpeedMilliseconds)
+                if (gameEngine.GameStateModel.PlayState == GamePlayState.Playing)
                 {
-                    //Console.WriteLine("Waiting..");
+                    GameLogicUpdate logicUpdate = gameEngine.PerformGameLogic(new GameLogicInput() { DeltaMovement = inputMovement, DeltaSwapJewels = inputSwapDeltaJewels });
+                    Invalidate(logicUpdate);
+                    PlaySounds(logicUpdate);
                 }
+                while ((timer.ElapsedMilliseconds - startTime) < gameEngine.GameStateModel.TickSpeedMilliseconds)
+                { }
                 // reset input descriptors
                 inputMovement = null;
                 inputSwapDeltaJewels = false;
@@ -188,11 +190,11 @@ namespace JewelMine.View.Forms
         /// <param name="logicUpdate">The logic update.</param>
         private void PlaySounds(GameLogicUpdate logicUpdate)
         {
-            if(logicUpdate.FinalisedCollisions.Count > 0)
+            if (logicUpdate.FinalisedCollisions.Count > 0)
             {
                 gameAudioSystem.PlayCollision();
             }
-            if(logicUpdate.DeltaJewelsSwapped)
+            if (logicUpdate.DeltaJewelsSwapped)
             {
                 gameAudioSystem.PlaySwap();
             }
@@ -221,7 +223,7 @@ namespace JewelMine.View.Forms
                 Invalidate(new Rectangle(deltaBorder.X - 2, deltaBorder.Y - 2, deltaBorder.Width + 4, deltaBorder.Height + 4));
                 deltaBorder = Rectangle.Empty;
             }
-            if(scoreRectangle != Rectangle.Empty)
+            if (scoreRectangle != Rectangle.Empty)
             {
                 Invalidate(scoreRectangle);
             }
