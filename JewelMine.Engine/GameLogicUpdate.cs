@@ -63,6 +63,30 @@ namespace JewelMine.Engine
         public bool LevelIncremented { get; set; }
 
         /// <summary>
+        /// Gets or sets a value indicating whether [game restarted].
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if [game restarted]; otherwise, <c>false</c>.
+        /// </value>
+        public bool GameResumed { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether [game won].
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if [game won]; otherwise, <c>false</c>.
+        /// </value>
+        public bool GameWon { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether [game paused].
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if [game paused]; otherwise, <c>false</c>.
+        /// </value>
+        public bool GamePaused { get; set; }
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="GameLogicUpdate"/> class.
         /// </summary>
         public GameLogicUpdate()

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using JewelMine.Engine.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -25,5 +26,28 @@ namespace JewelMine.Engine
                 action(source.ElementAt(i));
             }
         }
+
+        /// <summary>
+        /// Calculates the score.
+        /// </summary>
+        /// <param name="groups">The groups.</param>
+        /// <returns></returns>
+        public static long CalculateScore(MarkedCollisionGroup[] groups)
+        {
+            long score = 0;
+            foreach(MarkedCollisionGroup group in groups)
+            {
+                // default for a 3 jewel collision
+                long groupScore = GameConstants.GAME_DEFAULT_COLLISION_SCORE;
+                // give extra points for additional collision on top of 3 jewels
+                int extraCollisions = group.Members.Count - 3;
+                if (extraCollisions > 0) groupScore += (groupScore * extraCollisions);
+                // if diagonal then double it
+                if (group.Direction == CollisionDirection.DiagonallyLeft || group.Direction == CollisionDirection.DiagonallyRight) groupScore += groupScore;
+                score += groupScore;
+            }
+            return (score);
+        }
+
     }
 }

@@ -47,6 +47,24 @@ namespace JewelMine.Engine.Models
         }
 
         /// <summary>
+        /// Generates the surrounding coordinates.
+        /// </summary>
+        /// <returns></returns>
+        public static Coordinates[] GenerateSurroundingCoordinates(Coordinates target)
+        {
+            List<Coordinates> surrounding = new List<Coordinates>();
+            surrounding.Add(new Coordinates(target.X + 1, target.Y + 1));
+            surrounding.Add(new Coordinates(target.X - 1, target.Y - 1));
+            surrounding.Add(new Coordinates(target.X + 1, target.Y - 1));
+            surrounding.Add(new Coordinates(target.X - 1, target.Y + 1));
+            surrounding.Add(new Coordinates(target.X, target.Y + 1));
+            surrounding.Add(new Coordinates(target.X, target.Y - 1));
+            surrounding.Add(new Coordinates(target.X + 1, target.Y));
+            surrounding.Add(new Coordinates(target.X - 1, target.Y));
+            return (surrounding.ToArray());
+        }
+
+        /// <summary>
         /// Copies from another source set of coordinates.
         /// </summary>
         /// <param name="source">The source.</param>
@@ -65,25 +83,6 @@ namespace JewelMine.Engine.Models
         public Coordinates Clone()
         {
             return (new Coordinates(X, Y));
-        }
-
-        /// <summary>
-        /// Invalidates this instance.
-        /// </summary>
-        public void Invalidate()
-        {
-            X = -1;
-            Y = -1;
-        }
-
-
-        /// <summary>
-        /// Determines whether this instance is invalidated.
-        /// </summary>
-        /// <returns></returns>
-        public bool IsInvalidated()
-        {
-            return (X == -1 || Y == -1);
         }
 
         /// <summary>

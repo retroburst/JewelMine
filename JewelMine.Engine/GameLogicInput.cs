@@ -14,6 +14,18 @@ namespace JewelMine.Engine
     public class GameLogicInput
     {
         /// <summary>
+        /// Clears this instance.
+        /// </summary>
+        public void Clear()
+        {
+            DeltaMovement = null;
+            DeltaSwapJewels = false;
+            RestartGame = false;
+            ResumeGame = false;
+            PauseGame = false;
+        }
+
+        /// <summary>
         /// Gets the delta movement.
         /// </summary>
         /// <value>
@@ -24,6 +36,30 @@ namespace JewelMine.Engine
         /// <summary>
         /// The delta swap jewels
         /// </summary>
-        public bool DeltaSwapJewels = false; 
+        public bool DeltaSwapJewels { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether [restart game].
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if [restart game]; otherwise, <c>false</c>.
+        /// </value>
+        public bool RestartGame { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether [pause game].
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if [pause game]; otherwise, <c>false</c>.
+        /// </value>
+        public bool PauseGame { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether [resume game].
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if [resume game]; otherwise, <c>false</c>.
+        /// </value>
+        public bool ResumeGame { get; set; }
     }
 }

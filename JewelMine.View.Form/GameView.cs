@@ -26,8 +26,6 @@ namespace JewelMine.View.Forms
         private bool disposing = false;
         private GameTimer timer = null;
         private GameLogic gameEngine = null;
-        private MovementType? inputMovement = null;
-        private bool inputSwapDeltaJewels = false;
         private Dictionary<JewelType, Bitmap> jewelImageResourceDictionary = null;
         private Dictionary<JewelType, Bitmap> jewelResizedImageResourceDictionary = null;
         private Bitmap[] backgroundImageArray = null;
@@ -38,14 +36,15 @@ namespace JewelMine.View.Forms
         private int cellWidth = 0;
         private int jewelBitmapOffset = 2;
         private long startTime = 0;
-        private Pen gridPen = null;
         private Pen deltaBorderPen = null;
         private Brush collisionOverlayBrush = null;
         private Brush informationOverlayBrush = null;
         private Rectangle deltaBorder = Rectangle.Empty;
         private GameAudioSystem gameAudioSystem = null;
-        private Font scoreFont = null;
+        private Font gameStateTextFont = null;
         private Rectangle scoreRectangle = Rectangle.Empty;
+        private Rectangle levelRectangle = Rectangle.Empty;
+        private GameLogicInput logicInput = null;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GameView" /> class.
@@ -66,11 +65,13 @@ namespace JewelMine.View.Forms
             KeyDown += InputHandler;
             InitialiseDrawingObjects();
             backgroundImageArray = ViewHelpers.GenerateBackgroundImageArray();
+            logicInput = new GameLogicInput();
             // calculate cell dimensions
             CalculateGridCellDimensions();
+            CalculateGridCells(cells);
             // generate the resized versions of jewels
             jewelImageResourceDictionary = ViewHelpers.GenerateJewelImageResourceDictionary();
-            // generate and store resized images for this form size - we do 
+            // generate and store resized images for this form scoreSize - we do 
             // this once here instead of resizing every time we
             // draw a delta - which is a very expensive operation
             jewelResizedImageResourceDictionary = ViewHelpers.GenerateResizedJewelImageResourceDictionary(jewelImageResourceDictionary, cellWidth, cellHeight, jewelBitmapOffset);
@@ -87,23 +88,34 @@ namespace JewelMine.View.Forms
         /// <param name="e">The <see cref="KeyEventArgs"/> instance containing the event data.</param>
         public void InputHandler(object sender, KeyEventArgs e)
         {
+            if (gameEngine.GameStateModel.PlayState == GamePlayState.Paused)
+            {
+                logicInput.ResumeGame = true;
+                return;
+            }
             switch (e.KeyCode)
             {
                 case Keys.Left:
                 case Keys.A:
-                    inputMovement = MovementType.Left;
+                    logicInput.DeltaMovement = MovementType.Left;
                     break;
                 case Keys.Right:
                 case Keys.D:
-                    inputMovement = MovementType.Right;
+                    logicInput.DeltaMovement = MovementType.Right;
                     break;
                 case Keys.Down:
                 case Keys.S:
-                    inputMovement = MovementType.Down;
+                    logicInput.DeltaMovement = MovementType.Down;
                     break;
                 case Keys.Space:
                 case Keys.C:
-                    inputSwapDeltaJewels = true;
+                    logicInput.DeltaSwapJewels = true;
+                    break;
+                case Keys.R:
+                    if (e.Control) logicInput.RestartGame = true;
+                    break;
+                case Keys.P:
+                    if (e.Control) logicInput.PauseGame = true;
                     break;
             }
         }
@@ -122,14 +134,6 @@ namespace JewelMine.View.Forms
         /// </summary>
         private void InitialiseDrawingObjects()
         {
-            gridPen = new Pen(Color.SlateGray);
-            gridPen.Alignment = PenAlignment.Center;
-            gridPen.DashStyle = DashStyle.Dot;
-            gridPen.DashCap = DashCap.Round;
-            gridPen.EndCap = LineCap.DiamondAnchor;
-            gridPen.LineJoin = LineJoin.Round;
-            gridPen.StartCap = LineCap.DiamondAnchor;
-
             deltaBorderPen = new Pen(Color.GhostWhite);
             deltaBorderPen.Alignment = PenAlignment.Center;
             deltaBorderPen.DashStyle = DashStyle.Dot;
@@ -141,8 +145,8 @@ namespace JewelMine.View.Forms
 
             collisionOverlayBrush = new SolidBrush(Color.FromArgb(65, Color.AntiqueWhite));
 
-            informationOverlayBrush = new SolidBrush(Color.FromArgb(80, Color.White));
-            scoreFont = new Font(SystemInformation.MenuFont.FontFamily, 12.5f);
+            informationOverlayBrush = new SolidBrush(Color.FromArgb(110, Color.White));
+            gameStateTextFont = new Font(SystemInformation.MenuFont.FontFamily, 12.5f);
         }
 
         /// <summary>
@@ -153,7 +157,6 @@ namespace JewelMine.View.Forms
         private void FormClosedHandler(object sender, FormClosedEventArgs e)
         {
             disposing = true;
-            gameEngine.StopGame();
             Application.Exit();
         }
 
@@ -168,17 +171,16 @@ namespace JewelMine.View.Forms
             {
                 startTime = timer.ElapsedMilliseconds;
                 Application.DoEvents();
+                GameLogicUpdate logicUpdate = gameEngine.PerformGameLogic(logicInput);
                 if (gameEngine.GameStateModel.PlayState == GamePlayState.Playing)
                 {
-                    GameLogicUpdate logicUpdate = gameEngine.PerformGameLogic(new GameLogicInput() { DeltaMovement = inputMovement, DeltaSwapJewels = inputSwapDeltaJewels });
                     Invalidate(logicUpdate);
                     PlaySounds(logicUpdate);
                 }
                 while ((timer.ElapsedMilliseconds - startTime) < gameEngine.GameStateModel.TickSpeedMilliseconds)
                 { }
-                // reset input descriptors
-                inputMovement = null;
-                inputSwapDeltaJewels = false;
+                // reset user input descriptors
+                logicInput.Clear();
             }
             timer.Stop();
             Console.WriteLine("Exited game loop..");
@@ -208,7 +210,8 @@ namespace JewelMine.View.Forms
         {
             if (logicUpdate != null)
             {
-                if (logicUpdate.LevelIncremented)
+                if (gameEngine.GameStateModel.PlayState != GamePlayState.Playing) return;
+                if (logicUpdate.LevelIncremented || logicUpdate.GameResumed)
                 {
                     Invalidate();
                     return;
@@ -227,6 +230,10 @@ namespace JewelMine.View.Forms
             {
                 Invalidate(scoreRectangle);
             }
+            if (levelRectangle != Rectangle.Empty)
+            {
+                Invalidate(levelRectangle);
+            }
         }
 
         /// <summary>
@@ -243,17 +250,13 @@ namespace JewelMine.View.Forms
         /// <param name="graphics">The graphics.</param>
         private void Draw(Graphics graphics)
         {
-            graphics.SmoothingMode = SmoothingMode.AntiAlias;
+            graphics.SmoothingMode = SmoothingMode.HighQuality;
             DrawBackground(graphics);
-            DrawGrid(graphics, cells);
             DrawJewels(graphics);
             DrawDeltaBorder(graphics);
             DrawCollisions(graphics);
             DrawGameStateText(graphics);
             //DrawObjects<Wall>(g, walls, squares);
-            //DrawObjects<Block>(g, blocks, squares);
-            //DrawObjects<IStructure>(g, structures, squares);
-            //DrawControlStrings(g, cstrings);
         }
 
         /// <summary>
@@ -262,10 +265,15 @@ namespace JewelMine.View.Forms
         /// <param name="graphics">The graphics.</param>
         private void DrawGameStateText(Graphics graphics)
         {
-            string score = string.Format("Level//{0} Score//{1} LevelUp//{2} Speed//{3}", gameEngine.GameStateModel.Level, gameEngine.GameStateModel.Score, gameEngine.GameStateModel.Level * GameConstants.GAME_LEVEL_INCREMENT_SCORE_THRESHOLD, gameEngine.GameStateModel.TickSpeedMilliseconds);
-            SizeF size = graphics.MeasureString(score, scoreFont);
-            scoreRectangle = new Rectangle(5, 5, (int)size.Width, (int)size.Height);
-            graphics.DrawString(score, scoreFont, informationOverlayBrush, new PointF(5, 5));
+            string score = string.Format("Score//{0}", gameEngine.GameStateModel.Score.ToString("000000"));
+            string level = string.Format("Level//{0}", gameEngine.GameStateModel.Level.ToString("00"));
+            SizeF scoreSize = graphics.MeasureString(score, gameStateTextFont);
+            SizeF levelSize = graphics.MeasureString(level, gameStateTextFont);
+            int levelXPosition = (ClientSize.Width - (int)levelSize.Width - 5);
+            scoreRectangle = new Rectangle(5, 5, (int)scoreSize.Width, (int)scoreSize.Height);
+            levelRectangle = new Rectangle(levelXPosition, 5, (int)levelSize.Width, (int)levelSize.Height);
+            graphics.DrawString(score, gameStateTextFont, informationOverlayBrush, new PointF(5, 5));
+            graphics.DrawString(level, gameStateTextFont, informationOverlayBrush, new PointF(levelXPosition, 5));
         }
 
         /// <summary>
@@ -337,15 +345,14 @@ namespace JewelMine.View.Forms
         {
             // calculate new cell dimensions
             CalculateGridCellDimensions();
-            // calculate new image sizes for this form size - we do 
+            CalculateGridCells(cells);
+            // calculate new image sizes for this form scoreSize - we do 
             // this once here instead of resizing every time we
             // draw a delta - which is a very expensive operation
             jewelResizedImageResourceDictionary = ViewHelpers.GenerateResizedJewelImageResourceDictionary(jewelImageResourceDictionary, cellWidth, cellHeight, jewelBitmapOffset);
             // invalidate the whole view so it is
             // all re-painted
             Invalidate(ClientRectangle);
-
-            this.Text = string.Format("Jewel Mine [{0}x{1}]", this.Width.ToString(), this.Height.ToString());
         }
 
         /// <summary>
@@ -370,11 +377,10 @@ namespace JewelMine.View.Forms
         }
 
         /// <summary>
-        /// Draws the grid.
+        /// Calculates the grid cells.
         /// </summary>
-        /// <param name="g">The g.</param>
         /// <param name="cells">The cells.</param>
-        private void DrawGrid(Graphics g, Rectangle[,] cells)
+        private void CalculateGridCells(Rectangle[,] cells)
         {
             int leftOverWidth = ClientRectangle.Width - (cellWidth * cells.GetLength(0));
             int leftOverHeight = ClientRectangle.Height - (cellHeight * cells.GetLength(1));
@@ -386,7 +392,6 @@ namespace JewelMine.View.Forms
                 for (int j = 0; j <= cells.GetUpperBound(1); j++)
                 {
                     cells[i, j] = new Rectangle(i * cellWidth + widthOffset, j * cellHeight + heightOffset, cellWidth, cellHeight);
-                    g.DrawRectangle(gridPen, cells[i, j]);
                 }
             }
         }
