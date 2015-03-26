@@ -15,7 +15,7 @@ namespace JewelMine.Engine
     public class GameLogic
     {
         public Random Random { get; private set; }
-        private string[] jewelNames = null;
+        private JewelType[] jewelTypes = null;
         private GameState state = null;
         private GameCollisionDetector collisionDetector = null;
 
@@ -32,11 +32,11 @@ namespace JewelMine.Engine
         /// </summary>
         private void Initialise()
         {
-            jewelNames = Enum.GetNames(typeof(JewelType)).Where(x => x != JewelType.Unknown.ToString()).ToArray();
+            jewelTypes = (JewelType[])Enum.GetValues(typeof(JewelType)).Cast<JewelType>().Where(x => x != JewelType.Unknown).ToArray();
             state = new GameState();
             Random = new Random();
             collisionDetector = new GameCollisionDetector(state);
-            AddInitialLines(GameConstants.GAME_DEFAULT_INITIAL_LINES);
+            AddInitialLinesToMine(GameConstants.GAME_DEFAULT_INITIAL_LINES);
             // TODO: take this out, for game won testing only
             //state.Score = long.MaxValue - 1000;
         }
@@ -47,158 +47,119 @@ namespace JewelMine.Engine
         /// <value>
         /// The game state model.
         /// </value>
-        public GameState GameStateModel
+        public GameState State
         {
             get { return (state); }
-        }
-
-        // TODO update game states
-        /// <summary>
-        /// Starts the game.
-        /// </summary>
-        public void StartGame()
-        {
-            state.PlayState = GamePlayState.Playing;
-        }
-
-        /// <summary>
-        /// Pauses the game.
-        /// </summary>
-        public void PauseGame()
-        {
-            state.PlayState = GamePlayState.Paused;
-        }
-
-        /// <summary>
-        /// Games the over.
-        /// </summary>
-        public void GameOver()
-        {
-            state.PlayState = GamePlayState.GameOver;
-        }
-
-        /// <summary>
-        /// Games the won.
-        /// </summary>
-        public void GameWon()
-        {
-            state.PlayState = GamePlayState.GameWon;
-        }
-
-        /// <summary>
-        /// Restarts the game.
-        /// </summary>
-        public void RestartGame()
-        {
-            Initialise();
-            state.PlayState = GamePlayState.Playing;
-        }
-
-        /// <summary>
-        /// Adds the initial lines.
-        /// </summary>
-        /// <param name="numLines">The number lines.</param>
-        private void AddInitialLines(int numLines)
-        {
-            for (int y = state.Mine.Depth - 1; y > state.Mine.Depth - (numLines + 1); y--)
-            {
-                for (int x = state.Mine.Columns - 1; x >= 0; x--)
-                {
-                    bool addJewelAtPosition = true;
-                    if (y == (state.Mine.Depth - numLines))
-                    {
-                        addJewelAtPosition = (Random.Next(0, 2) == 1);
-                    }
-                    if (addJewelAtPosition)
-                    {
-                        state.Mine.Grid[x, y] = new Jewel(GenerateRandomJewelType(FindJewelTypesAroundTarget(new Coordinates(x, y))));
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Finds the jewel types around target.
-        /// </summary>
-        /// <param name="coordinates">The coordinates.</param>
-        /// <returns></returns>
-        private string[] FindJewelTypesAroundTarget(Coordinates coordinates)
-        {
-            List<string> surroundingTypes = new List<string>();
-            Coordinates[] surrounding = Coordinates.GenerateSurroundingCoordinates(coordinates);
-            foreach (Coordinates surroundingCoordinate in surrounding)
-            {
-                if (state.Mine.CoordinatesInBounds(surroundingCoordinate) && !state.Mine.CoordinatesAvailable(surroundingCoordinate))
-                {
-                    MineObject mineObject = state.Mine[surroundingCoordinate];
-                    if (mineObject is Jewel)
-                    {
-                        Jewel surroundingJewel = (Jewel)mineObject;
-                        surroundingTypes.Add(surroundingJewel.JewelType.ToString());
-                    }
-                }
-            }
-            return (surroundingTypes.ToArray());
         }
 
         /// <summary>
         /// Performs the game logic.
         /// </summary>
-        /// <param name="input">The input.</param>
+        /// <param name="logicInput">The logicInput.</param>
         /// <returns></returns>
         /// <exception cref="System.NotImplementedException">
         /// Game Over
         /// or
         /// Game Over
         /// </exception>
-        public GameLogicUpdate PerformGameLogic(GameLogicInput input)
+        public GameLogicUpdate PerformGameLogic(GameLogicInput logicInput)
         {
             GameLogicUpdate logicUpdate = new GameLogicUpdate();
-            if (input.RestartGame)
-            {
-                RestartGame();
-                logicUpdate.GameResumed = true;
-                return (logicUpdate);
-            }
-            if (input.PauseGame)
-            {
-                PauseGame();
-                logicUpdate.GamePaused = true;
-                return (logicUpdate);
-            }
-            if (input.ResumeGame)
-            {
-                logicUpdate.GameResumed = true;
-                StartGame();
-            }
-            
-            // if we are paused or game over, we don't need to do anything else
+            bool immediateReturn = false;
+            // process any game state changes - may need to return immediately after
+            ProcessGameStateChange(logicInput, logicUpdate, out immediateReturn);
+            if (immediateReturn) { return (logicUpdate); }
+            // if we are in a playing state, we don't need to do anything else so let's return
             if (state.PlayState != GamePlayState.Playing) return (logicUpdate);
-
             // increment level if the score has reached the threshold for current level
-            if (LevelThresholdReached())
-            {
-                if(state.Level == 99)
-                {
-                    GameWon();
-                    logicUpdate.GameWon = true;
-                    return (logicUpdate);
-                }
-                IncrementLevel(logicUpdate);
-            }
+            ProcessLevelAdvancement(logicInput, logicUpdate, out immediateReturn);
+            if (immediateReturn) { return (logicUpdate); }
             // check for jewels that need to move down because of successful collisions
             MoveDownJewelsInLimbo(logicUpdate);
-            // move delta based on input or down by default if no input
-            bool userInputMovement = input.DeltaMovement.HasValue;
-            MovementType deltaMovement = input.DeltaMovement.HasValue ? input.DeltaMovement.Value : MovementType.Down;
+            // move delta based on logicInput or down by default if no logicInput
+            bool userInputMovement = logicInput.DeltaMovement.HasValue;
+            MovementType deltaMovement = logicInput.DeltaMovement.HasValue ? logicInput.DeltaMovement.Value : MovementType.Down;
+            ProcessDeltaMovement(logicInput, logicUpdate, userInputMovement, deltaMovement);
+            // check for new collisions and update existing
+            ProcessCollisions(logicUpdate);
+            // add a delta if required
+            ProcessAddDelta(logicUpdate);
+            return (logicUpdate);
+        }
+
+        /// <summary>
+        /// Determines whether [is game state change] [the specified logic update].
+        /// </summary>
+        /// <param name="logicInput">The logic logicInput.</param>
+        /// <param name="logicUpdate">The logic update.</param>
+        /// <returns></returns>
+        private void ProcessGameStateChange(GameLogicInput logicInput, GameLogicUpdate logicUpdate, out bool immediateReturn)
+        {
+            immediateReturn = false;
+            if (logicInput.RestartGame)
+            {
+                RestartGame(logicUpdate);
+                immediateReturn = true;
+            }
+            else if (logicInput.PauseGame)
+            {
+                PauseGame(logicUpdate);
+                immediateReturn = true;
+            }
+            else if (logicInput.ResumeGame)
+            {
+                StartGame(logicUpdate);
+                immediateReturn = false;
+            }
+        }
+
+        /// <summary>
+        /// Processes the level advancement.
+        /// </summary>
+        /// <param name="logicInput">The logic input.</param>
+        /// <param name="logicUpdate">The logic update.</param>
+        /// <param name="immediateReturn">if set to <c>true</c> [immediate return].</param>
+        private void ProcessLevelAdvancement(GameLogicInput logicInput, GameLogicUpdate logicUpdate, out bool immediateReturn)
+        {
+            immediateReturn = false;
+            if (state.Mine.IsEmpty())
+            {
+                GameWon(logicUpdate);
+                immediateReturn = true;
+            }
+            else if (LevelThresholdReached())
+            {
+                if (state.Level == GameConstants.GAME_LAST_LEVEL)
+                {
+                    GameWon(logicUpdate);
+                    immediateReturn = true;
+                }
+                else
+                {
+                    IncrementLevel(logicUpdate);
+                    immediateReturn = false;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Processes the delta movement.
+        /// </summary>
+        /// <param name="logicInput">The logic input.</param>
+        /// <param name="logicUpdate">The logic update.</param>
+        /// <param name="userInputMovement">if set to <c>true</c> [user input movement].</param>
+        /// <param name="deltaMovement">The delta movement.</param>
+        private void ProcessDeltaMovement(GameLogicInput logicInput, GameLogicUpdate logicUpdate, bool userInputMovement, MovementType deltaMovement)
+        {
             if (state.Mine.Delta != null)
             {
-                if (input.DeltaSwapJewels) { SwapDeltaJewels(logicUpdate); }
+                if (logicInput.DeltaSwapJewels) { SwapDeltaJewels(logicUpdate); }
                 bool deltaStationary = false;
                 int numPositionsToMove = 1;
                 // if delta is up against a boundary on either side that the movement is towards, override and move delta down instead
                 if (IsDeltaAgainstBoundary(deltaMovement)) deltaMovement = MovementType.Down;
-                if (userInputMovement && deltaMovement == MovementType.Down) numPositionsToMove = 2;
+                // if the user pressed down - drop the delta all the way
+                if (userInputMovement && deltaMovement == MovementType.Down) numPositionsToMove = state.Mine.Depth;
                 MoveDelta(deltaMovement, logicUpdate, numPositionsToMove);
                 if (IsDeltaStationary()) deltaStationary = true;
                 if (deltaStationary)
@@ -218,21 +179,84 @@ namespace JewelMine.Engine
                     state.Mine.Delta.StationaryTickCount = 0;
                 }
             }
+        }
 
-            // check for new collisions and update existing
+        /// <summary>
+        /// Processes the collisions.
+        /// </summary>
+        /// <param name="logicUpdate">The logic update.</param>
+        private void ProcessCollisions(GameLogicUpdate logicUpdate)
+        {
             state.Mine.MarkedCollisions.ForEach(x => x.IncrementCollisionTickCount());
             var markedCollisionsForFinalising = state.Mine.MarkedCollisions.Where(x => x.CollisionTickCount >= GameConstants.GAME_COLLISION_FINALISE_TICK_COUNT).ToArray();
             collisionDetector.FinaliseCollisions(logicUpdate, markedCollisionsForFinalising);
             state.Score += GameHelpers.CalculateScore(markedCollisionsForFinalising);
             collisionDetector.MarkCollisions(logicUpdate);
+        }
 
+        /// <summary>
+        /// Processes the add delta.
+        /// </summary>
+        /// <param name="logicUpdate">The logic update.</param>
+        private void ProcessAddDelta(GameLogicUpdate logicUpdate)
+        {
             // if no delta add a new one
             if (state.Mine.Delta == null)
             {
                 bool added = AddDelta(logicUpdate);
-                if (!added) { GameOver(); }
+                if (!added) { GameOver(logicUpdate); }
             }
-            return (logicUpdate);
+        }
+
+        /// <summary>
+        /// Starts the game.
+        /// </summary>
+        /// <param name="logicUpdate">The logic update.</param>
+        private void StartGame(GameLogicUpdate logicUpdate)
+        {
+            state.PlayState = GamePlayState.Playing;
+            logicUpdate.GameResumed = true;
+        }
+
+        /// <summary>
+        /// Pauses the game.
+        /// </summary>
+        /// <param name="logicUpdate">The logic update.</param>
+        private void PauseGame(GameLogicUpdate logicUpdate)
+        {
+            state.PlayState = GamePlayState.Paused;
+            logicUpdate.GamePaused = true;
+        }
+
+        /// <summary>
+        /// Games the over.
+        /// </summary>
+        /// <param name="logicUpdate">The logic update.</param>
+        private void GameOver(GameLogicUpdate logicUpdate)
+        {
+            state.PlayState = GamePlayState.GameOver;
+            logicUpdate.GameOver = true;
+        }
+
+        /// <summary>
+        /// Games the won.
+        /// </summary>
+        /// <param name="logicUpdate">The logic update.</param>
+        private void GameWon(GameLogicUpdate logicUpdate)
+        {
+            state.PlayState = GamePlayState.GameWon;
+            logicUpdate.GameWon = true;
+        }
+
+        /// <summary>
+        /// Restarts the game.
+        /// </summary>
+        /// <param name="logicUpdate">The logic update.</param>
+        private void RestartGame(GameLogicUpdate logicUpdate)
+        {
+            Initialise();
+            state.PlayState = GamePlayState.Playing;
+            logicUpdate.GameResumed = true;
         }
 
         /// <summary>
@@ -327,6 +351,90 @@ namespace JewelMine.Engine
         }
 
         /// <summary>
+        /// Finds the jewel types around target. Returns the names.
+        /// </summary>
+        /// <param name="coordinates">The coordinates.</param>
+        /// <returns></returns>
+        private JewelType[] FindJewelTypesAroundTarget(Coordinates coordinates)
+        {
+            List<JewelType> surroundingTypes = new List<JewelType>();
+            Coordinates[] surrounding = Coordinates.GenerateSurroundingCoordinates(coordinates);
+            foreach (Coordinates surroundingCoordinate in surrounding)
+            {
+                if (state.Mine.CoordinatesInBounds(surroundingCoordinate) && !state.Mine.CoordinatesAvailable(surroundingCoordinate))
+                {
+                    MineObject mineObject = state.Mine[surroundingCoordinate];
+                    if (mineObject is Jewel)
+                    {
+                        Jewel surroundingJewel = (Jewel)mineObject;
+                        surroundingTypes.Add(surroundingJewel.JewelType);
+                    }
+                }
+            }
+            return (surroundingTypes.ToArray());
+        }
+
+        /// <summary>
+        /// Adds the initial lines to mine.
+        /// </summary>
+        /// <param name="numLines">The number lines.</param>
+        private void AddInitialLinesToMine(int numLines)
+        {
+            for (int y = state.Mine.Depth - 1; y > state.Mine.Depth - (numLines + 1); y--)
+            {
+                for (int x = state.Mine.Columns - 1; x >= 0; x--)
+                {
+                    bool addJewelAtPosition = true;
+                    if (y == (state.Mine.Depth - numLines))
+                    {
+                        // if top line, don't always add a jewel - gives a ragged random look
+                        addJewelAtPosition = (Random.Next(0, 2) == 1);
+                    }
+                    if (addJewelAtPosition)
+                    {
+                        state.Mine.Grid[x, y] = GenerateRandomJewelAvoidCollision(new Coordinates(x, y));
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Generates the type of the random jewel.
+        /// </summary>
+        /// <returns></returns>
+        private JewelType GenerateRandomJewelType()
+        {
+            int randomIndex = Random.Next(0, jewelTypes.Length);
+            return (jewelTypes[randomIndex]);
+        }
+
+        /// <summary>
+        /// Generates the random type of the jewel.
+        /// </summary>
+        /// <param name="avoidTypes">The avoid types.</param>
+        /// <returns></returns>
+        private JewelType GenerateRandomJewelType(params JewelType[] avoidTypes)
+        {
+            JewelType[] jewelTypesToUse = jewelTypes.Where(x => !avoidTypes.Contains(x)).ToArray();
+            // if surrounded by all types of jewels (i.e. avoid all types) return a random
+            if (jewelTypesToUse.Length == 0) return (GenerateRandomJewelType());
+            int randomIndex = Random.Next(0, jewelTypesToUse.Length);
+            return (jewelTypesToUse[randomIndex]);
+        }
+
+        /// <summary>
+        /// Generates the random jewel avoid collision.
+        /// </summary>
+        /// <param name="coordinates">The coordinates.</param>
+        /// <returns></returns>
+        private Jewel GenerateRandomJewelAvoidCollision(Coordinates coordinates)
+        {
+            JewelType[] avoidTypes = FindJewelTypesAroundTarget(coordinates);
+            Jewel result = new Jewel(GenerateRandomJewelType(avoidTypes));
+            return (result);
+        }
+
+        /// <summary>
         /// Adds the delta.
         /// </summary>
         /// <param name="logicUpdate">The logic update.</param>
@@ -396,32 +504,6 @@ namespace JewelMine.Engine
         }
 
         /// <summary>
-        /// Generates the type of the random jewel.
-        /// </summary>
-        /// <returns></returns>
-        private JewelType GenerateRandomJewelType()
-        {
-            int randomIndex = Random.Next(0, jewelNames.Length);
-            JewelType type = (JewelType)Enum.Parse(typeof(JewelType), jewelNames[randomIndex]);
-            return (type);
-        }
-
-        /// <summary>
-        /// Generates the random type of the jewel.
-        /// </summary>
-        /// <param name="avoidTypes">The avoid types.</param>
-        /// <returns></returns>
-        private JewelType GenerateRandomJewelType(params string[] avoidTypes)
-        {
-            string[] jewelNamesToUse = jewelNames.Where(x => !avoidTypes.Contains(x)).ToArray();
-            // if surrounded by all types of jewels (i.e. avoid all types) return a random
-            if (jewelNames.Length == 0) return (GenerateRandomJewelType());
-            int randomIndex = Random.Next(0, jewelNamesToUse.Length);
-            JewelType type = (JewelType)Enum.Parse(typeof(JewelType), jewelNamesToUse[randomIndex]);
-            return (type);
-        }
-
-        /// <summary>
         /// Moves the delta.
         /// </summary>
         /// <param name="movement">The movement.</param>
@@ -435,11 +517,14 @@ namespace JewelMine.Engine
             switch (movement)
             {
                 case MovementType.Down:
-                    targetCoordinates = FindClosestDownPositionForDelta(delta, numPositionsToMove); break;
+                    targetCoordinates = FindClosestDownPositionForDelta(delta, numPositionsToMove);
+                    break;
                 case MovementType.Left:
-                    targetCoordinates = FindClosestLeftPositionForDelta(delta, numPositionsToMove); break;
+                    targetCoordinates = FindClosestLeftPositionForDelta(delta, numPositionsToMove); 
+                    break;
                 case MovementType.Right:
-                    targetCoordinates = FindClosestRightPositionForDelta(delta, numPositionsToMove); break;
+                    targetCoordinates = FindClosestRightPositionForDelta(delta, numPositionsToMove); 
+                    break;
             }
 
             if (targetCoordinates == null) return (false);
@@ -579,11 +664,14 @@ namespace JewelMine.Engine
                 switch (movement)
                 {
                     case MovementType.Down:
-                        targetCoordinates = FindClosestDownPosition(coordinates); break;
+                        targetCoordinates = FindClosestDownPosition(coordinates); 
+                        break;
                     case MovementType.Left:
-                        targetCoordinates = FindClosestLeftPosition(coordinates); break;
+                        targetCoordinates = FindClosestLeftPosition(coordinates); 
+                        break;
                     case MovementType.Right:
-                        targetCoordinates = FindClosestRightPosition(coordinates); break;
+                        targetCoordinates = FindClosestRightPosition(coordinates); 
+                        break;
                 }
                 if (targetCoordinates == null) return (false);
                 // otherwise we can move the delta to the required or closest position

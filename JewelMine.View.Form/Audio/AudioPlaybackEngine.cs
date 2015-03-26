@@ -54,7 +54,7 @@ namespace JewelMine.View.Forms.Audio
         /// <summary>
         /// Converts to right channel count.
         /// </summary>
-        /// <param name="input">The input.</param>
+        /// <param name="logicInput">The logicInput.</param>
         /// <returns></returns>
         /// <exception cref="System.NotImplementedException">Not yet implemented this channel count conversion</exception>
         private ISampleProvider ConvertToRightChannelCount(ISampleProvider input)
@@ -80,9 +80,9 @@ namespace JewelMine.View.Forms.Audio
         }
 
         /// <summary>
-        /// Adds the mixer input.
+        /// Adds the mixer logicInput.
         /// </summary>
-        /// <param name="input">The input.</param>
+        /// <param name="logicInput">The logicInput.</param>
         private void AddMixerInput(ISampleProvider input)
         {
             mixer.AddMixerInput(ConvertToRightChannelCount(input));

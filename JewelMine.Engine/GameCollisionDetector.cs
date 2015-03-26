@@ -187,21 +187,6 @@ namespace JewelMine.Engine
             }
         }
 
-        private void PrintJewels(MarkedCollisionGroup g)
-        {
-            Console.Out.WriteLine(string.Format("Group {0} [Direction: {1}] [Tick: {2}] [Members Count: {3}]", g.GetHashCode(), g.Direction, g.CollisionTickCount, g.Members.Count));
-            Console.Out.WriteLine("- Jewel Members -");
-            foreach (CollisionGroupMember m in g.Members)
-            {
-                Console.Out.WriteLine(string.Format("Jewel {0} {1} @ x={2} y={3}", m.Jewel.Identifier, m.Jewel.JewelTypeString, m.Coordinates.X, m.Coordinates.Y));
-            }
-        }
-
-        private void PrintJewels(List<MarkedCollisionGroup> lg)
-        {
-            lg.ForEach(cgcg => PrintJewels(cgcg));
-        }
-
         /// <summary>
         /// Finds the collisions.
         /// </summary>

@@ -32,7 +32,7 @@ namespace JewelMine.Engine
         /// </summary>
         /// <param name="groups">The groups.</param>
         /// <returns></returns>
-        public static long CalculateScore(MarkedCollisionGroup[] groups)
+        internal static long CalculateScore(MarkedCollisionGroup[] groups)
         {
             long score = 0;
             foreach(MarkedCollisionGroup group in groups)
@@ -43,11 +43,14 @@ namespace JewelMine.Engine
                 int extraCollisions = group.Members.Count - 3;
                 if (extraCollisions > 0) groupScore += (groupScore * extraCollisions);
                 // if diagonal then double it
-                if (group.Direction == CollisionDirection.DiagonallyLeft || group.Direction == CollisionDirection.DiagonallyRight) groupScore += groupScore;
+                if (group.Direction == CollisionDirection.DiagonallyLeft || group.Direction == CollisionDirection.DiagonallyRight) groupScore = groupScore * 10;
                 score += groupScore;
             }
             return (score);
         }
+
+
+
 
     }
 }

@@ -7,9 +7,9 @@ using System.Diagnostics;
 namespace JewelMine.Engine
 {
     /// <summary>
-    /// Game timer with better accuracy then the .NET system timer.
+    /// Game timer. Should have better accuracy then the .NET system timer.
     /// Went with this approach instead of picking a way into windows
-    /// subsyetem, as this might work on other operating systems.
+    /// subsyetem, as this might work on other operating systems with Mono.
     /// </summary>
     public class GameTimer
     {

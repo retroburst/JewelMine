@@ -15,6 +15,17 @@ namespace JewelMine.Engine
     public class GameLogicUpdate
     {
         /// <summary>
+        /// Initializes a new instance of the <see cref="GameLogicUpdate"/> class.
+        /// </summary>
+        public GameLogicUpdate()
+        {
+            JewelMovements = new List<JewelMovement>();
+            Collisions = new List<MarkedCollisionGroup>();
+            InvalidCollisions = new List<MarkedCollisionGroup>();
+            FinalisedCollisions = new List<CollisionGroup>();
+        }
+
+        /// <summary>
         /// Gets the jewel movements.
         /// </summary>
         /// <value>
@@ -87,15 +98,12 @@ namespace JewelMine.Engine
         public bool GamePaused { get; set; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="GameLogicUpdate"/> class.
+        /// Gets or sets a value indicating whether [game over].
         /// </summary>
-        public GameLogicUpdate()
-        {
-            JewelMovements = new List<JewelMovement>();
-            Collisions = new List<MarkedCollisionGroup>();
-            InvalidCollisions = new List<MarkedCollisionGroup>();
-            FinalisedCollisions = new List<CollisionGroup>();
-        }
+        /// <value>
+        ///   <c>true</c> if [game over]; otherwise, <c>false</c>.
+        /// </value>
+        public bool GameOver { get; set; }
 
     }
 }

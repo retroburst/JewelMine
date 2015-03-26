@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace JewelMine.Engine
 {
     /// <summary>
-    /// Represents user input for use
+    /// Represents user logicInput for use
     /// by game logic.
     /// </summary>
     public class GameLogicInput

@@ -47,7 +47,9 @@ namespace JewelMine.Engine.Models
         }
 
         /// <summary>
-        /// Generates the surrounding coordinates.
+        /// Generates the surrounding coordinates of a position.
+        /// This does not take into account bounds - this must be
+        /// checked when using.
         /// </summary>
         /// <returns></returns>
         public static Coordinates[] GenerateSurroundingCoordinates(Coordinates target)
@@ -62,27 +64,6 @@ namespace JewelMine.Engine.Models
             surrounding.Add(new Coordinates(target.X + 1, target.Y));
             surrounding.Add(new Coordinates(target.X - 1, target.Y));
             return (surrounding.ToArray());
-        }
-
-        /// <summary>
-        /// Copies from another source set of coordinates.
-        /// </summary>
-        /// <param name="source">The source.</param>
-        /// <exception cref="ArgumentException">Argument cannot be null.;target</exception>
-        public void CopyFrom(Coordinates source)
-        {
-            if (source == null) throw new ArgumentException("Argument cannot be null.", "source");
-            X = source.X;
-            Y = source.Y;
-        }
-
-        /// <summary>
-        /// Clones this instance.
-        /// </summary>
-        /// <returns></returns>
-        public Coordinates Clone()
-        {
-            return (new Coordinates(X, Y));
         }
 
         /// <summary>

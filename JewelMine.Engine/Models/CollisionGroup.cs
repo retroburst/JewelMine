@@ -12,6 +12,12 @@ namespace JewelMine.Engine.Models
     /// </summary>
     public class CollisionGroup
     {
+        /// <summary>
+        /// Gets the members.
+        /// </summary>
+        /// <value>
+        /// The members.
+        /// </value>
         public List<CollisionGroupMember> Members { get; private set; }
 
         /// <summary>

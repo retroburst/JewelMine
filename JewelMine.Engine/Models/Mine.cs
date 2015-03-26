@@ -138,6 +138,22 @@ namespace JewelMine.Engine.Models
                 && target.Y >= 0 && target.Y < Depth);
         }
 
+        /// <summary>
+        /// Determines whether this instance is empty.
+        /// </summary>
+        /// <returns></returns>
+        public bool IsEmpty()
+        {
+            for (int x = 0; x < Columns; x++)
+            {
+                for (int y = 0; y < Depth; y++)
+                {
+                    if (Grid[x, y] != null) return (false);
+                }
+            }
+            return (true);
+        }
+
 
     }
 }

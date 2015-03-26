@@ -21,12 +21,11 @@ namespace JewelMine.View.Forms
         {
             //TODO: add some walls as the levels increase or remove walls from game
             //TODO: show game pause / game over / game won -- text when occurs
-            //TODO: stop changing background on level change but highlight level change on view
-            //TODO: re-position text score left hand and level right hand
             //TODO: add debug diagnostics bound to a key
-            //TODO: massive refactor
+            //TODO: add logging
+            //TODO: add sound for delta stationary event
+            //TODO: massive refactor (add guard statements?)
             //TODO: add msbuild build script
-
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);

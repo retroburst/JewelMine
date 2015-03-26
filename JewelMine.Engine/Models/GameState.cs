@@ -74,18 +74,5 @@ namespace JewelMine.Engine.Models
         /// </value>
         public double TickSpeedMilliseconds { get; internal set; }
 
-        /// <summary>
-        /// Gets the game play state string.
-        /// </summary>
-        /// <value>
-        /// The game play state string.
-        /// </value>
-        public string PlayStateString
-        {
-            get
-            {
-                return (PlayState.ToString());
-            }
-        }
     }
 }

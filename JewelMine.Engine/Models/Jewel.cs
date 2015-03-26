@@ -36,19 +36,5 @@ namespace JewelMine.Engine.Models
         /// The identifier.
         /// </value>
         public Guid Identifier { get; private set; }
-
-        /// <summary>
-        /// Gets the delta type string.
-        /// </summary>
-        /// <value>
-        /// The delta type string.
-        /// </value>
-        public string JewelTypeString 
-        { 
-            get
-            {
-                return(JewelType.ToString());
-            }
-        }
     }
 }

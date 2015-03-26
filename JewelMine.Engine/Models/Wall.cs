@@ -18,6 +18,7 @@ namespace JewelMine.Engine.Models
         public Wall(WallType type)
         {
             WallType = type;
+            Identifier = Guid.NewGuid();
         }
 
         /// <summary>
@@ -29,17 +30,11 @@ namespace JewelMine.Engine.Models
         public WallType WallType { get; private set; }
 
         /// <summary>
-        /// Gets the wall type string.
+        /// Gets the identifier.
         /// </summary>
         /// <value>
-        /// The wall type string.
+        /// The identifier.
         /// </value>
-        public string WallTypeString 
-        { 
-            get
-            {
-                return(WallType.ToString());
-            }
-        }
+        public Guid Identifier { get; private set; }
     }
 }

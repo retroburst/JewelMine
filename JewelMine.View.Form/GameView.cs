@@ -29,7 +29,6 @@ namespace JewelMine.View.Forms
         private Dictionary<JewelType, Bitmap> jewelImageResourceDictionary = null;
         private Dictionary<JewelType, Bitmap> jewelResizedImageResourceDictionary = null;
         private Bitmap[] backgroundImageArray = null;
-        private Dictionary<int, TextureBrush> levelBackgroundDictionary = new Dictionary<int, TextureBrush>();
         private Random rand = new Random();
         private Rectangle[,] cells = null;
         private int cellHeight = 0;
@@ -39,6 +38,7 @@ namespace JewelMine.View.Forms
         private Pen deltaBorderPen = null;
         private Brush collisionOverlayBrush = null;
         private Brush informationOverlayBrush = null;
+        private TextureBrush backgroundBrush = null;
         private Rectangle deltaBorder = Rectangle.Empty;
         private GameAudioSystem gameAudioSystem = null;
         private Font gameStateTextFont = null;
@@ -58,13 +58,13 @@ namespace JewelMine.View.Forms
             // set paint styles
             SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.DoubleBuffer | ControlStyles.OptimizedDoubleBuffer, true);
             timer = new GameTimer();
-            cells = new Rectangle[engine.GameStateModel.Mine.Columns, engine.GameStateModel.Mine.Depth];
+            cells = new Rectangle[engine.State.Mine.Columns, engine.State.Mine.Depth];
+            backgroundImageArray = ViewHelpers.GenerateBackgroundImageArray();
             // hook into interesting form events
             FormClosed += FormClosedHandler;
             Layout += LayoutHandler;
             KeyDown += InputHandler;
             InitialiseDrawingObjects();
-            backgroundImageArray = ViewHelpers.GenerateBackgroundImageArray();
             logicInput = new GameLogicInput();
             // calculate cell dimensions
             CalculateGridCellDimensions();
@@ -76,19 +76,17 @@ namespace JewelMine.View.Forms
             // draw a delta - which is a very expensive operation
             jewelResizedImageResourceDictionary = ViewHelpers.GenerateResizedJewelImageResourceDictionary(jewelImageResourceDictionary, cellWidth, cellHeight, jewelBitmapOffset);
             gameAudioSystem = GameAudioSystem.Instance;
-            // signal game start
-            gameEngine.StartGame();
             gameAudioSystem.PlayBackgroundMusicLoop();
         }
 
         /// <summary>
-        /// Handles the input event of the GameView control.
+        /// Handles the logicInput event of the GameView control.
         /// </summary>
         /// <param name="sender">The source of the event.</param>
         /// <param name="e">The <see cref="KeyEventArgs"/> instance containing the event data.</param>
         public void InputHandler(object sender, KeyEventArgs e)
         {
-            if (gameEngine.GameStateModel.PlayState == GamePlayState.Paused)
+            if (gameEngine.State.PlayState == GamePlayState.Paused)
             {
                 logicInput.ResumeGame = true;
                 return;
@@ -147,6 +145,8 @@ namespace JewelMine.View.Forms
 
             informationOverlayBrush = new SolidBrush(Color.FromArgb(110, Color.White));
             gameStateTextFont = new Font(SystemInformation.MenuFont.FontFamily, 12.5f);
+            
+            backgroundBrush = new TextureBrush(backgroundImageArray[ViewHelpers.GenerateRandomIndex(backgroundImageArray, rand)], WrapMode.Tile);
         }
 
         /// <summary>
@@ -172,14 +172,14 @@ namespace JewelMine.View.Forms
                 startTime = timer.ElapsedMilliseconds;
                 Application.DoEvents();
                 GameLogicUpdate logicUpdate = gameEngine.PerformGameLogic(logicInput);
-                if (gameEngine.GameStateModel.PlayState == GamePlayState.Playing)
+                if (gameEngine.State.PlayState == GamePlayState.Playing)
                 {
                     Invalidate(logicUpdate);
                     PlaySounds(logicUpdate);
                 }
-                while ((timer.ElapsedMilliseconds - startTime) < gameEngine.GameStateModel.TickSpeedMilliseconds)
+                while ((timer.ElapsedMilliseconds - startTime) < gameEngine.State.TickSpeedMilliseconds)
                 { }
-                // reset user input descriptors
+                // reset user logicInput descriptors
                 logicInput.Clear();
             }
             timer.Stop();
@@ -210,8 +210,8 @@ namespace JewelMine.View.Forms
         {
             if (logicUpdate != null)
             {
-                if (gameEngine.GameStateModel.PlayState != GamePlayState.Playing) return;
-                if (logicUpdate.LevelIncremented || logicUpdate.GameResumed)
+                if (gameEngine.State.PlayState != GamePlayState.Playing) return;
+                if (logicUpdate.GameResumed)
                 {
                     Invalidate();
                     return;
@@ -265,8 +265,8 @@ namespace JewelMine.View.Forms
         /// <param name="graphics">The graphics.</param>
         private void DrawGameStateText(Graphics graphics)
         {
-            string score = string.Format("Score//{0}", gameEngine.GameStateModel.Score.ToString("000000"));
-            string level = string.Format("Level//{0}", gameEngine.GameStateModel.Level.ToString("00"));
+            string score = string.Format("Score//{0}", gameEngine.State.Score.ToString("000000"));
+            string level = string.Format("Level//{0}", gameEngine.State.Level.ToString("00"));
             SizeF scoreSize = graphics.MeasureString(score, gameStateTextFont);
             SizeF levelSize = graphics.MeasureString(level, gameStateTextFont);
             int levelXPosition = (ClientSize.Width - (int)levelSize.Width - 5);
@@ -283,7 +283,7 @@ namespace JewelMine.View.Forms
         /// <exception cref="System.NotImplementedException"></exception>
         private void DrawCollisions(Graphics graphics)
         {
-            GameState state = gameEngine.GameStateModel;
+            GameState state = gameEngine.State;
             foreach (MarkedCollisionGroup mcg in state.Mine.MarkedCollisions)
             {
                 if (mcg.CollisionTickCount % 2 != 0)
@@ -301,7 +301,7 @@ namespace JewelMine.View.Forms
         /// <exception cref="System.NotImplementedException"></exception>
         private void DrawDeltaBorder(Graphics graphics)
         {
-            JewelGroup delta = gameEngine.GameStateModel.Mine.Delta;
+            JewelGroup delta = gameEngine.State.Mine.Delta;
             if (delta != null && delta.HasWholeGroupEnteredBounds)
             {
                 Rectangle topLeft = cells[delta.Top.Coordinates.X, delta.Top.Coordinates.Y];
@@ -321,11 +321,11 @@ namespace JewelMine.View.Forms
         /// <param name="graphics">The graphics.</param>
         private void DrawJewels(Graphics graphics)
         {
-            for (int i = 0; i < gameEngine.GameStateModel.Mine.Columns; i++)
+            for (int i = 0; i < gameEngine.State.Mine.Columns; i++)
             {
-                for (int j = 0; j < gameEngine.GameStateModel.Mine.Depth; j++)
+                for (int j = 0; j < gameEngine.State.Mine.Depth; j++)
                 {
-                    Jewel jewel = (Jewel)gameEngine.GameStateModel.Mine.Grid[i, j];
+                    Jewel jewel = (Jewel)gameEngine.State.Mine.Grid[i, j];
                     if (jewel != null)
                     {
                         Rectangle cell = cells[i, j];
@@ -361,19 +361,7 @@ namespace JewelMine.View.Forms
         /// <param name="g">The g.</param>
         private void DrawBackground(Graphics g)
         {
-            // assigns a random background to each level
-            TextureBrush brush = null;
-            if (levelBackgroundDictionary.ContainsKey(gameEngine.GameStateModel.Level))
-            {
-                brush = levelBackgroundDictionary[gameEngine.GameStateModel.Level];
-            }
-            else
-            {
-                int randomIndex = ViewHelpers.GenerateRandomIndex(backgroundImageArray, rand);
-                brush = new TextureBrush(backgroundImageArray[randomIndex], WrapMode.Tile);
-                levelBackgroundDictionary.Add(gameEngine.GameStateModel.Level, brush);
-            }
-            g.FillRectangle(brush, 0, 0, ClientRectangle.Width, ClientRectangle.Height);
+            g.FillRectangle(backgroundBrush, 0, 0, ClientRectangle.Width, ClientRectangle.Height);
         }
 
         /// <summary>
@@ -439,7 +427,7 @@ namespace JewelMine.View.Forms
         /// <returns></returns>
         public Rectangle CalculateInvalidationRegion(Jewel jewel, Coordinates originalCoordinates, Coordinates newCoordinates)
         {
-            if (!gameEngine.GameStateModel.Mine.CoordinatesInBounds(originalCoordinates)) return CalculateInvalidationRegion(jewel, newCoordinates);
+            if (!gameEngine.State.Mine.CoordinatesInBounds(originalCoordinates)) return CalculateInvalidationRegion(jewel, newCoordinates);
             Rectangle region = new Rectangle();
             int minX = Math.Min(originalCoordinates.X, newCoordinates.X);
             int minY = Math.Min(originalCoordinates.Y, newCoordinates.Y);

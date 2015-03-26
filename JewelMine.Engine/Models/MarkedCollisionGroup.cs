@@ -24,6 +24,7 @@ namespace JewelMine.Engine.Models
 
         /// <summary>
         /// Increments the collision tick count.
+        /// For use in lambda expression.
         /// </summary>
         public void IncrementCollisionTickCount()
         {
