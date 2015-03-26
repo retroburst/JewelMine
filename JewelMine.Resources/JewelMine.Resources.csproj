@@ -103,6 +103,12 @@
     <Content Include="Sounds\Collision.wav">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="Sounds\LevelUp.wav">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Sounds\Stationary.wav">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Sounds\Swap.wav">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

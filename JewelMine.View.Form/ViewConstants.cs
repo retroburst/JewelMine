@@ -28,6 +28,8 @@ namespace JewelMine.View.Forms
         // Sounds
         public const string SOUND_COLLISION_FILENAME = "Sounds/Collision.wav";
         public const string SOUND_SWAP_FILENAME = "Sounds/Swap.wav";
+        public const string SOUND_STATIONARY_FILENAME = "Sounds/Stationary.wav";
+        public const string SOUND_LEVELUP_FILENAME = "Sounds/LevelUp.wav";
         
     }
 }

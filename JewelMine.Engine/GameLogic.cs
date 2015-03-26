@@ -151,6 +151,7 @@ namespace JewelMine.Engine
         /// <param name="deltaMovement">The delta movement.</param>
         private void ProcessDeltaMovement(GameLogicInput logicInput, GameLogicUpdate logicUpdate, bool userInputMovement, MovementType deltaMovement)
         {
+            MovementType originalDeltaMovement = deltaMovement;
             if (state.Mine.Delta != null)
             {
                 if (logicInput.DeltaSwapJewels) { SwapDeltaJewels(logicUpdate); }
@@ -159,7 +160,7 @@ namespace JewelMine.Engine
                 // if delta is up against a boundary on either side that the movement is towards, override and move delta down instead
                 if (IsDeltaAgainstBoundary(deltaMovement)) deltaMovement = MovementType.Down;
                 // if the user pressed down - drop the delta all the way
-                if (userInputMovement && deltaMovement == MovementType.Down) numPositionsToMove = state.Mine.Depth;
+                if (userInputMovement && originalDeltaMovement == MovementType.Down) numPositionsToMove = state.Mine.Depth;
                 MoveDelta(deltaMovement, logicUpdate, numPositionsToMove);
                 if (IsDeltaStationary()) deltaStationary = true;
                 if (deltaStationary)
@@ -170,8 +171,9 @@ namespace JewelMine.Engine
                         state.Mine.Delta = null;
                     }
                     else
-                    {
+                    {   
                         state.Mine.Delta.StationaryTickCount++;
+                        if (state.Mine.Delta.StationaryTickCount == 1) logicUpdate.DeltaStationary = true;
                     }
                 }
                 else

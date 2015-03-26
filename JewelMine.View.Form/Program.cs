@@ -23,9 +23,10 @@ namespace JewelMine.View.Forms
             //TODO: show game pause / game over / game won -- text when occurs
             //TODO: add debug diagnostics bound to a key
             //TODO: add logging
-            //TODO: add sound for delta stationary event
             //TODO: massive refactor (add guard statements?)
             //TODO: add msbuild build script
+            //TODO: bug in invalidation region calculation for delta (slightly too small)
+            //TODO: bug allows delta to sit against other jewels indefinately when input control is sideways
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);

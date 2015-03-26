@@ -19,6 +19,8 @@ namespace JewelMine.View.Forms
         private AudioPlaybackEngine audioPlayer = null;
         private CachedSound swapSound = null;
         private CachedSound collisionSound = null;
+        private CachedSound stationarySound = null;
+        private CachedSound levelUpSound = null;
         private LoopStream backgroundMusic = null;
         private static GameAudioSystem instance = null;
 
@@ -29,12 +31,14 @@ namespace JewelMine.View.Forms
         {
             if (File.Exists(ViewConstants.SOUND_COLLISION_FILENAME)) collisionSound = new CachedSound(ViewConstants.SOUND_COLLISION_FILENAME);
             if (File.Exists(ViewConstants.SOUND_SWAP_FILENAME)) swapSound = new CachedSound(ViewConstants.SOUND_SWAP_FILENAME);
+            if (File.Exists(ViewConstants.SOUND_STATIONARY_FILENAME)) stationarySound = new CachedSound(ViewConstants.SOUND_STATIONARY_FILENAME);
+            if (File.Exists(ViewConstants.SOUND_LEVELUP_FILENAME)) levelUpSound = new CachedSound(ViewConstants.SOUND_LEVELUP_FILENAME);
             if (File.Exists(ViewConstants.BACKGROUND_MUSIC_FILENAME)) backgroundMusic = new LoopStream(new WaveFileReader(ViewConstants.BACKGROUND_MUSIC_FILENAME));
             audioPlayer = AudioPlaybackEngine.Instance;
         }
 
         /// <summary>
-        /// Plays the collision.
+        /// Plays the collision sound.
         /// </summary>
         public void PlayCollision()
         {
@@ -42,11 +46,27 @@ namespace JewelMine.View.Forms
         }
 
         /// <summary>
-        /// Plays the swap.
+        /// Plays the swap sound.
         /// </summary>
         public void PlaySwap()
         {
             if (swapSound != null) audioPlayer.PlaySound(swapSound);
+        }
+
+        /// <summary>
+        /// Plays the stationary sound.
+        /// </summary>
+        public void PlayStationary()
+        {
+            if (stationarySound != null) audioPlayer.PlaySound(stationarySound);
+        }
+
+        /// <summary>
+        /// Plays the level up.
+        /// </summary>
+        public void PlayLevelUp()
+        {
+            if (levelUpSound != null) audioPlayer.PlaySound(levelUpSound);
         }
 
         /// <summary>

@@ -11,6 +11,5 @@ namespace JewelMine.Resources
     /// can load embedded resources from here.
     /// </summary>
     public class GameResources
-    {
-    }
+    { }
 }

@@ -38,6 +38,7 @@ namespace JewelMine.View.Forms
         private Pen deltaBorderPen = null;
         private Brush collisionOverlayBrush = null;
         private Brush informationOverlayBrush = null;
+        private Brush informationChangedOverlayBrush = null;
         private TextureBrush backgroundBrush = null;
         private Rectangle deltaBorder = Rectangle.Empty;
         private GameAudioSystem gameAudioSystem = null;
@@ -144,6 +145,7 @@ namespace JewelMine.View.Forms
             collisionOverlayBrush = new SolidBrush(Color.FromArgb(65, Color.AntiqueWhite));
 
             informationOverlayBrush = new SolidBrush(Color.FromArgb(110, Color.White));
+            informationChangedOverlayBrush = new SolidBrush(Color.LightGreen);
             gameStateTextFont = new Font(SystemInformation.MenuFont.FontFamily, 12.5f);
             
             backgroundBrush = new TextureBrush(backgroundImageArray[ViewHelpers.GenerateRandomIndex(backgroundImageArray, rand)], WrapMode.Tile);
@@ -192,14 +194,10 @@ namespace JewelMine.View.Forms
         /// <param name="logicUpdate">The logic update.</param>
         private void PlaySounds(GameLogicUpdate logicUpdate)
         {
-            if (logicUpdate.FinalisedCollisions.Count > 0)
-            {
-                gameAudioSystem.PlayCollision();
-            }
-            if (logicUpdate.DeltaJewelsSwapped)
-            {
-                gameAudioSystem.PlaySwap();
-            }
+            if (logicUpdate.FinalisedCollisions.Count > 0) gameAudioSystem.PlayCollision();
+            if (logicUpdate.DeltaJewelsSwapped) gameAudioSystem.PlaySwap();
+            if (logicUpdate.DeltaStationary) gameAudioSystem.PlayStationary();
+            if (logicUpdate.LevelIncremented) gameAudioSystem.PlayLevelUp();
         }
 
         /// <summary>
@@ -272,6 +270,9 @@ namespace JewelMine.View.Forms
             int levelXPosition = (ClientSize.Width - (int)levelSize.Width - 5);
             scoreRectangle = new Rectangle(5, 5, (int)scoreSize.Width, (int)scoreSize.Height);
             levelRectangle = new Rectangle(levelXPosition, 5, (int)levelSize.Width, (int)levelSize.Height);
+            
+
+
             graphics.DrawString(score, gameStateTextFont, informationOverlayBrush, new PointF(5, 5));
             graphics.DrawString(level, gameStateTextFont, informationOverlayBrush, new PointF(levelXPosition, 5));
         }

@@ -58,6 +58,14 @@ namespace JewelMine.Engine
         public List<CollisionGroup> FinalisedCollisions { get; private set; }
 
         /// <summary>
+        /// Gets or sets a value indicating whether [delta stationary].
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if [delta stationary]; otherwise, <c>false</c>.
+        /// </value>
+        public bool DeltaStationary { get; set; }
+
+        /// <summary>
         /// Gets or sets a value indicating whether [delta jewels swapped].
         /// </summary>
         /// <value>
