@@ -56,6 +56,7 @@
     <Compile Include="Audio\CachedSoundSampleProvider.cs" />
     <Compile Include="Audio\LoopStream.cs" />
     <Compile Include="GameAudioSystem.cs" />
+    <Compile Include="GameInformationView.cs" />
     <Compile Include="GameView.cs">
       <SubType>Form</SubType>
     </Compile>

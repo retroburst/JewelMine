@@ -9,8 +9,8 @@ namespace JewelMine.Engine.Models
 {
     /// <summary>
     /// Represents the mine, all the
-    /// jewels and wall positions.
-    /// Also defines which delta is the delta.
+    /// jewel positions.
+    /// Also defines the delta.
     /// </summary>
     public class Mine
     {

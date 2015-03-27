@@ -106,7 +106,7 @@ namespace JewelMine.Engine
                 PauseGame(logicUpdate);
                 immediateReturn = true;
             }
-            else if (logicInput.ResumeGame)
+            else if (logicInput.GameStarted)
             {
                 StartGame(logicUpdate);
                 immediateReturn = false;
@@ -217,7 +217,7 @@ namespace JewelMine.Engine
         private void StartGame(GameLogicUpdate logicUpdate)
         {
             state.PlayState = GamePlayState.Playing;
-            logicUpdate.GameResumed = true;
+            logicUpdate.GameStarted = true;
         }
 
         /// <summary>
@@ -258,7 +258,7 @@ namespace JewelMine.Engine
         {
             Initialise();
             state.PlayState = GamePlayState.Playing;
-            logicUpdate.GameResumed = true;
+            logicUpdate.GameStarted = true;
         }
 
         /// <summary>

@@ -58,7 +58,6 @@
     <Compile Include="Models\Mine.cs" />
     <Compile Include="Models\Jewel.cs" />
     <Compile Include="Models\MineObject.cs" />
-    <Compile Include="Models\Wall.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

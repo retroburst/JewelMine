@@ -18,7 +18,7 @@ namespace JewelMine.Engine.Models
         public GameState()
         {
             Mine = new Mine();
-            PlayState = GamePlayState.Paused;
+            PlayState = GamePlayState.NotStarted;
             Level = GameConstants.GAME_DEFAULT_LEVEL;
             TickSpeedMilliseconds = GameConstants.GAME_DEFAULT_TICK_SPEED_MILLISECONDS;
             Score = 0;

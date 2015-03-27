@@ -21,7 +21,7 @@ namespace JewelMine.Engine
             DeltaMovement = null;
             DeltaSwapJewels = false;
             RestartGame = false;
-            ResumeGame = false;
+            GameStarted = false;
             PauseGame = false;
         }
 
@@ -55,11 +55,11 @@ namespace JewelMine.Engine
         public bool PauseGame { get; set; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether [resume game].
+        /// Gets or sets a value indicating whether [game started].
         /// </summary>
         /// <value>
         ///   <c>true</c> if [resume game]; otherwise, <c>false</c>.
         /// </value>
-        public bool ResumeGame { get; set; }
+        public bool GameStarted { get; set; }
     }
 }

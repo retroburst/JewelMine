@@ -76,9 +76,6 @@
     <EmbeddedResource Include="Images\Emerald.gif" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Images\Metal.gif" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="Images\Ruby.gif" />
   </ItemGroup>
   <ItemGroup>
@@ -88,13 +85,7 @@
     <EmbeddedResource Include="Images\SpessartiteGarnet.gif" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Images\Stone.gif" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="Images\Topaz.gif" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Images\Wood.gif" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Music\Ambient.wav">

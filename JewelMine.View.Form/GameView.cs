@@ -37,15 +37,11 @@ namespace JewelMine.View.Forms
         private long startTime = 0;
         private Pen deltaBorderPen = null;
         private Brush collisionOverlayBrush = null;
-        private Brush informationOverlayBrush = null;
-        private Brush informationChangedOverlayBrush = null;
         private TextureBrush backgroundBrush = null;
         private Rectangle deltaBorder = Rectangle.Empty;
         private GameAudioSystem gameAudioSystem = null;
-        private Font gameStateTextFont = null;
-        private Rectangle scoreRectangle = Rectangle.Empty;
-        private Rectangle levelRectangle = Rectangle.Empty;
         private GameLogicInput logicInput = null;
+        private GameInformationView gameInformationView = null;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GameView" /> class.
@@ -56,6 +52,8 @@ namespace JewelMine.View.Forms
             InitializeComponent();
             // save our game engine into a variable
             gameEngine = engine;
+            // init game information
+            gameInformationView = new GameInformationView(gameEngine);
             // set paint styles
             SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.DoubleBuffer | ControlStyles.OptimizedDoubleBuffer, true);
             timer = new GameTimer();
@@ -87,9 +85,9 @@ namespace JewelMine.View.Forms
         /// <param name="e">The <see cref="KeyEventArgs"/> instance containing the event data.</param>
         public void InputHandler(object sender, KeyEventArgs e)
         {
-            if (gameEngine.State.PlayState == GamePlayState.Paused)
+            if (gameEngine.State.PlayState == GamePlayState.Paused || gameEngine.State.PlayState == GamePlayState.NotStarted)
             {
-                logicInput.ResumeGame = true;
+                logicInput.GameStarted = true;
                 return;
             }
             switch (e.KeyCode)
@@ -116,6 +114,9 @@ namespace JewelMine.View.Forms
                 case Keys.P:
                     if (e.Control) logicInput.PauseGame = true;
                     break;
+                case Keys.Q:
+                    if (e.Control) this.Close();
+                    break;
             }
         }
 
@@ -141,13 +142,7 @@ namespace JewelMine.View.Forms
             deltaBorderPen.LineJoin = LineJoin.Bevel;
             deltaBorderPen.StartCap = LineCap.DiamondAnchor;
             deltaBorderPen.Width = 1.00f;
-
             collisionOverlayBrush = new SolidBrush(Color.FromArgb(65, Color.AntiqueWhite));
-
-            informationOverlayBrush = new SolidBrush(Color.FromArgb(110, Color.White));
-            informationChangedOverlayBrush = new SolidBrush(Color.LightGreen);
-            gameStateTextFont = new Font(SystemInformation.MenuFont.FontFamily, 12.5f);
-            
             backgroundBrush = new TextureBrush(backgroundImageArray[ViewHelpers.GenerateRandomIndex(backgroundImageArray, rand)], WrapMode.Tile);
         }
 
@@ -174,13 +169,13 @@ namespace JewelMine.View.Forms
                 startTime = timer.ElapsedMilliseconds;
                 Application.DoEvents();
                 GameLogicUpdate logicUpdate = gameEngine.PerformGameLogic(logicInput);
-                if (gameEngine.State.PlayState == GamePlayState.Playing)
+                Invalidate(logicUpdate);
+                PlaySounds(logicUpdate);
+                if ((timer.ElapsedMilliseconds - startTime) < gameEngine.State.TickSpeedMilliseconds)
                 {
-                    Invalidate(logicUpdate);
-                    PlaySounds(logicUpdate);
+                    int sleepTime = (int)(gameEngine.State.TickSpeedMilliseconds - (timer.ElapsedMilliseconds - startTime));
+                    System.Threading.Thread.Sleep(sleepTime);
                 }
-                while ((timer.ElapsedMilliseconds - startTime) < gameEngine.State.TickSpeedMilliseconds)
-                { }
                 // reset user logicInput descriptors
                 logicInput.Clear();
             }
@@ -208,8 +203,7 @@ namespace JewelMine.View.Forms
         {
             if (logicUpdate != null)
             {
-                if (gameEngine.State.PlayState != GamePlayState.Playing) return;
-                if (logicUpdate.GameResumed)
+                if (logicUpdate.GameStarted)
                 {
                     Invalidate();
                     return;
@@ -224,14 +218,7 @@ namespace JewelMine.View.Forms
                 Invalidate(new Rectangle(deltaBorder.X - 2, deltaBorder.Y - 2, deltaBorder.Width + 4, deltaBorder.Height + 4));
                 deltaBorder = Rectangle.Empty;
             }
-            if (scoreRectangle != Rectangle.Empty)
-            {
-                Invalidate(scoreRectangle);
-            }
-            if (levelRectangle != Rectangle.Empty)
-            {
-                Invalidate(levelRectangle);
-            }
+            gameInformationView.Invalidate(Invalidate);
         }
 
         /// <summary>
@@ -248,33 +235,21 @@ namespace JewelMine.View.Forms
         /// <param name="graphics">The graphics.</param>
         private void Draw(Graphics graphics)
         {
-            graphics.SmoothingMode = SmoothingMode.HighQuality;
+            graphics.SmoothingMode = SmoothingMode.AntiAlias;
             DrawBackground(graphics);
             DrawJewels(graphics);
             DrawDeltaBorder(graphics);
             DrawCollisions(graphics);
             DrawGameStateText(graphics);
-            //DrawObjects<Wall>(g, walls, squares);
         }
 
         /// <summary>
-        /// Draws the game state text.
+        /// Draws the game gameLogic text.
         /// </summary>
         /// <param name="graphics">The graphics.</param>
         private void DrawGameStateText(Graphics graphics)
         {
-            string score = string.Format("Score//{0}", gameEngine.State.Score.ToString("000000"));
-            string level = string.Format("Level//{0}", gameEngine.State.Level.ToString("00"));
-            SizeF scoreSize = graphics.MeasureString(score, gameStateTextFont);
-            SizeF levelSize = graphics.MeasureString(level, gameStateTextFont);
-            int levelXPosition = (ClientSize.Width - (int)levelSize.Width - 5);
-            scoreRectangle = new Rectangle(5, 5, (int)scoreSize.Width, (int)scoreSize.Height);
-            levelRectangle = new Rectangle(levelXPosition, 5, (int)levelSize.Width, (int)levelSize.Height);
-            
-
-
-            graphics.DrawString(score, gameStateTextFont, informationOverlayBrush, new PointF(5, 5));
-            graphics.DrawString(level, gameStateTextFont, informationOverlayBrush, new PointF(levelXPosition, 5));
+            gameInformationView.DrawGameInformation(graphics, ClientSize.Width, ClientSize.Height);
         }
 
         /// <summary>

@@ -16,7 +16,7 @@ namespace JewelMine.Engine
         public const int GAME_DEFAULT_LEVEL = 1;
         public const int GAME_LEVEL_INCREMENT_SCORE_THRESHOLD = 5000;
         public const int GAME_LEVEL_INCREMENT_SPEED_CHANGE = 6;
-        public const double GAME_DEFAULT_TICK_SPEED_MILLISECONDS = 240.0d;
+        public const double GAME_DEFAULT_TICK_SPEED_MILLISECONDS = 2.0d;
         public const int GAME_COLLISION_FINALISE_TICK_COUNT = 25;
         public const int GAME_DELTA_STATIONARY_TICK_COUNT = 8;
         public const int GAME_DOUBLE_JEWEL_DELTA_CHANCE_ABOVE = 10;
@@ -31,21 +31,11 @@ namespace JewelMine.Engine
     /// </summary>
     public enum GamePlayState
     {
+        NotStarted,
         Playing,
         Paused,
         GameOver,
         GameWon
-    }
-
-    /// <summary>
-    /// All available wall types.
-    /// </summary>
-    public enum WallType
-    {
-        Unknown,
-        Stone,
-        Metal,
-        Wood
     }
 
     /// <summary>

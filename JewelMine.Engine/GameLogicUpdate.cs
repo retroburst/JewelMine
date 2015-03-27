@@ -87,7 +87,7 @@ namespace JewelMine.Engine
         /// <value>
         ///   <c>true</c> if [game restarted]; otherwise, <c>false</c>.
         /// </value>
-        public bool GameResumed { get; set; }
+        public bool GameStarted { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether [game won].
