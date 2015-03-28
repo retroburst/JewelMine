@@ -19,7 +19,6 @@ namespace JewelMine.View.Forms
         [STAThread]
         static void Main()
         {
-            //TODO: show game pause / game over / game won -- text when occurs
             //TODO: add debug diagnostics bound to a key
             //TODO: add logging
             //TODO: massive refactor (add guard statements?)

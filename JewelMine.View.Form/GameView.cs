@@ -12,6 +12,7 @@ using System.Drawing.Imaging;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -25,7 +26,7 @@ namespace JewelMine.View.Forms
     {
         private bool disposing = false;
         private GameTimer timer = null;
-        private GameLogic gameEngine = null;
+        private GameLogic gameLogic = null;
         private Dictionary<JewelType, Bitmap> jewelImageResourceDictionary = null;
         private Dictionary<JewelType, Bitmap> jewelResizedImageResourceDictionary = null;
         private Bitmap[] backgroundImageArray = null;
@@ -51,9 +52,9 @@ namespace JewelMine.View.Forms
         {
             InitializeComponent();
             // save our game engine into a variable
-            gameEngine = engine;
+            gameLogic = engine;
             // init game information
-            gameInformationView = new GameInformationView(gameEngine);
+            gameInformationView = new GameInformationView(gameLogic);
             // set paint styles
             SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.DoubleBuffer | ControlStyles.OptimizedDoubleBuffer, true);
             timer = new GameTimer();
@@ -85,7 +86,7 @@ namespace JewelMine.View.Forms
         /// <param name="e">The <see cref="KeyEventArgs"/> instance containing the event data.</param>
         public void InputHandler(object sender, KeyEventArgs e)
         {
-            if (gameEngine.State.PlayState == GamePlayState.Paused || gameEngine.State.PlayState == GamePlayState.NotStarted)
+            if (gameLogic.State.PlayState == GamePlayState.Paused || gameLogic.State.PlayState == GamePlayState.NotStarted)
             {
                 logicInput.GameStarted = true;
                 return;
@@ -117,6 +118,12 @@ namespace JewelMine.View.Forms
                 case Keys.Q:
                     if (e.Control) this.Close();
                     break;
+                case Keys.M:
+                    if (e.Control) gameAudioSystem.ToggleBackgroundMusicLoop();
+                       break;
+                case Keys.N:
+                       if (e.Control) gameAudioSystem.ToggleSoundEffects();
+                       break;
             }
         }
 
@@ -168,13 +175,14 @@ namespace JewelMine.View.Forms
             {
                 startTime = timer.ElapsedMilliseconds;
                 Application.DoEvents();
-                GameLogicUpdate logicUpdate = gameEngine.PerformGameLogic(logicInput);
+                GameLogicUpdate logicUpdate = gameLogic.PerformGameLogic(logicInput);
                 Invalidate(logicUpdate);
                 PlaySounds(logicUpdate);
-                if ((timer.ElapsedMilliseconds - startTime) < gameEngine.State.TickSpeedMilliseconds)
+                if ((timer.ElapsedMilliseconds - startTime) < gameLogic.State.TickSpeedMilliseconds)
                 {
-                    int sleepTime = (int)(gameEngine.State.TickSpeedMilliseconds - (timer.ElapsedMilliseconds - startTime));
-                    System.Threading.Thread.Sleep(sleepTime);
+                    // sleep the thread for the remaining time in this tick - saves burning CPU cycles
+                    int sleepTime = (int)(gameLogic.State.TickSpeedMilliseconds - (timer.ElapsedMilliseconds - startTime));
+                    Thread.Sleep(sleepTime);
                 }
                 // reset user logicInput descriptors
                 logicInput.Clear();
@@ -215,7 +223,7 @@ namespace JewelMine.View.Forms
             }
             if (deltaBorder != Rectangle.Empty)
             {
-                Invalidate(new Rectangle(deltaBorder.X - 2, deltaBorder.Y - 2, deltaBorder.Width + 4, deltaBorder.Height + 4));
+                Invalidate(new Rectangle(deltaBorder.X - 2, deltaBorder.Y - 2, deltaBorder.Width + 5, deltaBorder.Height + 5));
                 deltaBorder = Rectangle.Empty;
             }
             gameInformationView.Invalidate(Invalidate);
@@ -259,7 +267,7 @@ namespace JewelMine.View.Forms
         /// <exception cref="System.NotImplementedException"></exception>
         private void DrawCollisions(Graphics graphics)
         {
-            GameState state = gameEngine.State;
+            GameState state = gameLogic.State;
             foreach (MarkedCollisionGroup mcg in state.Mine.MarkedCollisions)
             {
                 if (mcg.CollisionTickCount % 2 != 0)
@@ -277,7 +285,7 @@ namespace JewelMine.View.Forms
         /// <exception cref="System.NotImplementedException"></exception>
         private void DrawDeltaBorder(Graphics graphics)
         {
-            JewelGroup delta = gameEngine.State.Mine.Delta;
+            JewelGroup delta = gameLogic.State.Mine.Delta;
             if (delta != null && delta.HasWholeGroupEnteredBounds)
             {
                 Rectangle topLeft = cells[delta.Top.Coordinates.X, delta.Top.Coordinates.Y];
@@ -297,11 +305,11 @@ namespace JewelMine.View.Forms
         /// <param name="graphics">The graphics.</param>
         private void DrawJewels(Graphics graphics)
         {
-            for (int i = 0; i < gameEngine.State.Mine.Columns; i++)
+            for (int i = 0; i < gameLogic.State.Mine.Columns; i++)
             {
-                for (int j = 0; j < gameEngine.State.Mine.Depth; j++)
+                for (int j = 0; j < gameLogic.State.Mine.Depth; j++)
                 {
-                    Jewel jewel = (Jewel)gameEngine.State.Mine.Grid[i, j];
+                    Jewel jewel = (Jewel)gameLogic.State.Mine.Grid[i, j];
                     if (jewel != null)
                     {
                         Rectangle cell = cells[i, j];
@@ -403,7 +411,7 @@ namespace JewelMine.View.Forms
         /// <returns></returns>
         public Rectangle CalculateInvalidationRegion(Jewel jewel, Coordinates originalCoordinates, Coordinates newCoordinates)
         {
-            if (!gameEngine.State.Mine.CoordinatesInBounds(originalCoordinates)) return CalculateInvalidationRegion(jewel, newCoordinates);
+            if (!gameLogic.State.Mine.CoordinatesInBounds(originalCoordinates)) return CalculateInvalidationRegion(jewel, newCoordinates);
             Rectangle region = new Rectangle();
             int minX = Math.Min(originalCoordinates.X, newCoordinates.X);
             int minY = Math.Min(originalCoordinates.Y, newCoordinates.Y);

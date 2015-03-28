@@ -15,8 +15,9 @@ namespace JewelMine.View.Forms.Audio
     /// </summary>
     public class AudioPlaybackEngine : IDisposable
     {
-        private readonly IWavePlayer outputDevice;
-        private readonly MixingSampleProvider mixer;
+        private readonly IWavePlayer outputDevice = null;
+        private readonly MixingSampleProvider mixer = null;
+        private Dictionary<LoopStream, WaveChannel32> loopChannels = null;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AudioPlaybackEngine"/> class.
@@ -25,6 +26,7 @@ namespace JewelMine.View.Forms.Audio
         /// <param name="channelCount">The channel count.</param>
         public AudioPlaybackEngine(int sampleRate = 44100, int channelCount = 2)
         {
+            loopChannels = new Dictionary<LoopStream, WaveChannel32>();
             outputDevice = new WaveOutEvent();
             mixer = new MixingSampleProvider(WaveFormat.CreateIeeeFloatWaveFormat(sampleRate, channelCount));
             mixer.ReadFully = true;
@@ -48,7 +50,27 @@ namespace JewelMine.View.Forms.Audio
         /// <param name="stream">The stream.</param>
         public void PlaySound(LoopStream stream)
         {
-            mixer.AddMixerInput(stream);
+            if(loopChannels.ContainsKey(stream))
+            {
+                loopChannels[stream].Volume = 1.0f;
+            }
+            else
+            {
+                loopChannels.Add(stream, new WaveChannel32(stream, 1.0f, 0.0f));
+                mixer.AddMixerInput(loopChannels[stream]);
+            }
+        }
+
+        /// <summary>
+        /// Mutes the sound.
+        /// </summary>
+        /// <param name="stream">The stream.</param>
+        public void MuteSound(LoopStream stream)
+        {
+            if (loopChannels.ContainsKey(stream))
+            {
+                loopChannels[stream].Volume = 0.0f;
+            }
         }
 
         /// <summary>

@@ -22,6 +22,8 @@ namespace JewelMine.View.Forms
         private CachedSound stationarySound = null;
         private CachedSound levelUpSound = null;
         private LoopStream backgroundMusic = null;
+        private bool backgroundMusicMuted = false;
+        private bool soundEffectsMuted = false;
         private static GameAudioSystem instance = null;
 
         /// <summary>
@@ -42,7 +44,7 @@ namespace JewelMine.View.Forms
         /// </summary>
         public void PlayCollision()
         {
-            if (collisionSound != null) audioPlayer.PlaySound(collisionSound);
+            if (collisionSound != null && !soundEffectsMuted) audioPlayer.PlaySound(collisionSound);
         }
 
         /// <summary>
@@ -50,7 +52,7 @@ namespace JewelMine.View.Forms
         /// </summary>
         public void PlaySwap()
         {
-            if (swapSound != null) audioPlayer.PlaySound(swapSound);
+            if (swapSound != null && !soundEffectsMuted) audioPlayer.PlaySound(swapSound);
         }
 
         /// <summary>
@@ -58,7 +60,7 @@ namespace JewelMine.View.Forms
         /// </summary>
         public void PlayStationary()
         {
-            if (stationarySound != null) audioPlayer.PlaySound(stationarySound);
+            if (stationarySound != null && !soundEffectsMuted) audioPlayer.PlaySound(stationarySound);
         }
 
         /// <summary>
@@ -66,7 +68,15 @@ namespace JewelMine.View.Forms
         /// </summary>
         public void PlayLevelUp()
         {
-            if (levelUpSound != null) audioPlayer.PlaySound(levelUpSound);
+            if (levelUpSound != null && !soundEffectsMuted) audioPlayer.PlaySound(levelUpSound);
+        }
+
+        /// <summary>
+        /// Toggles the sound effects.
+        /// </summary>
+        public void ToggleSoundEffects()
+        {
+            soundEffectsMuted = !soundEffectsMuted;
         }
 
         /// <summary>
@@ -74,7 +84,30 @@ namespace JewelMine.View.Forms
         /// </summary>
         public void PlayBackgroundMusicLoop()
         {
-            if (backgroundMusic != null) audioPlayer.PlaySound(backgroundMusic);
+            if (backgroundMusic != null && !backgroundMusicMuted) audioPlayer.PlaySound(backgroundMusic);
+        }
+
+        /// <summary>
+        /// Plays the background music loop.
+        /// </summary>
+        public void ToggleBackgroundMusicLoop()
+        {
+            if (backgroundMusicMuted)
+            {
+                if (backgroundMusic != null)
+                {
+                    audioPlayer.PlaySound(backgroundMusic);
+                    backgroundMusicMuted = false;
+                }
+            }
+            else
+            {
+                if (backgroundMusic != null)
+                {
+                    audioPlayer.MuteSound(backgroundMusic);
+                    backgroundMusicMuted = true;
+                }
+            }
         }
 
         /// <summary>

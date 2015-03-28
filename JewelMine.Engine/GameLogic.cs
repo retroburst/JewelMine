@@ -38,7 +38,7 @@ namespace JewelMine.Engine
             collisionDetector = new GameCollisionDetector(state);
             AddInitialLinesToMine(GameConstants.GAME_DEFAULT_INITIAL_LINES);
             // TODO: take this out, for game won testing only
-            //state.Score = long.MaxValue - 1000;
+            //state.Score = long.MaxValue - 100000;
         }
 
         /// <summary>

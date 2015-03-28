@@ -36,10 +36,10 @@ namespace JewelMine.View.Forms
         public const string GAME_PAUSED_SUBTEXT = "Press any key...";
 
         public const string GAME_OVER_TEXT = "GAME OVER!";
-        public const string GAME_OVER_SUBTEXT = "Press CTRL+R to restart or CTLR+Q to quit...";
+        public const string GAME_OVER_SUBTEXT = "Press CTRL+R to restart or CTLR+Q to quit.";
 
-        public const string GAME_WON_TEXT = "GAME WON! CONGRATULATIONS!";
-        public const string GAME_WON_SUBTEXT = "Press CTLR+R to restart or CTLR+Q to quit...";
+        public const string GAME_WON_TEXT = "GAME WON! CONGRATS!";
+        public const string GAME_WON_SUBTEXT = "Press CTLR+R to restart or CTLR+Q to quit.";
 
         public const string GAME_START_TEXT = "JEWEL MINE";
         public const string GAME_START_SUBTEXT = "Press any key...";
