@@ -24,6 +24,7 @@ namespace JewelMine.View.Forms
     /// </summary>
     public partial class GameView : Form
     {
+        private Size preferredWindowSize = Size.Empty;
         private bool disposing = false;
         private GameTimer timer = null;
         private GameLogic gameLogic = null;
@@ -34,7 +35,7 @@ namespace JewelMine.View.Forms
         private Rectangle[,] cells = null;
         private int cellHeight = 0;
         private int cellWidth = 0;
-        private int jewelBitmapOffset = 2;
+        private int jewelBitmapOffset = 1;
         private long startTime = 0;
         private Pen deltaBorderPen = null;
         private Brush collisionOverlayBrush = null;
@@ -51,6 +52,7 @@ namespace JewelMine.View.Forms
         public GameView(GameLogic engine)
         {
             InitializeComponent();
+            preferredWindowSize = new Size(ViewConstants.WINDOW_PREFERRED_WIDTH, ViewConstants.WINDOW_PREFERRED_HEIGHT);
             // save our game engine into a variable
             gameLogic = engine;
             // init game information
@@ -61,7 +63,9 @@ namespace JewelMine.View.Forms
             cells = new Rectangle[engine.State.Mine.Columns, engine.State.Mine.Depth];
             backgroundImageArray = ViewHelpers.GenerateBackgroundImageArray();
             // hook into interesting form events
+            Load += LoadHandler;
             FormClosed += FormClosedHandler;
+            FormClosing += FormClosingHandler;
             Layout += LayoutHandler;
             KeyDown += InputHandler;
             InitialiseDrawingObjects();
@@ -120,10 +124,10 @@ namespace JewelMine.View.Forms
                     break;
                 case Keys.M:
                     if (e.Control) gameAudioSystem.ToggleBackgroundMusicLoop();
-                       break;
+                    break;
                 case Keys.N:
-                       if (e.Control) gameAudioSystem.ToggleSoundEffects();
-                       break;
+                    if (e.Control) gameAudioSystem.ToggleSoundEffects();
+                    break;
             }
         }
 
@@ -151,6 +155,26 @@ namespace JewelMine.View.Forms
             deltaBorderPen.Width = 1.00f;
             collisionOverlayBrush = new SolidBrush(Color.FromArgb(65, Color.AntiqueWhite));
             backgroundBrush = new TextureBrush(backgroundImageArray[ViewHelpers.GenerateRandomIndex(backgroundImageArray, rand)], WrapMode.Tile);
+        }
+
+        /// <summary>
+        /// Loads the handler.
+        /// </summary>
+        /// <param name="sender">The sender.</param>
+        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
+        private void LoadHandler(object sender, EventArgs e)
+        {
+            RestoreWindowState();
+        }
+
+        /// <summary>
+        /// Forms the closing handler.
+        /// </summary>
+        /// <param name="sender">The sender.</param>
+        /// <param name="e">The <see cref="FormClosingEventArgs"/> instance containing the event data.</param>
+        private void FormClosingHandler(object sender, FormClosingEventArgs e)
+        {
+            SaveWindowState();
         }
 
         /// <summary>
@@ -436,21 +460,69 @@ namespace JewelMine.View.Forms
         }
 
         /// <summary>
-        /// Draws the objects.
+        /// Saves the window state.
         /// </summary>
-        //private void DrawObjects<T>(Graphics graphics, T[,] objects, Rectangle[,] squares)
-        //    where T : IDrawable
-        //{
-        //    for (int coordinates = 0; coordinates <= squares.GetUpperBound(0); coordinates++)
-        //    {
-        //        for (int y = 0; y <= squares.GetUpperBound(1); y++)
-        //        {
-        //            T obj = objects[coordinates, y];
-        //            if (obj != null)
-        //                obj.Draw(squares[coordinates, y], this, graphics);
-        //        }
-        //    }
-        //}
+        private void SaveWindowState()
+        {
+            if (WindowState == FormWindowState.Normal)
+            {
+                Properties.Settings.Default.WindowLocation = Location;
+                Properties.Settings.Default.WindowSize = Size;
+            }
+            else
+            {
+                Properties.Settings.Default.WindowLocation = RestoreBounds.Location;
+                Properties.Settings.Default.WindowSize = RestoreBounds.Size;
+            }
+            Properties.Settings.Default.WindowState = WindowState;
+            Properties.Settings.Default.Save();
+        }
+
+        /// <summary>
+        /// Restores the state of the window.
+        /// </summary>
+        private void RestoreWindowState()
+        {
+            if (Properties.Settings.Default.WindowSize.IsEmpty)
+            {
+                FitPreferredSizeToScreen();
+                return; // state has never been saved
+            }
+            StartPosition = FormStartPosition.Manual;
+            Location = Properties.Settings.Default.WindowLocation;
+            Size = Properties.Settings.Default.WindowSize;
+            WindowState = Properties.Settings.Default.WindowState == FormWindowState.Minimized
+                ? FormWindowState.Normal : Properties.Settings.Default.WindowState;
+        }
+
+        /// <summary>
+        /// Fits the preferred size to screen.
+        /// If the screen is too small, shrinks the
+        /// form but tries to maintain aspect ratio.
+        /// </summary>
+        private void FitPreferredSizeToScreen()
+        {
+            Screen screen = Screen.FromControl(this);
+            if (screen.WorkingArea.Height < preferredWindowSize.Height)
+            {
+                // shrink for but try and maintain aspect ratio
+                int heightDifference = preferredWindowSize.Height - screen.WorkingArea.Height;
+                int customHeight = preferredWindowSize.Height - heightDifference;
+                int customWidth = preferredWindowSize.Width - heightDifference;
+                if(screen.WorkingArea.Width < customWidth)
+                {
+                    int widthDifference = customWidth - screen.WorkingArea.Width;
+                    customWidth -= widthDifference;
+                    customHeight -= widthDifference;
+                }
+                Size = new Size(customWidth, customHeight);
+            }
+            else
+            {
+                Size = preferredWindowSize;
+            }
+            CenterToScreen();
+        }
 
     }
 }

@@ -37,8 +37,6 @@ namespace JewelMine.Engine
             Random = new Random();
             collisionDetector = new GameCollisionDetector(state);
             AddInitialLinesToMine(GameConstants.GAME_DEFAULT_INITIAL_LINES);
-            // TODO: take this out, for game won testing only
-            //state.Score = long.MaxValue - 100000;
         }
 
         /// <summary>
@@ -277,9 +275,17 @@ namespace JewelMine.Engine
         {
             logicUpdate.LevelIncremented = true;
             state.Level += 1;
-            if (state.TickSpeedMilliseconds > GameConstants.GAME_LEVEL_INCREMENT_SPEED_CHANGE)
+            if (state.TickSpeedMilliseconds == GameConstants.GAME_TICK_SPEED_MILLISECONDS_FLOOR) return;
+            // calculate a new speed
+            double newTickSpeed = state.TickSpeedMilliseconds - GameConstants.GAME_LEVEL_INCREMENT_SPEED_CHANGE;
+            if (newTickSpeed >= GameConstants.GAME_TICK_SPEED_MILLISECONDS_FLOOR)
             {
-                state.TickSpeedMilliseconds -= GameConstants.GAME_LEVEL_INCREMENT_SPEED_CHANGE;
+                state.TickSpeedMilliseconds -= GameConstants.GAME_LEVEL_INCREMENT_SPEED_CHANGE; 
+            }
+            else
+            {
+                double difference = newTickSpeed - GameConstants.GAME_TICK_SPEED_MILLISECONDS_FLOOR;
+                if (difference < GameConstants.GAME_LEVEL_INCREMENT_SPEED_CHANGE) state.TickSpeedMilliseconds = GameConstants.GAME_TICK_SPEED_MILLISECONDS_FLOOR;
             }
         }
 

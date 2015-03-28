@@ -15,15 +15,16 @@ namespace JewelMine.Engine
         public const int MINE_DEFAULT_DEPTH_SIZE = 21;
         public const int GAME_DEFAULT_LEVEL = 1;
         public const int GAME_LEVEL_INCREMENT_SCORE_THRESHOLD = 5000;
-        public const int GAME_LEVEL_INCREMENT_SPEED_CHANGE = 6;
+        public const int GAME_LEVEL_INCREMENT_SPEED_CHANGE = 4;
         public const double GAME_DEFAULT_TICK_SPEED_MILLISECONDS = 240.0d;
+        public const double GAME_TICK_SPEED_MILLISECONDS_FLOOR = 50.0d;
         public const int GAME_COLLISION_FINALISE_TICK_COUNT = 25;
         public const int GAME_DELTA_STATIONARY_TICK_COUNT = 8;
-        public const int GAME_DOUBLE_JEWEL_DELTA_CHANCE_ABOVE = 10;
-        public const int GAME_TRIPLE_JEWEL_DELTA_CHANCE_ABOVE = 80;
+        public const int GAME_DOUBLE_JEWEL_DELTA_CHANCE_ABOVE = 5;
+        public const int GAME_TRIPLE_JEWEL_DELTA_CHANCE_ABOVE = 60;
         public const int GAME_DEFAULT_INITIAL_LINES = 3;
         public const int GAME_DEFAULT_COLLISION_SCORE = 1000;
-        public const int GAME_LAST_LEVEL = 99;
+        public const int GAME_LAST_LEVEL = 60;
     }
 
     /// <summary>
