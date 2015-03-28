@@ -22,7 +22,7 @@ namespace JewelMine.Engine
         public const int GAME_DELTA_STATIONARY_TICK_COUNT = 8;
         public const int GAME_DOUBLE_JEWEL_DELTA_CHANCE_ABOVE = 5;
         public const int GAME_TRIPLE_JEWEL_DELTA_CHANCE_ABOVE = 60;
-        public const int GAME_DEFAULT_INITIAL_LINES = 3;
+        public const int GAME_DEFAULT_INITIAL_LINES = 4;
         public const int GAME_DEFAULT_COLLISION_SCORE = 1000;
         public const int GAME_LAST_LEVEL = 60;
     }

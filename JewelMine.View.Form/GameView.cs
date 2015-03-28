@@ -1,6 +1,7 @@
 ﻿using JewelMine.Engine;
 using JewelMine.Engine.Models;
 using JewelMine.View.Forms.Audio;
+using log4net;
 using NAudio.Wave;
 using System;
 using System.Collections.Generic;
@@ -24,6 +25,7 @@ namespace JewelMine.View.Forms
     /// </summary>
     public partial class GameView : Form
     {
+        private static readonly ILog logger = LogManager.GetLogger(typeof(GameView));
         private Size preferredWindowSize = Size.Empty;
         private bool disposing = false;
         private GameTimer timer = null;
@@ -35,7 +37,6 @@ namespace JewelMine.View.Forms
         private Rectangle[,] cells = null;
         private int cellHeight = 0;
         private int cellWidth = 0;
-        private int jewelBitmapOffset = 1;
         private long startTime = 0;
         private Pen deltaBorderPen = null;
         private Brush collisionOverlayBrush = null;
@@ -78,7 +79,7 @@ namespace JewelMine.View.Forms
             // generate and store resized images for this form scoreSize - we do 
             // this once here instead of resizing every time we
             // draw a delta - which is a very expensive operation
-            jewelResizedImageResourceDictionary = ViewHelpers.GenerateResizedJewelImageResourceDictionary(jewelImageResourceDictionary, cellWidth, cellHeight, jewelBitmapOffset);
+            jewelResizedImageResourceDictionary = ViewHelpers.GenerateResizedJewelImageResourceDictionary(jewelImageResourceDictionary, cellWidth, cellHeight);
             gameAudioSystem = GameAudioSystem.Instance;
             gameAudioSystem.PlayBackgroundMusicLoop();
         }
@@ -193,7 +194,7 @@ namespace JewelMine.View.Forms
         /// </summary>
         public void GameLoop()
         {
-            Console.WriteLine("Starting game loop..");
+            if(logger.IsDebugEnabled) logger.Debug("Starting game loop");
             timer.Start();
             while (!disposing)
             {
@@ -212,7 +213,7 @@ namespace JewelMine.View.Forms
                 logicInput.Clear();
             }
             timer.Stop();
-            Console.WriteLine("Exited game loop..");
+            if(logger.IsDebugEnabled) logger.Debug("Exiting game loop");
         }
 
         /// <summary>
@@ -247,7 +248,7 @@ namespace JewelMine.View.Forms
             }
             if (deltaBorder != Rectangle.Empty)
             {
-                Invalidate(new Rectangle(deltaBorder.X - 2, deltaBorder.Y - 2, deltaBorder.Width + 5, deltaBorder.Height + 5));
+                Invalidate(new Rectangle(deltaBorder.X - 2, deltaBorder.Y - 2, deltaBorder.Width + 4, deltaBorder.Height + 4));
                 deltaBorder = Rectangle.Empty;
             }
             gameInformationView.Invalidate(Invalidate);
@@ -267,7 +268,7 @@ namespace JewelMine.View.Forms
         /// <param name="graphics">The graphics.</param>
         private void Draw(Graphics graphics)
         {
-            graphics.SmoothingMode = SmoothingMode.AntiAlias;
+            graphics.SmoothingMode = SmoothingMode.HighQuality;
             DrawBackground(graphics);
             DrawJewels(graphics);
             DrawDeltaBorder(graphics);
@@ -291,15 +292,18 @@ namespace JewelMine.View.Forms
         /// <exception cref="System.NotImplementedException"></exception>
         private void DrawCollisions(Graphics graphics)
         {
-            GameState state = gameLogic.State;
-            foreach (MarkedCollisionGroup mcg in state.Mine.MarkedCollisions)
+            List<Rectangle> collisionOverlayRectangles = new List<Rectangle>();
+            foreach (MarkedCollisionGroup mcg in gameLogic.State.Mine.MarkedCollisions)
             {
                 if (mcg.CollisionTickCount % 2 != 0)
                 {
-                    List<Rectangle> regions = CalculateInvalidationRegions(mcg);
-                    graphics.FillRectangles(collisionOverlayBrush, regions.ToArray());
+                    foreach(CollisionGroupMember m in mcg.Members)
+                    {
+                        collisionOverlayRectangles.Add(cells[m.Coordinates.X, m.Coordinates.Y]);
+                    }
                 }
             }
+            if(collisionOverlayRectangles.Count > 0) graphics.FillRectangles(collisionOverlayBrush, collisionOverlayRectangles.ToArray());
         }
 
         /// <summary>
@@ -314,11 +318,10 @@ namespace JewelMine.View.Forms
             {
                 Rectangle topLeft = cells[delta.Top.Coordinates.X, delta.Top.Coordinates.Y];
                 deltaBorder = new Rectangle();
-                deltaBorder.X = topLeft.X + 2;
-                deltaBorder.Y = topLeft.Y + 2;
-                deltaBorder.Height = (cellHeight * 3) - 4;
-                deltaBorder.Width = cellWidth - 4;
-
+                deltaBorder.X = topLeft.X - 1;
+                deltaBorder.Y = topLeft.Y - 1;
+                deltaBorder.Height = (cellHeight * 3) + 2;
+                deltaBorder.Width = cellWidth + 2;
                 graphics.DrawRectangle(deltaBorderPen, deltaBorder);
             }
         }
@@ -338,7 +341,8 @@ namespace JewelMine.View.Forms
                     {
                         Rectangle cell = cells[i, j];
                         Bitmap target = jewelResizedImageResourceDictionary[jewel.JewelType];
-                        graphics.DrawImage(target, new Rectangle(cell.X + jewelBitmapOffset, cell.Y + jewelBitmapOffset, cell.Width - jewelBitmapOffset, cell.Height - jewelBitmapOffset), new Rectangle(0, 0, cell.Width, cell.Height), GraphicsUnit.Pixel);
+                        graphics.DrawImage(target, new Rectangle(cell.X, cell.Y, cell.Width, cell.Height), new Rectangle(0, 0, cell.Width, cell.Height), GraphicsUnit.Pixel);
+                        //graphics.DrawRectangle(new Pen(Color.Red), new Rectangle(cell.X + jewelBitmapOffset, cell.Y + jewelBitmapOffset, cell.Width - jewelBitmapOffset, cell.Height - jewelBitmapOffset));
                     }
                 }
             }
@@ -357,7 +361,7 @@ namespace JewelMine.View.Forms
             // calculate new image sizes for this form scoreSize - we do 
             // this once here instead of resizing every time we
             // draw a delta - which is a very expensive operation
-            jewelResizedImageResourceDictionary = ViewHelpers.GenerateResizedJewelImageResourceDictionary(jewelImageResourceDictionary, cellWidth, cellHeight, jewelBitmapOffset);
+            jewelResizedImageResourceDictionary = ViewHelpers.GenerateResizedJewelImageResourceDictionary(jewelImageResourceDictionary, cellWidth, cellHeight);
             // invalidate the whole view so it is
             // all re-painted
             Invalidate(ClientRectangle);
@@ -402,10 +406,8 @@ namespace JewelMine.View.Forms
             List<Rectangle> regions = new List<Rectangle>();
             foreach (CollisionGroupMember collision in cg.Members)
             {
-                Rectangle region;
-                region = cells[collision.Coordinates.X, collision.Coordinates.Y];
-                region.Width = cellWidth;
-                region.Height = cellHeight;
+                Rectangle cell = cells[collision.Coordinates.X, collision.Coordinates.Y];
+                Rectangle region = new Rectangle(cell.X - 2, cell.Y - 2, cellWidth + 4, cellHeight + 4);
                 regions.Add(region);
             }
             return (regions);
@@ -420,7 +422,8 @@ namespace JewelMine.View.Forms
         public Rectangle CalculateInvalidationRegion(Jewel jewelModel, Coordinates coordinates)
         {
             Rectangle region = new Rectangle();
-            region = cells[coordinates.X, coordinates.Y];
+            region.X = cells[coordinates.X, coordinates.Y].X;
+            region.Y = cells[coordinates.X, coordinates.Y].Y;
             region.Width = cellWidth;
             region.Height = cellHeight;
             return (region);
@@ -440,21 +443,24 @@ namespace JewelMine.View.Forms
             int minX = Math.Min(originalCoordinates.X, newCoordinates.X);
             int minY = Math.Min(originalCoordinates.Y, newCoordinates.Y);
             Rectangle targetCell = cells[minX, minY];
-            region.X = targetCell.X;
-            region.Y = targetCell.Y;
+            // add an little extra to the margin for the delta border
+            region.X = targetCell.X - 2;
+            region.Y = targetCell.Y - 2;
+            int heightMargin = cellHeight + 4;
+            int widthMargin = cellWidth + 4;
             // movement down
             if (newCoordinates.Y > originalCoordinates.Y)
             {
                 int difference = newCoordinates.Y - originalCoordinates.Y;
-                region.Height = cellHeight * (difference + 1);
-                region.Width = cellWidth;
+                region.Height = heightMargin * (difference + 1);
+                region.Width = widthMargin;
             }
             // movement right or left
             else
             {
                 int difference = Math.Max(originalCoordinates.X, newCoordinates.X) - Math.Min(originalCoordinates.X, newCoordinates.X);
-                region.Height = cellHeight;
-                region.Width = cellWidth * (difference + 1);
+                region.Height = heightMargin;
+                region.Width = widthMargin * (difference + 1);
             }
             return (region);
         }

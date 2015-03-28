@@ -135,15 +135,14 @@ namespace JewelMine.View.Forms
         /// <param name="resources">The resources.</param>
         /// <param name="cellWidth">Width of the cell.</param>
         /// <param name="cellHeight">Height of the cell.</param>
-        /// <param name="jewelBitmapOffset">The bitmap offset.</param>
         /// <returns></returns>
         /// <exception cref="System.NotImplementedException"></exception>
-        public static Dictionary<JewelType, Bitmap> GenerateResizedJewelImageResourceDictionary(Dictionary<JewelType, Bitmap> resources, int cellWidth, int cellHeight, int bitmapOffset)
+        public static Dictionary<JewelType, Bitmap> GenerateResizedJewelImageResourceDictionary(Dictionary<JewelType, Bitmap> resources, int cellWidth, int cellHeight)
         {
             Dictionary<JewelType, Bitmap> result = new Dictionary<JewelType, Bitmap>();
             foreach(var pair in resources)
             {
-                Bitmap resized = ResizeImage(pair.Value, cellWidth - bitmapOffset, cellHeight - bitmapOffset, true, true);
+                Bitmap resized = ResizeImage(pair.Value, cellWidth, cellHeight, true, true);
                 result.Add(pair.Key, resized);
             }
             return (result);

@@ -15,7 +15,7 @@ namespace JewelMine.View.Forms
         // Window
         public const int WINDOW_PREFERRED_WIDTH = 790;
         public const int WINDOW_PREFERRED_HEIGHT = 820;
-
+    
         // Images
         public const string IMAGE_RESOURCE_PATTERN_NAMESPACE = "JewelMine.Resources.Images";
         public const string JEWEL_IMAGE_RESOURCE_PATTERN = IMAGE_RESOURCE_PATTERN_NAMESPACE + ".{0}.gif";
