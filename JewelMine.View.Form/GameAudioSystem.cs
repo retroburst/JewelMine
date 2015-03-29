@@ -111,6 +111,34 @@ namespace JewelMine.View.Forms
         }
 
         /// <summary>
+        /// Gets a value indicating whether [background music muted].
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if [background music muted]; otherwise, <c>false</c>.
+        /// </value>
+        public bool BackgroundMusicMuted 
+        { 
+            get 
+            { 
+                return(backgroundMusicMuted); 
+            } 
+        }
+
+        /// <summary>
+        /// Gets a value indicating whether [sound effects muted].
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if [sound effects muted]; otherwise, <c>false</c>.
+        /// </value>
+        public bool SoundEffectsMuted
+        {
+            get
+            {
+                return (soundEffectsMuted);
+            }
+        }
+
+        /// <summary>
         /// Gets the instance.
         /// </summary>
         /// <value>

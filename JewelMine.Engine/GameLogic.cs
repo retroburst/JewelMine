@@ -156,7 +156,7 @@ namespace JewelMine.Engine
                 bool deltaStationary = false;
                 int numPositionsToMove = 1;
                 // if delta is up against a boundary on either side that the movement is towards, override and move delta down instead
-                if (IsDeltaAgainstBoundary(deltaMovement)) deltaMovement = MovementType.Down;
+                if (IsDeltaAgainstBoundary(deltaMovement) || IsDeltaAgainstMineObject(deltaMovement)) deltaMovement = MovementType.Down;
                 // if the user pressed down - drop the delta all the way
                 if (userInputMovement && originalDeltaMovement == MovementType.Down) numPositionsToMove = state.Mine.Depth;
                 MoveDelta(deltaMovement, logicUpdate, numPositionsToMove);
@@ -339,8 +339,27 @@ namespace JewelMine.Engine
         {
             bool result = false;
             JewelGroup delta = state.Mine.Delta;
-            if ((deltaMovement == MovementType.Left && delta.Bottom.Coordinates.X == 0)
+            if ((deltaMovement == MovementType.Left && (delta.Bottom.Coordinates.X == 0))
             || (deltaMovement == MovementType.Right && delta.Bottom.Coordinates.X == state.Mine.Grid.GetUpperBound(0)))
+            {
+                result = true;
+            }
+            return (result);
+        }
+
+        /// <summary>
+        /// Determines whether [is delta against mine object] [the specified delta movement].
+        /// </summary>
+        /// <param name="deltaMovement">The delta movement.</param>
+        /// <returns></returns>
+        private bool IsDeltaAgainstMineObject(MovementType deltaMovement)
+        {
+            bool result = false;
+            JewelGroup delta = state.Mine.Delta;
+            Coordinates left = FindClosestLeftPositionForDelta(delta, 1);
+            Coordinates right = FindClosestRightPositionForDelta(delta, 1);
+            if ((deltaMovement == MovementType.Left && left == null)
+            || (deltaMovement == MovementType.Right && right == null))
             {
                 result = true;
             }

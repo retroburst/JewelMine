@@ -104,11 +104,25 @@ namespace JewelMine.View.Forms
                     break;
                 case Keys.Right:
                 case Keys.D:
-                    logicInput.DeltaMovement = MovementType.Right;
+                    if (e.Control)
+                    {
+                        gameInformationView.ToggleDebugInfo();
+                    }
+                    else
+                    {
+                        logicInput.DeltaMovement = MovementType.Right;
+                    }
                     break;
                 case Keys.Down:
                 case Keys.S:
-                    logicInput.DeltaMovement = MovementType.Down;
+                    if (e.Control)
+                    {
+                        gameAudioSystem.ToggleSoundEffects();
+                    }
+                    else
+                    {
+                        logicInput.DeltaMovement = MovementType.Down;
+                    }
                     break;
                 case Keys.Space:
                 case Keys.C:
@@ -125,9 +139,6 @@ namespace JewelMine.View.Forms
                     break;
                 case Keys.M:
                     if (e.Control) gameAudioSystem.ToggleBackgroundMusicLoop();
-                    break;
-                case Keys.N:
-                    if (e.Control) gameAudioSystem.ToggleSoundEffects();
                     break;
             }
         }
@@ -194,7 +205,7 @@ namespace JewelMine.View.Forms
         /// </summary>
         public void GameLoop()
         {
-            if(logger.IsDebugEnabled) logger.Debug("Starting game loop");
+            if (logger.IsDebugEnabled) logger.Debug("Starting game loop");
             timer.Start();
             while (!disposing)
             {
@@ -213,7 +224,7 @@ namespace JewelMine.View.Forms
                 logicInput.Clear();
             }
             timer.Stop();
-            if(logger.IsDebugEnabled) logger.Debug("Exiting game loop");
+            if (logger.IsDebugEnabled) logger.Debug("Exiting game loop");
         }
 
         /// <summary>
@@ -282,7 +293,14 @@ namespace JewelMine.View.Forms
         /// <param name="graphics">The graphics.</param>
         private void DrawGameStateText(Graphics graphics)
         {
-            gameInformationView.DrawGameInformation(graphics, ClientSize.Width, ClientSize.Height);
+            gameInformationView.DrawGameInformation(
+                graphics, 
+                ClientSize.Width, 
+                ClientSize.Height, 
+                Width, 
+                Height, 
+                gameAudioSystem.BackgroundMusicMuted, 
+                gameAudioSystem.SoundEffectsMuted);
         }
 
         /// <summary>
@@ -297,13 +315,13 @@ namespace JewelMine.View.Forms
             {
                 if (mcg.CollisionTickCount % 2 != 0)
                 {
-                    foreach(CollisionGroupMember m in mcg.Members)
+                    foreach (CollisionGroupMember m in mcg.Members)
                     {
                         collisionOverlayRectangles.Add(cells[m.Coordinates.X, m.Coordinates.Y]);
                     }
                 }
             }
-            if(collisionOverlayRectangles.Count > 0) graphics.FillRectangles(collisionOverlayBrush, collisionOverlayRectangles.ToArray());
+            if (collisionOverlayRectangles.Count > 0) graphics.FillRectangles(collisionOverlayBrush, collisionOverlayRectangles.ToArray());
         }
 
         /// <summary>
@@ -342,7 +360,6 @@ namespace JewelMine.View.Forms
                         Rectangle cell = cells[i, j];
                         Bitmap target = jewelResizedImageResourceDictionary[jewel.JewelType];
                         graphics.DrawImage(target, new Rectangle(cell.X, cell.Y, cell.Width, cell.Height), new Rectangle(0, 0, cell.Width, cell.Height), GraphicsUnit.Pixel);
-                        //graphics.DrawRectangle(new Pen(Color.Red), new Rectangle(cell.X + jewelBitmapOffset, cell.Y + jewelBitmapOffset, cell.Width - jewelBitmapOffset, cell.Height - jewelBitmapOffset));
                     }
                 }
             }
@@ -365,6 +382,7 @@ namespace JewelMine.View.Forms
             // invalidate the whole view so it is
             // all re-painted
             Invalidate(ClientRectangle);
+            if (logger.IsDebugEnabled) logger.DebugFormat("Window resized to {0}x{1}.", Width, Height);
         }
 
         /// <summary>
@@ -515,7 +533,7 @@ namespace JewelMine.View.Forms
                 int heightDifference = preferredWindowSize.Height - screen.WorkingArea.Height;
                 int customHeight = preferredWindowSize.Height - heightDifference;
                 int customWidth = preferredWindowSize.Width - heightDifference;
-                if(screen.WorkingArea.Width < customWidth)
+                if (screen.WorkingArea.Width < customWidth)
                 {
                     int widthDifference = customWidth - screen.WorkingArea.Width;
                     customWidth -= widthDifference;

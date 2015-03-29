@@ -30,6 +30,15 @@ namespace JewelMine.Engine.Models
         public JewelType JewelType { get; private set; }
 
         /// <summary>
+        /// To the string type short.
+        /// </summary>
+        /// <returns></returns>
+        public string ToStringTypeShort()
+        {
+            return(JewelType.ToString().Substring(0,3));
+        }
+
+        /// <summary>
         /// Gets the identifier.
         /// </summary>
         /// <value>

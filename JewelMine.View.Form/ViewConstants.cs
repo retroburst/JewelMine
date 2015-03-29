@@ -13,8 +13,10 @@ namespace JewelMine.View.Forms
     public static class ViewConstants
     {
         // Window
-        public const int WINDOW_PREFERRED_WIDTH = 790;
-        public const int WINDOW_PREFERRED_HEIGHT = 820;
+        public const int WINDOW_PREFERRED_WIDTH = 733;
+        public const int WINDOW_PREFERRED_HEIGHT = 755;
+        public const int DEBUG_RECTANGLE_WIDTH = 280;
+        public const int DEBUG_RECTANGLE_HEIGHT_OFFSET = 50;
     
         // Images
         public const string IMAGE_RESOURCE_PATTERN_NAMESPACE = "JewelMine.Resources.Images";

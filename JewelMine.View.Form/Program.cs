@@ -21,10 +21,9 @@ namespace JewelMine.View.Forms
         [STAThread]
         static void Main()
         {
-            //TODO: add debug diagnostics bound to a key
             //TODO: massive refactor (add guard statements?)
             //TODO: add msbuild build script
-            //TODO: bug allows delta to sit against other jewels indefinately when input control is sideways
+            //TODO: more logging
             log4net.Config.XmlConfigurator.Configure();
             if (logger.IsDebugEnabled) logger.Debug("Starting application");
             Application.EnableVisualStyles();

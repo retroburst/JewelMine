@@ -22,12 +22,14 @@ namespace JewelMine.View.Forms
         private Rectangle levelRectangle = Rectangle.Empty;
         private Rectangle gameStateTextRectangle = Rectangle.Empty;
         private Rectangle gameStateSubTextRectangle = Rectangle.Empty;
+        private Rectangle debugRectangle = Rectangle.Empty;
         private Font informationFont = null;
         private Font gameStateTextFont = null;
         private Font gameStateSubTextFont = null;
         private GameLogic gameLogic = null;
         private long previousScore = 0;
         private int previousLevel = GameConstants.GAME_DEFAULT_LEVEL;
+        private bool showDebugInfo = false;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GameInformationView" /> class.
@@ -61,17 +63,97 @@ namespace JewelMine.View.Forms
             if (levelRectangle != Rectangle.Empty) invalidate(levelRectangle);
             if (gameStateTextRectangle != Rectangle.Empty) invalidate(gameStateTextRectangle);
             if (gameStateSubTextRectangle != Rectangle.Empty) invalidate(gameStateSubTextRectangle);
+            if (debugRectangle != Rectangle.Empty) invalidate(debugRectangle);
         }
 
         /// <summary>
         /// Draws the game information.
         /// </summary>
         /// <param name="graphics">The graphics.</param>
-        public void DrawGameInformation(Graphics graphics, int clientWidth, int clientHeight)
+        /// <param name="clientWidth">Width of the client.</param>
+        /// <param name="clientHeight">Height of the client.</param>
+        /// <param name="windowWidth">Width of the window.</param>
+        /// <param name="windowHeight">Height of the window.</param>
+        /// <param name="backgroundMusicMuted">if set to <c>true</c> [background music on].</param>
+        /// <param name="soundEffectsMuted">if set to <c>true</c> [sound fx on].</param>
+        public void DrawGameInformation(Graphics graphics, 
+            int clientWidth, int clientHeight, 
+            int windowWidth, int windowHeight,
+            bool backgroundMusicMuted, bool soundEffectsMuted)
         {
             DrawGameState(graphics, clientWidth, clientHeight);
             DrawLevel(graphics, clientWidth);
             DrawScore(graphics, clientWidth);
+            if (showDebugInfo) DrawDebugInfo(graphics, clientWidth, clientHeight, windowWidth, windowHeight, backgroundMusicMuted, soundEffectsMuted);
+        }
+
+        /// <summary>
+        /// Draws the debug information.
+        /// </summary>
+        /// <param name="graphics">The graphics.</param>
+        /// <param name="clientWidth">Width of the client.</param>
+        /// <param name="clientHeight">Height of the client.</param>
+        /// <param name="windowWidth">Width of the window.</param>
+        /// <param name="windowHeight">Height of the window.</param>
+        /// <param name="backgroundMusicMuted">if set to <c>true</c> [background music on].</param>
+        /// <param name="soundEffectsMuted">if set to <c>true</c> [sound fx on].</param>
+        private void DrawDebugInfo(Graphics graphics, int clientWidth, int clientHeight, 
+            int windowWidth, int windowHeight,
+            bool backgroundMusicMuted, bool soundEffectsMuted)
+        {
+            List<string> debugMessages = new List<string>();
+            debugRectangle = new Rectangle();
+            debugRectangle.X = clientWidth - ViewConstants.DEBUG_RECTANGLE_WIDTH;
+            debugRectangle.Y = ViewConstants.DEBUG_RECTANGLE_HEIGHT_OFFSET;
+            int yPosition = debugRectangle.Y + 5;
+            debugRectangle.Width = ViewConstants.DEBUG_RECTANGLE_WIDTH;
+            debugRectangle.Height = clientHeight - ViewConstants.DEBUG_RECTANGLE_HEIGHT_OFFSET;
+            graphics.FillRectangle(informationShadowBrushBlack, debugRectangle);
+            BuildDebugMessages(debugMessages, clientWidth, clientHeight, windowWidth, windowHeight, backgroundMusicMuted, soundEffectsMuted);
+            foreach (string message in debugMessages)
+            {
+                SizeF size = graphics.MeasureString(message, informationFont);
+                graphics.DrawString(message, informationFont, informationOverlayBrushPartiallyTransparent, debugRectangle.X + 5, yPosition);
+
+                yPosition += (int)size.Height;
+            }
+        }
+
+        /// <summary>
+        /// Builds the debug messages.
+        /// </summary>
+        /// <param name="debugMessages">The debug messges.</param>
+        /// <param name="clientWidth">Width of the client.</param>
+        /// <param name="clientHeight">Height of the client.</param>
+        /// <param name="windowWidth">Width of the window.</param>
+        /// <param name="windowHeight">Height of the window.</param>
+        /// <param name="backgroundMusicMuted">if set to <c>true</c> [background music on].</param>
+        /// <param name="soundEffectsMuted">if set to <c>true</c> [sound fx on].</param>
+        /// <exception cref="NotImplementedException"></exception>
+        private void BuildDebugMessages(List<string> debugMessages, 
+            int clientWidth, int clientHeight, 
+            int windowWidth, int windowHeight,
+            bool backgroundMusicMuted, bool soundEffectsMuted)
+        {
+            JewelGroup delta = gameLogic.State.Mine.Delta;
+            string deltaJewels = "N/A";
+            string deltaPosition = "N/A";
+            if (delta != null) deltaPosition = string.Format("x={0}, y={1},{2},{3}", delta.Bottom.Coordinates.X, delta.Top.Coordinates.Y, delta.Middle.Coordinates.Y, delta.Bottom.Coordinates.Y);
+            if (delta != null) deltaJewels = string.Format("{0}, {1}, {2}", delta.Top.Jewel.ToStringTypeShort(), delta.Middle.Jewel.ToStringTypeShort(), delta.Bottom.Jewel.ToStringTypeShort());
+            debugMessages.Add(string.Format("Window Size [{0}x{1}]", windowWidth, windowHeight));
+            debugMessages.Add(string.Format("Client Size [{0}x{1}]", clientWidth, clientHeight));
+            debugMessages.Add(string.Format("Mine Size [{0}x{1}]", gameLogic.State.Mine.Columns, gameLogic.State.Mine.Depth));
+            debugMessages.Add(string.Format("Tick Milliseconds [{0}]", gameLogic.State.TickSpeedMilliseconds));
+            debugMessages.Add(string.Format("State [{0}]", gameLogic.State.PlayState.ToString()));
+            debugMessages.Add(string.Format("Delta [{0}]", gameLogic.State.Mine.Delta == null ? "None" : "Active"));
+            debugMessages.Add(string.Format("Delta Position [{0}]", deltaPosition));
+            debugMessages.Add(string.Format("Delta All In Bounds [{0}]", delta == null ? "N/A" : delta.HasWholeGroupEnteredBounds.ToString()));
+            debugMessages.Add(string.Format("Delta Stat. Tick Count [{0}]", delta == null ? "N/A" : delta.StationaryTickCount.ToString()));
+            debugMessages.Add(string.Format("Delta Jewels [{0}]", deltaJewels));
+            debugMessages.Add(string.Format("Marked Collision Count [{0}]", gameLogic.State.Mine.MarkedCollisions.Count));
+            debugMessages.Add(string.Format("Finalised Collision Count [{0}]", gameLogic.State.Mine.FinalisedCollisions.Count));
+            debugMessages.Add(string.Format("Music [{0}]", backgroundMusicMuted ? "Muted" : "On"));
+            debugMessages.Add(string.Format("Sound Effects [{0}]", soundEffectsMuted ? "Muted" : "On"));
         }
 
         /// <summary>
@@ -124,10 +206,6 @@ namespace JewelMine.View.Forms
                 SizeF stateSubTextSize = graphics.MeasureString(stateSubText, gameStateSubTextFont);
                 Coordinates stateTextMiddle = CalculateMiddleCoordinatesForText(stateTextSize, clientWidth, clientHeight);
                 Coordinates stateSubTextMiddle = CalculateMiddleCoordinatesForText(stateSubTextSize, clientWidth, clientHeight);
-
-                // give a little more room
-                //stateTextSize.Width += 2;
-                //stateSubTextSize.Width += 2;
 
                 gameStateTextRectangle = new Rectangle(stateTextMiddle.X, stateTextMiddle.Y, (int)stateTextSize.Width, (int)stateTextSize.Height);
                 gameStateSubTextRectangle = new Rectangle(stateSubTextMiddle.X, stateSubTextMiddle.Y + (int)stateTextSize.Height, (int)stateSubTextSize.Width, (int)stateSubTextSize.Height);
@@ -189,6 +267,18 @@ namespace JewelMine.View.Forms
             int x = (clientWidth / 2) - halfWidth;
             int y = (clientHeight / 2) - halfHeight;
             return (new Coordinates(x, y));
+        }
+
+        /// <summary>
+        /// Gets or sets the toggle debug information.
+        /// </summary>
+        /// <value>
+        /// The toggle debug information.
+        /// </value>
+        public void ToggleDebugInfo()
+        {
+            showDebugInfo = !showDebugInfo;
+            if (!showDebugInfo) debugRectangle = Rectangle.Empty;
         }
 
     }
