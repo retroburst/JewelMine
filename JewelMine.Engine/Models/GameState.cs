@@ -21,7 +21,7 @@ namespace JewelMine.Engine.Models
             PlayState = GamePlayState.NotStarted;
             Level = GameConstants.GAME_DEFAULT_LEVEL;
             TickSpeedMilliseconds = GameConstants.GAME_DEFAULT_TICK_SPEED_MILLISECONDS;
-            Score = int.MaxValue;
+            Score = 0;
         }
 
         /// <summary>

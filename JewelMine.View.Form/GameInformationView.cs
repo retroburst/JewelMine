@@ -114,7 +114,6 @@ namespace JewelMine.View.Forms
             {
                 SizeF size = graphics.MeasureString(message, informationFont);
                 graphics.DrawString(message, informationFont, informationOverlayBrushPartiallyTransparent, debugRectangle.X + 5, yPosition);
-
                 yPosition += (int)size.Height;
             }
         }
@@ -139,7 +138,7 @@ namespace JewelMine.View.Forms
             string deltaJewels = "N/A";
             string deltaPosition = "N/A";
             if (delta != null) deltaPosition = string.Format("x={0}, y={1},{2},{3}", delta.Bottom.Coordinates.X, delta.Top.Coordinates.Y, delta.Middle.Coordinates.Y, delta.Bottom.Coordinates.Y);
-            if (delta != null) deltaJewels = string.Format("{0}, {1}, {2}", delta.Top.Jewel.ToStringTypeShort(), delta.Middle.Jewel.ToStringTypeShort(), delta.Bottom.Jewel.ToStringTypeShort());
+            if (delta != null) deltaJewels = string.Format("{0}, {1}, {2}", GameHelpers.ShortenName(delta.Top.Jewel.JewelType.ToString()), GameHelpers.ShortenName(delta.Middle.Jewel.JewelType.ToString()), GameHelpers.ShortenName(delta.Bottom.Jewel.JewelType.ToString()));
             debugMessages.Add(string.Format("Window Size [{0}x{1}]", windowWidth, windowHeight));
             debugMessages.Add(string.Format("Client Size [{0}x{1}]", clientWidth, clientHeight));
             debugMessages.Add(string.Format("Mine Size [{0}x{1}]", gameLogic.State.Mine.Columns, gameLogic.State.Mine.Depth));

@@ -21,19 +21,24 @@ namespace JewelMine.View.Forms
         [STAThread]
         static void Main()
         {
-            //TODO: massive refactor (add guard statements?)
-            //TODO: add msbuild build script
-            //TODO: more logging
             log4net.Config.XmlConfigurator.Configure();
-            if (logger.IsDebugEnabled) logger.Debug("Starting application");
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
-            using (GameView view = new GameView(new GameLogic()))
+            try
             {
-                view.Show();
-                view.GameLoop();
+                //TODO: massive refactor (add guard statements?)
+                if (logger.IsDebugEnabled) logger.Debug("Starting application.");
+                Application.EnableVisualStyles();
+                Application.SetCompatibleTextRenderingDefault(false);
+                using (GameView view = new GameView(new GameLogic()))
+                {
+                    view.Show();
+                    view.GameLoop();
+                }
+                if (logger.IsDebugEnabled) logger.Debug("Exiting application.");
             }
-            if (logger.IsDebugEnabled) logger.Debug("Exiting application");
+            catch (Exception ex)
+            {
+                if (logger.IsFatalEnabled) logger.Fatal("Fatal exception encountered.", ex);
+            }
         }
     }
 }

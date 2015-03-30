@@ -205,7 +205,7 @@ namespace JewelMine.View.Forms
         /// </summary>
         public void GameLoop()
         {
-            if (logger.IsDebugEnabled) logger.Debug("Starting game loop");
+            if (logger.IsDebugEnabled) logger.Debug("Starting game loop.");
             timer.Start();
             while (!disposing)
             {
@@ -224,7 +224,7 @@ namespace JewelMine.View.Forms
                 logicInput.Clear();
             }
             timer.Stop();
-            if (logger.IsDebugEnabled) logger.Debug("Exiting game loop");
+            if (logger.IsDebugEnabled) logger.Debug("Exiting game loop.");
         }
 
         /// <summary>
@@ -404,7 +404,7 @@ namespace JewelMine.View.Forms
             int leftOverHeight = ClientRectangle.Height - (cellHeight * cells.GetLength(1));
             int heightOffset = leftOverHeight / 2;
             int widthOffset = leftOverWidth / 2;
-            // draw the grid onto the control
+            // calculate and store grid rectangles
             for (int i = 0; i <= cells.GetUpperBound(0); i++)
             {
                 for (int j = 0; j <= cells.GetUpperBound(1); j++)
@@ -488,6 +488,7 @@ namespace JewelMine.View.Forms
         /// </summary>
         private void SaveWindowState()
         {
+            if (logger.IsDebugEnabled) logger.Debug("Saving the window state.");
             if (WindowState == FormWindowState.Normal)
             {
                 Properties.Settings.Default.WindowLocation = Location;
@@ -507,6 +508,7 @@ namespace JewelMine.View.Forms
         /// </summary>
         private void RestoreWindowState()
         {
+            if (logger.IsDebugEnabled) logger.Debug("Restoring window state.");
             if (Properties.Settings.Default.WindowSize.IsEmpty)
             {
                 FitPreferredSizeToScreen();
@@ -526,6 +528,7 @@ namespace JewelMine.View.Forms
         /// </summary>
         private void FitPreferredSizeToScreen()
         {
+            if (logger.IsDebugEnabled) logger.Debug("Fitting preferred size window to screen.");
             Screen screen = Screen.FromControl(this);
             if (screen.WorkingArea.Height < preferredWindowSize.Height)
             {

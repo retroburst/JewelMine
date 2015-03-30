@@ -12,6 +12,8 @@ namespace JewelMine.Engine
     /// </summary>
     public static class GameHelpers
     {
+        private static HashSet<char> vowels = new HashSet<char>("aeiou"); 
+
         /// <summary>
         /// Peforms a for each over an IEnumerable collection.
         /// </summary>
@@ -49,6 +51,17 @@ namespace JewelMine.Engine
             return (score);
         }
 
+        /// <summary>
+        /// Shortens the name.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <returns></returns>
+        public static string ShortenName(string name)
+        {
+            if (string.IsNullOrEmpty(name)) return (name);
+            string result = new string(name.Where(x => !vowels.Contains(x)).ToArray());
+            return (result);
+        }
 
 
 
