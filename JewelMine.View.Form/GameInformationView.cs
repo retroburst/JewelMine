@@ -23,6 +23,7 @@ namespace JewelMine.View.Forms
         private Rectangle gameStateTextRectangle = Rectangle.Empty;
         private Rectangle gameStateSubTextRectangle = Rectangle.Empty;
         private Rectangle debugRectangle = Rectangle.Empty;
+        private Rectangle debugInvalidationRetangle = Rectangle.Empty;
         private Font informationFont = null;
         private Font gameStateTextFont = null;
         private Font gameStateSubTextFont = null;
@@ -49,7 +50,7 @@ namespace JewelMine.View.Forms
             informationOverlayBrushPartiallyTransparent = new SolidBrush(Color.FromArgb(110, Color.White));
             informationOverlayBrushWhite = new SolidBrush(Color.White);
             informationFont = new Font(SystemInformation.MenuFont.FontFamily, 12.5f);
-            informationShadowBrushBlack = new SolidBrush(Color.FromArgb(150, Color.Black));
+            informationShadowBrushBlack = new SolidBrush(Color.FromArgb(130, Color.Black));
             gameStateTextFont = new Font(SystemInformation.MenuFont.FontFamily, 36.0f, FontStyle.Bold);
             gameStateSubTextFont = new Font(SystemInformation.MenuFont.FontFamily, 12.5f, FontStyle.Regular);
         }
@@ -64,6 +65,12 @@ namespace JewelMine.View.Forms
             if (gameStateTextRectangle != Rectangle.Empty) invalidate(gameStateTextRectangle);
             if (gameStateSubTextRectangle != Rectangle.Empty) invalidate(gameStateSubTextRectangle);
             if (debugRectangle != Rectangle.Empty) invalidate(debugRectangle);
+            if(debugInvalidationRetangle != Rectangle.Empty)
+            {
+                invalidate(debugInvalidationRetangle);
+                debugInvalidationRetangle = Rectangle.Empty;
+            }
+
         }
 
         /// <summary>
@@ -143,6 +150,8 @@ namespace JewelMine.View.Forms
             debugMessages.Add(string.Format("Client Size [{0}x{1}]", clientWidth, clientHeight));
             debugMessages.Add(string.Format("Mine Size [{0}x{1}]", gameLogic.State.Mine.Columns, gameLogic.State.Mine.Depth));
             debugMessages.Add(string.Format("Tick Milliseconds [{0}]", gameLogic.State.TickSpeedMilliseconds));
+            debugMessages.Add(string.Format("Delta Statn. Tick [{0}]", gameLogic.State.DeltaStationaryTickCount));
+            debugMessages.Add(string.Format("Finalise Col. Tick [{0}]", gameLogic.State.CollisionFinailseTickCount));
             debugMessages.Add(string.Format("State [{0}]", gameLogic.State.PlayState.ToString()));
             debugMessages.Add(string.Format("Delta [{0}]", gameLogic.State.Mine.Delta == null ? "None" : "Active"));
             debugMessages.Add(string.Format("Delta Position [{0}]", deltaPosition));
@@ -277,7 +286,10 @@ namespace JewelMine.View.Forms
         public void ToggleDebugInfo()
         {
             showDebugInfo = !showDebugInfo;
-            if (!showDebugInfo) debugRectangle = Rectangle.Empty;
+            if (!showDebugInfo)
+            {
+                debugInvalidationRetangle = new Rectangle(debugRectangle.Location, debugRectangle.Size);
+            }
         }
 
     }

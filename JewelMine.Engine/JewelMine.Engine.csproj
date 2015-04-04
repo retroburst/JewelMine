@@ -51,7 +51,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="GameCollisionDetector.cs" />
+    <Compile Include="GameGroupCollisionDetector.cs" />
     <Compile Include="GameLogicInput.cs" />
     <Compile Include="Models\MarkedCollisionGroup.cs" />
     <Compile Include="Models\Coordinates.cs" />

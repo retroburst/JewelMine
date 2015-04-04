@@ -22,6 +22,8 @@ namespace JewelMine.Engine.Models
             Level = GameConstants.GAME_DEFAULT_LEVEL;
             TickSpeedMilliseconds = GameConstants.GAME_DEFAULT_TICK_SPEED_MILLISECONDS;
             Score = 0;
+            DeltaStationaryTickCount = GameConstants.GAME_DELTA_STATIONARY_TICK_COUNT;
+            CollisionFinailseTickCount = GameConstants.GAME_COLLISION_FINALISE_TICK_COUNT;
         }
 
         /// <summary>
@@ -73,6 +75,22 @@ namespace JewelMine.Engine.Models
         /// The game tick speed milliseconds.
         /// </value>
         public double TickSpeedMilliseconds { get; internal set; }
+
+        /// <summary>
+        /// Gets the collision finalise tick count.
+        /// </summary>
+        /// <value>
+        /// The collision finalise tick count.
+        /// </value>
+        public int CollisionFinailseTickCount { get; internal set; }
+
+        /// <summary>
+        /// Gets the delta stationary tick count.
+        /// </summary>
+        /// <value>
+        /// The delta stationary tick count.
+        /// </value>
+        public int DeltaStationaryTickCount { get; internal set; }
 
     }
 }

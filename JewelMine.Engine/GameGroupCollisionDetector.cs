@@ -8,28 +8,28 @@ using System.Threading.Tasks;
 namespace JewelMine.Engine
 {
     /// <summary>
-    /// Game collision detector finds and marks
-    /// new collisions, stores and removes
+    /// Game group collision detector finds and marks
+    /// new group collisions, stores and removes
     /// finalised collisions.
     /// </summary>
-    public class GameCollisionDetector
+    public class GameGroupCollisionDetector
     {
         private GameState state = null;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="GameCollisionDetector"/> class.
+        /// Initializes a new instance of the <see cref="GameGroupCollisionDetector"/> class.
         /// </summary>
         /// <param name="gameState">State of the game.</param>
-        public GameCollisionDetector(GameState gameState)
+        public GameGroupCollisionDetector(GameState gameState)
         {
             state = gameState;
         }
 
         /// <summary>
-        /// Checks the marked collisions are stil valid.
+        /// Checks the marked collision groups are stil valid.
         /// </summary>
         /// <param name="logicUpdate">The logic update.</param>
-        private void CheckMarkedCollisionsStillValid(GameLogicUpdate logicUpdate)
+        private void CheckMarkedCollisionGroupsStillValid(GameLogicUpdate logicUpdate)
         {
             logicUpdate.InvalidCollisions.Clear();
             // for each collision group, check that each jewel is still
@@ -50,16 +50,16 @@ namespace JewelMine.Engine
         }
 
         /// <summary>
-        /// Marks the collisions.
+        /// Marks the group collisions.
         /// </summary>
         /// <param name="logicUpdate">The logic update.</param>
-        public void MarkCollisions(GameLogicUpdate logicUpdate)
+        public void MarkGroupCollisions(GameLogicUpdate logicUpdate)
         {
             // find new collisions and additions to existing marked collisions and mark
             // add new marks to logic update
-            CheckMarkedCollisionsStillValid(logicUpdate);
+            CheckMarkedCollisionGroupsStillValid(logicUpdate);
             // check for new collisions
-            AddNewMarkedCollisions();
+            AddNewMarkedCollisionGroups();
             // check for new additions to existing marked collisions
             // loop through marked collisions collection
             // based on direction of collision group look on ends for new collisions
@@ -84,29 +84,29 @@ namespace JewelMine.Engine
                         // find largest and smallest X coordinate
                         CollisionGroupMember left = group.Members.OrderBy(x => x.Coordinates.X).First();
                         CollisionGroupMember right = group.Members.OrderByDescending(x => x.Coordinates.X).First();
-                        AddNewMembersToMarkedCollisionByDirection(right.Jewel, right.Coordinates, coordinates => new Coordinates(coordinates.X + 1, coordinates.Y), group);
-                        AddNewMembersToMarkedCollisionByDirection(left.Jewel, left.Coordinates, coordinates => new Coordinates(coordinates.X - 1, coordinates.Y), group);
+                        AddNewMembersToMarkedCollisionGroupByDirection(right.Jewel, right.Coordinates, coordinates => new Coordinates(coordinates.X + 1, coordinates.Y), group);
+                        AddNewMembersToMarkedCollisionGroupByDirection(left.Jewel, left.Coordinates, coordinates => new Coordinates(coordinates.X - 1, coordinates.Y), group);
                         break;
                     case CollisionDirection.Vertical:
                         // find largest and smallest Y coordinate
                         CollisionGroupMember top = group.Members.OrderBy(x => x.Coordinates.Y).First();
                         CollisionGroupMember bottom = group.Members.OrderByDescending(x => x.Coordinates.Y).First();
-                        AddNewMembersToMarkedCollisionByDirection(bottom.Jewel, bottom.Coordinates, coordinates => new Coordinates(coordinates.X, coordinates.Y + 1), group);
-                        AddNewMembersToMarkedCollisionByDirection(top.Jewel, top.Coordinates, coordinates => new Coordinates(coordinates.X, coordinates.Y - 1), group);
+                        AddNewMembersToMarkedCollisionGroupByDirection(bottom.Jewel, bottom.Coordinates, coordinates => new Coordinates(coordinates.X, coordinates.Y + 1), group);
+                        AddNewMembersToMarkedCollisionGroupByDirection(top.Jewel, top.Coordinates, coordinates => new Coordinates(coordinates.X, coordinates.Y - 1), group);
                         break;
                     case CollisionDirection.DiagonallyLeft:
                         // find largest and smallest Y coordinate
                         CollisionGroupMember topRight = group.Members.OrderBy(x => x.Coordinates.Y).First();
                         CollisionGroupMember bottomLeft = group.Members.OrderByDescending(x => x.Coordinates.Y).First();
-                        AddNewMembersToMarkedCollisionByDirection(bottomLeft.Jewel, bottomLeft.Coordinates, coordinates => new Coordinates(coordinates.X - 1, coordinates.Y - 1), group);
-                        AddNewMembersToMarkedCollisionByDirection(topRight.Jewel, topRight.Coordinates, coordinates => new Coordinates(coordinates.X + 1, coordinates.Y + 1), group);
+                        AddNewMembersToMarkedCollisionGroupByDirection(bottomLeft.Jewel, bottomLeft.Coordinates, coordinates => new Coordinates(coordinates.X - 1, coordinates.Y - 1), group);
+                        AddNewMembersToMarkedCollisionGroupByDirection(topRight.Jewel, topRight.Coordinates, coordinates => new Coordinates(coordinates.X + 1, coordinates.Y + 1), group);
                         break;
                     case CollisionDirection.DiagonallyRight:
                         // find largest and smallest Y coordinate
                         CollisionGroupMember topLeft = group.Members.OrderBy(x => x.Coordinates.Y).First();
                         CollisionGroupMember bottomRight = group.Members.OrderByDescending(x => x.Coordinates.Y).First();
-                        AddNewMembersToMarkedCollisionByDirection(bottomRight.Jewel, bottomRight.Coordinates, coordinates => new Coordinates(coordinates.X - 1, coordinates.Y + 1), group);
-                        AddNewMembersToMarkedCollisionByDirection(topLeft.Jewel, topLeft.Coordinates, coordinates => new Coordinates(coordinates.X + 1, coordinates.Y - 1), group);
+                        AddNewMembersToMarkedCollisionGroupByDirection(bottomRight.Jewel, bottomRight.Coordinates, coordinates => new Coordinates(coordinates.X - 1, coordinates.Y + 1), group);
+                        AddNewMembersToMarkedCollisionGroupByDirection(topLeft.Jewel, topLeft.Coordinates, coordinates => new Coordinates(coordinates.X + 1, coordinates.Y - 1), group);
                         break;
                 }
             }
@@ -119,7 +119,7 @@ namespace JewelMine.Engine
         /// <param name="targetCoordinates">The target coordinates.</param>
         /// <param name="moveSearch">The move search.</param>
         /// <param name="group">The group.</param>
-        private void AddNewMembersToMarkedCollisionByDirection(Jewel target, Coordinates targetCoordinates, Func<Coordinates, Coordinates> moveSearch, MarkedCollisionGroup group)
+        private void AddNewMembersToMarkedCollisionGroupByDirection(Jewel target, Coordinates targetCoordinates, Func<Coordinates, Coordinates> moveSearch, MarkedCollisionGroup group)
         {
             Coordinates coordinates = moveSearch(targetCoordinates);
             while (state.Mine.CoordinatesInBounds(coordinates))
@@ -148,9 +148,9 @@ namespace JewelMine.Engine
         }
 
         /// <summary>
-        /// Adds the new marked collisions.
+        /// Adds the new marked collision groups.
         /// </summary>
-        private void AddNewMarkedCollisions()
+        private void AddNewMarkedCollisionGroups()
         {
             for (int x = state.Mine.Columns - 1; x >= 0; x--)
             {
@@ -253,10 +253,10 @@ namespace JewelMine.Engine
         }
 
         /// <summary>
-        /// Finalises the collisions.
+        /// Finalises the collision groups.
         /// </summary>
         /// <param name="logicUpdate">The logic update.</param>
-        public void FinaliseCollisions(GameLogicUpdate logicUpdate, params CollisionGroup[] collisions)
+        public void FinaliseCollisionGroups(GameLogicUpdate logicUpdate, params CollisionGroup[] collisions)
         {
             // move any marked collisions to finalised collisions
             // add new finalised collisions to logic update

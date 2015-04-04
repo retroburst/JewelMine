@@ -372,6 +372,7 @@ namespace JewelMine.View.Forms
         /// <param name="e">The <see cref="LayoutEventArgs"/> instance containing the event data.</param>
         private void LayoutHandler(object sender, LayoutEventArgs e)
         {
+            if (WindowState == FormWindowState.Minimized) return;
             // calculate new cell dimensions
             CalculateGridCellDimensions();
             CalculateGridCells(cells);

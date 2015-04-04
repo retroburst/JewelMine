@@ -17,7 +17,7 @@ namespace JewelMine.Engine
         public Random Random { get; private set; }
         private JewelType[] jewelTypes = null;
         private GameState state = null;
-        private GameCollisionDetector collisionDetector = null;
+        private GameGroupCollisionDetector collisionDetector = null;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GameLogic"/> class.
@@ -35,7 +35,7 @@ namespace JewelMine.Engine
             jewelTypes = (JewelType[])Enum.GetValues(typeof(JewelType)).Cast<JewelType>().Where(x => x != JewelType.Unknown).ToArray();
             state = new GameState();
             Random = new Random();
-            collisionDetector = new GameCollisionDetector(state);
+            collisionDetector = new GameGroupCollisionDetector(state);
             AddInitialLinesToMine(GameConstants.GAME_DEFAULT_INITIAL_LINES);
         }
 
@@ -163,7 +163,7 @@ namespace JewelMine.Engine
                 if (IsDeltaStationary()) deltaStationary = true;
                 if (deltaStationary)
                 {
-                    if (state.Mine.Delta.StationaryTickCount >= GameConstants.GAME_DELTA_STATIONARY_TICK_COUNT)
+                    if (state.Mine.Delta.StationaryTickCount >= state.DeltaStationaryTickCount)
                     {
                         // delta is now in position and a new one will be added
                         state.Mine.Delta = null;
@@ -188,10 +188,10 @@ namespace JewelMine.Engine
         private void ProcessCollisions(GameLogicUpdate logicUpdate)
         {
             state.Mine.MarkedCollisions.ForEach(x => x.IncrementCollisionTickCount());
-            var markedCollisionsForFinalising = state.Mine.MarkedCollisions.Where(x => x.CollisionTickCount >= GameConstants.GAME_COLLISION_FINALISE_TICK_COUNT).ToArray();
-            collisionDetector.FinaliseCollisions(logicUpdate, markedCollisionsForFinalising);
+            var markedCollisionsForFinalising = state.Mine.MarkedCollisions.Where(x => x.CollisionTickCount >= state.CollisionFinailseTickCount).ToArray();
+            collisionDetector.FinaliseCollisionGroups(logicUpdate, markedCollisionsForFinalising);
             state.Score += GameHelpers.CalculateScore(markedCollisionsForFinalising);
-            collisionDetector.MarkCollisions(logicUpdate);
+            collisionDetector.MarkGroupCollisions(logicUpdate);
         }
 
         /// <summary>
@@ -280,13 +280,29 @@ namespace JewelMine.Engine
             double newTickSpeed = state.TickSpeedMilliseconds - GameConstants.GAME_LEVEL_INCREMENT_SPEED_CHANGE;
             if (newTickSpeed >= GameConstants.GAME_TICK_SPEED_MILLISECONDS_FLOOR)
             {
-                state.TickSpeedMilliseconds -= GameConstants.GAME_LEVEL_INCREMENT_SPEED_CHANGE; 
+                state.TickSpeedMilliseconds -= GameConstants.GAME_LEVEL_INCREMENT_SPEED_CHANGE;
+                SetRelativeDeltaStationaryTick(state.TickSpeedMilliseconds);
             }
             else
             {
                 double difference = newTickSpeed - GameConstants.GAME_TICK_SPEED_MILLISECONDS_FLOOR;
-                if (difference < GameConstants.GAME_LEVEL_INCREMENT_SPEED_CHANGE) state.TickSpeedMilliseconds = GameConstants.GAME_TICK_SPEED_MILLISECONDS_FLOOR;
+                if (difference < GameConstants.GAME_LEVEL_INCREMENT_SPEED_CHANGE)
+                {
+                    state.TickSpeedMilliseconds = GameConstants.GAME_TICK_SPEED_MILLISECONDS_FLOOR;
+                    SetRelativeDeltaStationaryTick(state.TickSpeedMilliseconds);
+                }
             }
+        }
+
+        /// <summary>
+        /// Sets the relative delta stationary tick.
+        /// </summary>
+        /// <param name="newTickSpeed">The new tick speed.</param>
+        private void SetRelativeDeltaStationaryTick(double newTickSpeed)
+        {
+            double originalSpeed = GameConstants.GAME_DEFAULT_TICK_SPEED_MILLISECONDS * GameConstants.GAME_DELTA_STATIONARY_TICK_COUNT;
+            int ticks = (int)Math.Round(originalSpeed / newTickSpeed, MidpointRounding.AwayFromZero);
+            state.DeltaStationaryTickCount = ticks;
         }
 
         /// <summary>
@@ -512,20 +528,25 @@ namespace JewelMine.Engine
             JewelType firstRandomJewelType = GenerateRandomJewelType();
             randomJewels[0] = new Jewel(firstRandomJewelType);
 
-            if (tripleJewelChance >= (GameConstants.GAME_TRIPLE_JEWEL_DELTA_CHANCE_ABOVE + state.Level))
+            if (tripleJewelChance >= Math.Min(
+                (GameConstants.GAME_TRIPLE_JEWEL_DELTA_CHANCE_ABOVE + state.Level), 
+                GameConstants.GAME_TRIPLE_JEWEL_DELTA_CHANE_ABOVE_CEILING))
             {
                 randomJewels[1] = new Jewel(firstRandomJewelType);
                 randomJewels[2] = new Jewel(firstRandomJewelType);
             }
-            else if (doubleJewelChance >= (GameConstants.GAME_DOUBLE_JEWEL_DELTA_CHANCE_ABOVE + state.Level))
+            else if (doubleJewelChance >= Math.Min(
+                (GameConstants.GAME_DOUBLE_JEWEL_DELTA_CHANCE_ABOVE + state.Level), 
+                GameConstants.GAME_DOUBLE_JEWEL_DELTA_CHANCE_ABOVE_CEILING))
             {
                 randomJewels[1] = new Jewel(firstRandomJewelType);
-                randomJewels[2] = new Jewel(GenerateRandomJewelType());
+                randomJewels[2] = new Jewel(GenerateRandomJewelType(firstRandomJewelType));
             }
             else
             {
-                randomJewels[1] = new Jewel(GenerateRandomJewelType());
-                randomJewels[2] = new Jewel(GenerateRandomJewelType());
+                randomJewels[1] = new Jewel(GenerateRandomJewelType(firstRandomJewelType));
+                JewelType secondRandomJewel = randomJewels[1].JewelType;
+                randomJewels[2] = new Jewel(GenerateRandomJewelType(firstRandomJewelType, secondRandomJewel));
             }
             return (new JewelGroup(randomJewels[0], randomJewels[1], randomJewels[2]));
         }
