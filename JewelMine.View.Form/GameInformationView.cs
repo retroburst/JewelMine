@@ -65,12 +65,12 @@ namespace JewelMine.View.Forms
             if (gameStateTextRectangle != Rectangle.Empty) invalidate(gameStateTextRectangle);
             if (gameStateSubTextRectangle != Rectangle.Empty) invalidate(gameStateSubTextRectangle);
             if (debugRectangle != Rectangle.Empty) invalidate(debugRectangle);
+            // need to invalidate the debug messages rect as it's been hidden
             if(debugInvalidationRetangle != Rectangle.Empty)
             {
                 invalidate(debugInvalidationRetangle);
                 debugInvalidationRetangle = Rectangle.Empty;
             }
-
         }
 
         /// <summary>
@@ -189,7 +189,7 @@ namespace JewelMine.View.Forms
         private void DrawScore(Graphics graphics, int clientWidth)
         {
             Brush scoreBrush = previousScore != gameLogic.State.Score ? informationOverlayBrushWhite : informationOverlayBrushPartiallyTransparent;
-            string score = string.Format(ViewConstants.SCORE_PATTERN, gameLogic.State.Score.ToString("000000"));
+            string score = string.Format(ViewConstants.SCORE_PATTERN, gameLogic.State.Score.ToString(ViewConstants.SCORE_FORMAT_STRING));
             SizeF scoreSize = graphics.MeasureString(score, informationFont);
             scoreRectangle = new Rectangle(5, 5, (int)scoreSize.Width, (int)scoreSize.Height);
             graphics.FillRectangle(informationShadowBrushBlack, scoreRectangle);

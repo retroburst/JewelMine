@@ -25,6 +25,8 @@ namespace JewelMine.View.Forms
             try
             {
                 //TODO: massive refactor (add guard statements?)
+                //TODO: add a special jewel connects any group collisions in any shape of the jewels around it
+                //TODO: add a view for the coming up delta
                 if (logger.IsDebugEnabled) logger.Debug("Starting application.");
                 Application.EnableVisualStyles();
                 Application.SetCompatibleTextRenderingDefault(false);

@@ -96,6 +96,15 @@ namespace JewelMine.View.Forms
                 logicInput.GameStarted = true;
                 return;
             }
+            ProcessInput(e);
+        }
+
+        /// <summary>
+        /// Processes the input.
+        /// </summary>
+        /// <param name="e">The <see cref="KeyEventArgs"/> instance containing the event data.</param>
+        private void ProcessInput(KeyEventArgs e)
+        {
             switch (e.KeyCode)
             {
                 case Keys.Left:
@@ -105,24 +114,16 @@ namespace JewelMine.View.Forms
                 case Keys.Right:
                 case Keys.D:
                     if (e.Control)
-                    {
                         gameInformationView.ToggleDebugInfo();
-                    }
                     else
-                    {
                         logicInput.DeltaMovement = MovementType.Right;
-                    }
                     break;
                 case Keys.Down:
                 case Keys.S:
                     if (e.Control)
-                    {
                         gameAudioSystem.ToggleSoundEffects();
-                    }
                     else
-                    {
                         logicInput.DeltaMovement = MovementType.Down;
-                    }
                     break;
                 case Keys.Space:
                 case Keys.C:
@@ -294,12 +295,12 @@ namespace JewelMine.View.Forms
         private void DrawGameStateText(Graphics graphics)
         {
             gameInformationView.DrawGameInformation(
-                graphics, 
-                ClientSize.Width, 
-                ClientSize.Height, 
-                Width, 
-                Height, 
-                gameAudioSystem.BackgroundMusicMuted, 
+                graphics,
+                ClientSize.Width,
+                ClientSize.Height,
+                Width,
+                Height,
+                gameAudioSystem.BackgroundMusicMuted,
                 gameAudioSystem.SoundEffectsMuted);
         }
 
