@@ -58,5 +58,149 @@ namespace JewelMine.View.Forms.Properties {
                 this["WindowState"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Ctrl+R")]
+        public global::System.Windows.Forms.Keys KeyBindingRestartGame {
+            get {
+                return ((global::System.Windows.Forms.Keys)(this["KeyBindingRestartGame"]));
+            }
+            set {
+                this["KeyBindingRestartGame"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Ctrl+P")]
+        public global::System.Windows.Forms.Keys KeyBindingPauseGame {
+            get {
+                return ((global::System.Windows.Forms.Keys)(this["KeyBindingPauseGame"]));
+            }
+            set {
+                this["KeyBindingPauseGame"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Left")]
+        public global::System.Windows.Forms.Keys KeyBindingMoveLeft {
+            get {
+                return ((global::System.Windows.Forms.Keys)(this["KeyBindingMoveLeft"]));
+            }
+            set {
+                this["KeyBindingMoveLeft"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Right")]
+        public global::System.Windows.Forms.Keys KeyBindingMoveRight {
+            get {
+                return ((global::System.Windows.Forms.Keys)(this["KeyBindingMoveRight"]));
+            }
+            set {
+                this["KeyBindingMoveRight"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Down")]
+        public global::System.Windows.Forms.Keys KeyBindingMoveDown {
+            get {
+                return ((global::System.Windows.Forms.Keys)(this["KeyBindingMoveDown"]));
+            }
+            set {
+                this["KeyBindingMoveDown"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Ctrl+D")]
+        public global::System.Windows.Forms.Keys KeyBindingToggleDebugInfo {
+            get {
+                return ((global::System.Windows.Forms.Keys)(this["KeyBindingToggleDebugInfo"]));
+            }
+            set {
+                this["KeyBindingToggleDebugInfo"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Ctrl+S")]
+        public global::System.Windows.Forms.Keys KeyBindingToggleSoundEffects {
+            get {
+                return ((global::System.Windows.Forms.Keys)(this["KeyBindingToggleSoundEffects"]));
+            }
+            set {
+                this["KeyBindingToggleSoundEffects"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Ctrl+M")]
+        public global::System.Windows.Forms.Keys KeyBindingToggleMusic {
+            get {
+                return ((global::System.Windows.Forms.Keys)(this["KeyBindingToggleMusic"]));
+            }
+            set {
+                this["KeyBindingToggleMusic"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Space")]
+        public global::System.Windows.Forms.Keys KeyBindingSwapDeltaJewels {
+            get {
+                return ((global::System.Windows.Forms.Keys)(this["KeyBindingSwapDeltaJewels"]));
+            }
+            set {
+                this["KeyBindingSwapDeltaJewels"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Ctrl+Q")]
+        public global::System.Windows.Forms.Keys KeyBindingQuitGame {
+            get {
+                return ((global::System.Windows.Forms.Keys)(this["KeyBindingQuitGame"]));
+            }
+            set {
+                this["KeyBindingQuitGame"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool UserPreferenceMusicMuted {
+            get {
+                return ((bool)(this["UserPreferenceMusicMuted"]));
+            }
+            set {
+                this["UserPreferenceMusicMuted"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool UserPreferenceSoundEffectsMuted {
+            get {
+                return ((bool)(this["UserPreferenceSoundEffectsMuted"]));
+            }
+            set {
+                this["UserPreferenceSoundEffectsMuted"] = value;
+            }
+        }
     }
 }

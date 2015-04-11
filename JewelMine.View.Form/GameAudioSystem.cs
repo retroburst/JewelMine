@@ -121,7 +121,11 @@ namespace JewelMine.View.Forms
             get 
             { 
                 return(backgroundMusicMuted); 
-            } 
+            }
+            set
+            {
+                backgroundMusicMuted = value;
+            }
         }
 
         /// <summary>
@@ -135,6 +139,10 @@ namespace JewelMine.View.Forms
             get
             {
                 return (soundEffectsMuted);
+            }
+            set
+            {
+                soundEffectsMuted = value;
             }
         }
 

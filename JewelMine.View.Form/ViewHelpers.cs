@@ -10,6 +10,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace JewelMine.View.Forms
 {
@@ -122,7 +123,7 @@ namespace JewelMine.View.Forms
         public static int GenerateRandomIndex(Array target, Random rand)
         {
             int result = 0;
-            if(target != null && target.Length > 0)
+            if (target != null && target.Length > 0)
             {
                 result = rand.Next(0, target.Length - 1);
             }
@@ -140,12 +141,41 @@ namespace JewelMine.View.Forms
         public static Dictionary<JewelType, Bitmap> GenerateResizedJewelImageResourceDictionary(Dictionary<JewelType, Bitmap> resources, int cellWidth, int cellHeight)
         {
             Dictionary<JewelType, Bitmap> result = new Dictionary<JewelType, Bitmap>();
-            foreach(var pair in resources)
+            foreach (var pair in resources)
             {
                 Bitmap resized = ResizeImage(pair.Value, cellWidth, cellHeight, true, true);
                 result.Add(pair.Key, resized);
             }
             return (result);
+        }
+
+        /// <summary>
+        /// Performs a safe key binding.
+        /// </summary>
+        /// <param name="settingsKeyData">The settings key data.</param>
+        /// <param name="defaultKeyData">The default key data.</param>
+        /// <param name="bindingAction">The binding action.</param>
+        /// <param name="keyBindings">The key bindings.</param>
+        public static void PerformSafeKeyBinding(Keys settingsKeyData, Keys defaultKeyData, Action bindingAction, Dictionary<Keys, Action> keyBindings)
+        {
+            if (settingsKeyData == Keys.None)
+            {
+                keyBindings.Add(defaultKeyData, bindingAction);
+            }
+            else
+            {
+                keyBindings.Add(settingsKeyData, bindingAction);
+            }
+        }
+
+        /// <summary>
+        /// Encodes the boolean for display.
+        /// </summary>
+        /// <param name="target">if set to <c>true</c> [target].</param>
+        /// <returns></returns>
+        public static string EncodeBooleanForDisplay(bool target)
+        {
+            return (target ? "On" : "Off");
         }
 
     }

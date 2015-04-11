@@ -45,6 +45,7 @@ namespace JewelMine.View.Forms
         private GameAudioSystem gameAudioSystem = null;
         private GameLogicInput logicInput = null;
         private GameInformationView gameInformationView = null;
+        private Dictionary<Keys, Action> keyBindingDictionary = null;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GameView" /> class.
@@ -58,6 +59,11 @@ namespace JewelMine.View.Forms
             gameLogic = engine;
             // init game information
             gameInformationView = new GameInformationView(gameLogic);
+            // init key bindings
+            keyBindingDictionary = new Dictionary<Keys, Action>();
+            InitialiseKeyBindings();
+            // init game audio system
+            gameAudioSystem = GameAudioSystem.Instance;
             // set paint styles
             SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.DoubleBuffer | ControlStyles.OptimizedDoubleBuffer, true);
             timer = new GameTimer();
@@ -80,8 +86,27 @@ namespace JewelMine.View.Forms
             // this once here instead of resizing every time we
             // draw a delta - which is a very expensive operation
             jewelResizedImageResourceDictionary = ViewHelpers.GenerateResizedJewelImageResourceDictionary(jewelImageResourceDictionary, cellWidth, cellHeight);
-            gameAudioSystem = GameAudioSystem.Instance;
+            // restore user prefs
+            RestoreUserPreferences();
+            // start the background music loop
             gameAudioSystem.PlayBackgroundMusicLoop();
+        }
+
+        /// <summary>
+        /// Initialises the key bindings.
+        /// </summary>
+        private void InitialiseKeyBindings()
+        {
+            ViewHelpers.PerformSafeKeyBinding(Properties.Settings.Default.KeyBindingMoveLeft, Keys.Left, () => logicInput.DeltaMovement = MovementType.Left, keyBindingDictionary);
+            ViewHelpers.PerformSafeKeyBinding(Properties.Settings.Default.KeyBindingMoveRight, Keys.Right, () => logicInput.DeltaMovement = MovementType.Right, keyBindingDictionary);
+            ViewHelpers.PerformSafeKeyBinding(Properties.Settings.Default.KeyBindingMoveDown, Keys.Down, () => logicInput.DeltaMovement = MovementType.Down, keyBindingDictionary);
+            ViewHelpers.PerformSafeKeyBinding(Properties.Settings.Default.KeyBindingPauseGame, Keys.Control | Keys.P, () => logicInput.PauseGame = true, keyBindingDictionary);
+            ViewHelpers.PerformSafeKeyBinding(Properties.Settings.Default.KeyBindingRestartGame, Keys.Control | Keys.R, () => logicInput.RestartGame = true, keyBindingDictionary);
+            ViewHelpers.PerformSafeKeyBinding(Properties.Settings.Default.KeyBindingToggleDebugInfo, Keys.Control | Keys.D, () => gameInformationView.ToggleDebugInfo(), keyBindingDictionary);
+            ViewHelpers.PerformSafeKeyBinding(Properties.Settings.Default.KeyBindingQuitGame, Keys.Control | Keys.Q, () => this.Close(), keyBindingDictionary);
+            ViewHelpers.PerformSafeKeyBinding(Properties.Settings.Default.KeyBindingSwapDeltaJewels, Keys.Space, () => logicInput.DeltaSwapJewels = true, keyBindingDictionary);
+            ViewHelpers.PerformSafeKeyBinding(Properties.Settings.Default.KeyBindingToggleMusic, Keys.Control | Keys.M, () => gameAudioSystem.ToggleBackgroundMusicLoop(), keyBindingDictionary);
+            ViewHelpers.PerformSafeKeyBinding(Properties.Settings.Default.KeyBindingToggleSoundEffects, Keys.Control | Keys.S, () => gameAudioSystem.ToggleSoundEffects(), keyBindingDictionary);
         }
 
         /// <summary>
@@ -105,42 +130,10 @@ namespace JewelMine.View.Forms
         /// <param name="e">The <see cref="KeyEventArgs"/> instance containing the event data.</param>
         private void ProcessInput(KeyEventArgs e)
         {
-            switch (e.KeyCode)
+            if (keyBindingDictionary.ContainsKey(e.KeyData))
             {
-                case Keys.Left:
-                case Keys.A:
-                    logicInput.DeltaMovement = MovementType.Left;
-                    break;
-                case Keys.Right:
-                case Keys.D:
-                    if (e.Control)
-                        gameInformationView.ToggleDebugInfo();
-                    else
-                        logicInput.DeltaMovement = MovementType.Right;
-                    break;
-                case Keys.Down:
-                case Keys.S:
-                    if (e.Control)
-                        gameAudioSystem.ToggleSoundEffects();
-                    else
-                        logicInput.DeltaMovement = MovementType.Down;
-                    break;
-                case Keys.Space:
-                case Keys.C:
-                    logicInput.DeltaSwapJewels = true;
-                    break;
-                case Keys.R:
-                    if (e.Control) logicInput.RestartGame = true;
-                    break;
-                case Keys.P:
-                    if (e.Control) logicInput.PauseGame = true;
-                    break;
-                case Keys.Q:
-                    if (e.Control) this.Close();
-                    break;
-                case Keys.M:
-                    if (e.Control) gameAudioSystem.ToggleBackgroundMusicLoop();
-                    break;
+                Action bindingAction = keyBindingDictionary[e.KeyData];
+                if (bindingAction != null) bindingAction();
             }
         }
 
@@ -188,6 +181,8 @@ namespace JewelMine.View.Forms
         private void FormClosingHandler(object sender, FormClosingEventArgs e)
         {
             SaveWindowState();
+            SaveUserPreferences();
+            Properties.Settings.Default.Save();
         }
 
         /// <summary>
@@ -502,7 +497,6 @@ namespace JewelMine.View.Forms
                 Properties.Settings.Default.WindowSize = RestoreBounds.Size;
             }
             Properties.Settings.Default.WindowState = WindowState;
-            Properties.Settings.Default.Save();
         }
 
         /// <summary>
@@ -551,6 +545,24 @@ namespace JewelMine.View.Forms
                 Size = preferredWindowSize;
             }
             CenterToScreen();
+        }
+
+        /// <summary>
+        /// Saves the user preferences.
+        /// </summary>
+        private void SaveUserPreferences()
+        {
+            Properties.Settings.Default.UserPreferenceMusicMuted = gameAudioSystem.BackgroundMusicMuted;
+            Properties.Settings.Default.UserPreferenceSoundEffectsMuted = gameAudioSystem.SoundEffectsMuted;
+        }
+
+        /// <summary>
+        /// Restores the user preferences.
+        /// </summary>
+        private void RestoreUserPreferences()
+        {
+            gameAudioSystem.BackgroundMusicMuted = Properties.Settings.Default.UserPreferenceMusicMuted;
+            gameAudioSystem.SoundEffectsMuted = Properties.Settings.Default.UserPreferenceSoundEffectsMuted;
         }
 
     }

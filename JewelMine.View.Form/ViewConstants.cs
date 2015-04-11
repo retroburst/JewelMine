@@ -17,6 +17,10 @@ namespace JewelMine.View.Forms
         public const int WINDOW_PREFERRED_HEIGHT = 755;
         public const int DEBUG_RECTANGLE_WIDTH = 280;
         public const int DEBUG_RECTANGLE_HEIGHT_OFFSET = 50;
+        public const int DEBUG_RECTANGLE_PADDING = 5;
+        public const int TOGGLE_Y_OFFSET = 30;
+        public const int DEFAULT_X_OFFSET = 5;
+        public const int DEFAULT_Y_OFFSET = 5;
     
         // Images
         public const string IMAGE_RESOURCE_PATTERN_NAMESPACE = "JewelMine.Resources.Images";
@@ -53,5 +57,10 @@ namespace JewelMine.View.Forms
         public const string SCORE_PATTERN = "Score//{0}";
         public const string LEVEL_PATTERN = "Level//{0}";
         public const string SCORE_FORMAT_STRING = "000000";
+        public const string TOGGLE_MUSIC_PATTERN = "Music//{0}";
+        public const string TOGGLE_SOUND_PATTERN = "Sound//{0}";
+
+        // Misc
+        public const int TOGGLE_DISPLAY_TICK_COUNT = 10;
     }
 }
