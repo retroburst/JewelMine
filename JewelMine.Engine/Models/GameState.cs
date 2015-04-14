@@ -13,28 +13,19 @@ namespace JewelMine.Engine.Models
     public class GameState
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="GameState"/> class.
+        /// Initializes a new instance of the <see cref="GameState" /> class.
         /// </summary>
-        public GameState()
+        /// <param name="level">The level.</param>
+        public GameState(DifficultyLevel level)
         {
             Mine = new Mine();
-            Difficulty = new GameDifficulty();
+            Difficulty = new GameDifficulty(level);
             PlayState = GamePlayState.NotStarted;
             Level = GameConstants.GAME_DEFAULT_LEVEL;
             TickSpeedMilliseconds = Difficulty.TickSpeedMilliseconds;
             Score = 0;
             DeltaStationaryTickCount = Difficulty.DeltaStationaryTickCount;
             CollisionFinailseTickCount = Difficulty.CollisionFinaliseTickCount;
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="GameState"/> class.
-        /// </summary>
-        /// <param name="mineModel">The mine model.</param>
-        public GameState(Mine mineModel)
-            : this()
-        {
-            Mine = mineModel;
         }
 
         /// <summary>

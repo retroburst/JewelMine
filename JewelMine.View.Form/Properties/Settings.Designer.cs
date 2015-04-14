@@ -214,5 +214,17 @@ namespace JewelMine.View.Forms.Properties {
                 this["KeyBindingDifficultyChange"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Easy")]
+        public global::JewelMine.Engine.DifficultyLevel UserPreferenceDifficulty {
+            get {
+                return ((global::JewelMine.Engine.DifficultyLevel)(this["UserPreferenceDifficulty"]));
+            }
+            set {
+                this["UserPreferenceDifficulty"] = value;
+            }
+        }
     }
 }

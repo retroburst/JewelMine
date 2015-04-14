@@ -50,5 +50,8 @@
     <Setting Name="KeyBindingDifficultyChange" Type="System.Windows.Forms.Keys" Scope="User">
       <Value Profile="(Default)">Ctrl+U</Value>
     </Setting>
+    <Setting Name="UserPreferenceDifficulty" Type="JewelMine.Engine.DifficultyLevel" Scope="User">
+      <Value Profile="(Default)">Easy</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

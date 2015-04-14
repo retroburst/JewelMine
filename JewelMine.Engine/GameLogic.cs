@@ -18,25 +18,28 @@ namespace JewelMine.Engine
         private JewelType[] jewelTypes = null;
         private GameState state = null;
         private GameGroupCollisionDetector collisionDetector = null;
+        private GameLogicUserSettings userSettings = null;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="GameLogic"/> class.
+        /// Initializes a new instance of the <see cref="GameLogic" /> class.
         /// </summary>
-        public GameLogic()
+        /// <param name="settings">The settings.</param>
+        public GameLogic(GameLogicUserSettings settings)
         {
-            Initialise();
+            userSettings = settings;
+            Initialise(userSettings.UserPreferredDifficulty);
         }
 
         /// <summary>
         /// Initialises this instance.
         /// </summary>
-        private void Initialise()
+        private void Initialise(DifficultyLevel level)
         {
             jewelTypes = (JewelType[])Enum.GetValues(typeof(JewelType)).Cast<JewelType>().Where(x => x != JewelType.Unknown).ToArray();
-            state = new GameState();
+            state = new GameState(level);
             Random = new Random();
             collisionDetector = new GameGroupCollisionDetector(state);
-            AddInitialLinesToMine(GameConstants.GAME_MINE_DEFAULT_INITIAL_LINES);
+            AddInitialLinesToMine(state.Difficulty.InitialLines);
         }
 
         /// <summary>
@@ -96,14 +99,9 @@ namespace JewelMine.Engine
             if (logicInput.ChangeDifficulty)
             {
                 immediateReturn = true;
-                GameDifficulty difficultySettings = state.Difficulty;
-                Initialise();
-                state.Difficulty = difficultySettings;
-                state.Difficulty.ChangeDifficulty();
-                state.TickSpeedMilliseconds = state.Difficulty.TickSpeedMilliseconds;
-                state.DeltaStationaryTickCount = state.Difficulty.DeltaStationaryTickCount;
-                state.CollisionFinailseTickCount = state.Difficulty.CollisionFinaliseTickCount;
-                state.TickSpeedMilliseconds = state.Difficulty.TickSpeedMilliseconds;
+                DifficultyLevel currentLevel = state.Difficulty.DifficultyLevel;
+                DifficultyLevel nextLevel = GameDifficulty.FindNextDifficultyLevel(currentLevel);
+                Initialise(nextLevel);
                 logicUpdate.GameStarted = true;
                 state.PlayState = GamePlayState.Playing;
             }
@@ -278,7 +276,8 @@ namespace JewelMine.Engine
         /// <param name="logicUpdate">The logic update.</param>
         private void RestartGame(GameLogicUpdate logicUpdate)
         {
-            Initialise();
+            DifficultyLevel currentLevel = state.Difficulty.DifficultyLevel;
+            Initialise(currentLevel);
             state.PlayState = GamePlayState.Playing;
             logicUpdate.GameStarted = true;
         }

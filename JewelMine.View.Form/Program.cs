@@ -11,7 +11,7 @@ namespace JewelMine.View.Forms
 {
     /// <summary>
     /// Entry point for game execution.
-    /// </summary>
+    ///// </summary>
     public static class Program
     {
         private static readonly ILog logger = LogManager.GetLogger(typeof(Program));
@@ -24,14 +24,12 @@ namespace JewelMine.View.Forms
             log4net.Config.XmlConfigurator.Configure();
             try
             {
-                //TODO: massive refactor (add guard statements?)
-                //TODO: add a special jewel connects any group collisions in any shape of the jewels around it
-                //TODO: add a view for the coming up delta
-                //TODO: text for music and sound toggles
                 if (logger.IsDebugEnabled) logger.Debug("Starting application.");
                 Application.EnableVisualStyles();
                 Application.SetCompatibleTextRenderingDefault(false);
-                using (GameView view = new GameView(new GameLogic()))
+                GameLogicUserSettings settings = new GameLogicUserSettings();
+                BuildGameLogicUserSettings(settings);
+                using (GameView view = new GameView(new GameLogic(settings)))
                 {
                     view.Show();
                     view.GameLoop();
@@ -42,6 +40,15 @@ namespace JewelMine.View.Forms
             {
                 if (logger.IsFatalEnabled) logger.Fatal("Fatal exception encountered.", ex);
             }
+        }
+
+        /// <summary>
+        /// Builds the game logic user settings.
+        /// </summary>
+        /// <param name="settings">The settings.</param>
+        private static void BuildGameLogicUserSettings(GameLogicUserSettings settings)
+        {
+            settings.UserPreferredDifficulty = Properties.Settings.Default.UserPreferenceDifficulty;
         }
     }
 }
