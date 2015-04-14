@@ -36,7 +36,7 @@ namespace JewelMine.Engine
             state = new GameState();
             Random = new Random();
             collisionDetector = new GameGroupCollisionDetector(state);
-            AddInitialLinesToMine(GameConstants.GAME_DEFAULT_INITIAL_LINES);
+            AddInitialLinesToMine(GameConstants.GAME_MINE_DEFAULT_INITIAL_LINES);
         }
 
         /// <summary>
@@ -55,10 +55,6 @@ namespace JewelMine.Engine
         /// </summary>
         /// <param name="logicInput">The logicInput.</param>
         /// <returns></returns>
-        /// <exception cref="System.NotImplementedException">
-        /// Game Over
-        /// or
-        /// Game Over
         /// </exception>
         public GameLogicUpdate PerformGameLogic(GameLogicInput logicInput)
         {
@@ -66,6 +62,9 @@ namespace JewelMine.Engine
             bool immediateReturn = false;
             // process any game state changes - may need to return immediately after
             ProcessGameStateChange(logicInput, logicUpdate, out immediateReturn);
+            if (immediateReturn) { return (logicUpdate); }
+            // process any game difficulty changes
+            ProcessGameDifficultyChange(logicInput, logicUpdate, out immediateReturn);
             if (immediateReturn) { return (logicUpdate); }
             // if we are in a playing state, we don't need to do anything else so let's return
             if (state.PlayState != GamePlayState.Playing) return (logicUpdate);
@@ -83,6 +82,31 @@ namespace JewelMine.Engine
             // add a delta if required
             ProcessAddDelta(logicUpdate);
             return (logicUpdate);
+        }
+
+        /// <summary>
+        /// Processes the game difficulty change.
+        /// </summary>
+        /// <param name="logicInput">The logic input.</param>
+        /// <param name="logicUpdate">The logic update.</param>
+        /// <param name="immediateReturn">if set to <c>true</c> [immediate return].</param>
+        private void ProcessGameDifficultyChange(GameLogicInput logicInput, GameLogicUpdate logicUpdate, out bool immediateReturn)
+        {
+            immediateReturn = false;
+            if (logicInput.ChangeDifficulty)
+            {
+                immediateReturn = true;
+                GameDifficulty difficultySettings = state.Difficulty;
+                Initialise();
+                state.Difficulty = difficultySettings;
+                state.Difficulty.ChangeDifficulty();
+                state.TickSpeedMilliseconds = state.Difficulty.TickSpeedMilliseconds;
+                state.DeltaStationaryTickCount = state.Difficulty.DeltaStationaryTickCount;
+                state.CollisionFinailseTickCount = state.Difficulty.CollisionFinaliseTickCount;
+                state.TickSpeedMilliseconds = state.Difficulty.TickSpeedMilliseconds;
+                logicUpdate.GameStarted = true;
+                state.PlayState = GamePlayState.Playing;
+            }
         }
 
         /// <summary>
@@ -127,7 +151,7 @@ namespace JewelMine.Engine
             }
             else if (LevelThresholdReached())
             {
-                if (state.Level == GameConstants.GAME_LAST_LEVEL)
+                if (state.Level == state.Difficulty.LastLevel)
                 {
                     GameWon(logicUpdate);
                     immediateReturn = true;
@@ -169,7 +193,7 @@ namespace JewelMine.Engine
                         state.Mine.Delta = null;
                     }
                     else
-                    {   
+                    {
                         state.Mine.Delta.StationaryTickCount++;
                         if (state.Mine.Delta.StationaryTickCount == 1) logicUpdate.DeltaStationary = true;
                     }
@@ -190,7 +214,7 @@ namespace JewelMine.Engine
             state.Mine.MarkedCollisions.ForEach(x => x.IncrementCollisionTickCount());
             var markedCollisionsForFinalising = state.Mine.MarkedCollisions.Where(x => x.CollisionTickCount >= state.CollisionFinailseTickCount).ToArray();
             collisionDetector.FinaliseCollisionGroups(logicUpdate, markedCollisionsForFinalising);
-            state.Score += GameHelpers.CalculateScore(markedCollisionsForFinalising);
+            state.Score += GameHelpers.CalculateScore(markedCollisionsForFinalising, state.Difficulty.GroupCollisionScore);
             collisionDetector.MarkGroupCollisions(logicUpdate);
         }
 
@@ -265,7 +289,7 @@ namespace JewelMine.Engine
         /// <returns></returns>
         private bool LevelThresholdReached()
         {
-            return (state.Score >= state.Level * GameConstants.GAME_LEVEL_INCREMENT_SCORE_THRESHOLD);
+            return (state.Score >= state.Level * state.Difficulty.LevelIncrementScoreThreshold);
         }
 
         /// <summary>
@@ -275,20 +299,20 @@ namespace JewelMine.Engine
         {
             logicUpdate.LevelIncremented = true;
             state.Level += 1;
-            if (state.TickSpeedMilliseconds == GameConstants.GAME_TICK_SPEED_MILLISECONDS_FLOOR) return;
+            if (state.TickSpeedMilliseconds == state.Difficulty.TickSpeedMillisecondsFloor) return;
             // calculate a new speed
-            double newTickSpeed = state.TickSpeedMilliseconds - GameConstants.GAME_LEVEL_INCREMENT_SPEED_CHANGE;
-            if (newTickSpeed >= GameConstants.GAME_TICK_SPEED_MILLISECONDS_FLOOR)
+            double newTickSpeed = state.TickSpeedMilliseconds - state.Difficulty.LevelIncrementSpeedChange;
+            if (newTickSpeed >= state.Difficulty.TickSpeedMillisecondsFloor)
             {
-                state.TickSpeedMilliseconds -= GameConstants.GAME_LEVEL_INCREMENT_SPEED_CHANGE;
+                state.TickSpeedMilliseconds -= state.Difficulty.LevelIncrementSpeedChange;
                 SetRelativeDeltaStationaryTick(state.TickSpeedMilliseconds);
             }
             else
             {
-                double difference = newTickSpeed - GameConstants.GAME_TICK_SPEED_MILLISECONDS_FLOOR;
-                if (difference < GameConstants.GAME_LEVEL_INCREMENT_SPEED_CHANGE)
+                double difference = newTickSpeed - state.Difficulty.TickSpeedMillisecondsFloor;
+                if (difference < state.Difficulty.LevelIncrementSpeedChange)
                 {
-                    state.TickSpeedMilliseconds = GameConstants.GAME_TICK_SPEED_MILLISECONDS_FLOOR;
+                    state.TickSpeedMilliseconds = state.Difficulty.TickSpeedMillisecondsFloor;
                     SetRelativeDeltaStationaryTick(state.TickSpeedMilliseconds);
                 }
             }
@@ -300,7 +324,7 @@ namespace JewelMine.Engine
         /// <param name="newTickSpeed">The new tick speed.</param>
         private void SetRelativeDeltaStationaryTick(double newTickSpeed)
         {
-            double originalSpeed = GameConstants.GAME_DEFAULT_TICK_SPEED_MILLISECONDS * GameConstants.GAME_DELTA_STATIONARY_TICK_COUNT;
+            double originalSpeed = state.Difficulty.TickSpeedMilliseconds * state.Difficulty.DeltaStationaryTickCount;
             int ticks = (int)Math.Round(originalSpeed / newTickSpeed, MidpointRounding.AwayFromZero);
             state.DeltaStationaryTickCount = ticks;
         }
@@ -529,15 +553,15 @@ namespace JewelMine.Engine
             randomJewels[0] = new Jewel(firstRandomJewelType);
 
             if (tripleJewelChance >= Math.Min(
-                (GameConstants.GAME_TRIPLE_JEWEL_DELTA_CHANCE_ABOVE + state.Level), 
-                GameConstants.GAME_TRIPLE_JEWEL_DELTA_CHANE_ABOVE_CEILING))
+                (state.Difficulty.DeltaTripleJewelChanceAbove + state.Level),
+                state.Difficulty.DeltaTripleJewelChanceAboveCeiling))
             {
                 randomJewels[1] = new Jewel(firstRandomJewelType);
                 randomJewels[2] = new Jewel(firstRandomJewelType);
             }
             else if (doubleJewelChance >= Math.Min(
-                (GameConstants.GAME_DOUBLE_JEWEL_DELTA_CHANCE_ABOVE + state.Level), 
-                GameConstants.GAME_DOUBLE_JEWEL_DELTA_CHANCE_ABOVE_CEILING))
+                (state.Difficulty.DeltaDoubleJewelChanceAbove + state.Level),
+                state.Difficulty.DeltaDoubleJewelChanceAboveCeiling))
             {
                 randomJewels[1] = new Jewel(firstRandomJewelType);
                 randomJewels[2] = new Jewel(GenerateRandomJewelType(firstRandomJewelType));
@@ -568,10 +592,10 @@ namespace JewelMine.Engine
                     targetCoordinates = FindClosestDownPositionForDelta(delta, numPositionsToMove);
                     break;
                 case MovementType.Left:
-                    targetCoordinates = FindClosestLeftPositionForDelta(delta, numPositionsToMove); 
+                    targetCoordinates = FindClosestLeftPositionForDelta(delta, numPositionsToMove);
                     break;
                 case MovementType.Right:
-                    targetCoordinates = FindClosestRightPositionForDelta(delta, numPositionsToMove); 
+                    targetCoordinates = FindClosestRightPositionForDelta(delta, numPositionsToMove);
                     break;
             }
 
@@ -712,13 +736,13 @@ namespace JewelMine.Engine
                 switch (movement)
                 {
                     case MovementType.Down:
-                        targetCoordinates = FindClosestDownPosition(coordinates); 
+                        targetCoordinates = FindClosestDownPosition(coordinates);
                         break;
                     case MovementType.Left:
-                        targetCoordinates = FindClosestLeftPosition(coordinates); 
+                        targetCoordinates = FindClosestLeftPosition(coordinates);
                         break;
                     case MovementType.Right:
-                        targetCoordinates = FindClosestRightPosition(coordinates); 
+                        targetCoordinates = FindClosestRightPosition(coordinates);
                         break;
                 }
                 if (targetCoordinates == null) return (false);

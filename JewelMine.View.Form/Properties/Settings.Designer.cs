@@ -202,5 +202,17 @@ namespace JewelMine.View.Forms.Properties {
                 this["UserPreferenceSoundEffectsMuted"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Ctrl+U")]
+        public global::System.Windows.Forms.Keys KeyBindingDifficultyChange {
+            get {
+                return ((global::System.Windows.Forms.Keys)(this["KeyBindingDifficultyChange"]));
+            }
+            set {
+                this["KeyBindingDifficultyChange"] = value;
+            }
+        }
     }
 }

@@ -47,5 +47,8 @@
     <Setting Name="UserPreferenceSoundEffectsMuted" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
+    <Setting Name="KeyBindingDifficultyChange" Type="System.Windows.Forms.Keys" Scope="User">
+      <Value Profile="(Default)">Ctrl+U</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

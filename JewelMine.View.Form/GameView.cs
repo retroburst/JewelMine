@@ -82,7 +82,7 @@ namespace JewelMine.View.Forms
             CalculateGridCells(cells);
             // generate the resized versions of jewels
             jewelImageResourceDictionary = ViewHelpers.GenerateJewelImageResourceDictionary();
-            // generate and store resized images for this form scoreSize - we do 
+            // generate and store resized images for this form difficultySize - we do 
             // this once here instead of resizing every time we
             // draw a delta - which is a very expensive operation
             jewelResizedImageResourceDictionary = ViewHelpers.GenerateResizedJewelImageResourceDictionary(jewelImageResourceDictionary, cellWidth, cellHeight);
@@ -107,6 +107,7 @@ namespace JewelMine.View.Forms
             ViewHelpers.PerformSafeKeyBinding(Properties.Settings.Default.KeyBindingSwapDeltaJewels, Keys.Space, () => logicInput.DeltaSwapJewels = true, keyBindingDictionary);
             ViewHelpers.PerformSafeKeyBinding(Properties.Settings.Default.KeyBindingToggleMusic, Keys.Control | Keys.M, () => gameAudioSystem.ToggleBackgroundMusicLoop(), keyBindingDictionary);
             ViewHelpers.PerformSafeKeyBinding(Properties.Settings.Default.KeyBindingToggleSoundEffects, Keys.Control | Keys.S, () => gameAudioSystem.ToggleSoundEffects(), keyBindingDictionary);
+            ViewHelpers.PerformSafeKeyBinding(Properties.Settings.Default.KeyBindingDifficultyChange, Keys.Control | Keys.U, () => logicInput.ChangeDifficulty = true, keyBindingDictionary);
         }
 
         /// <summary>
@@ -368,11 +369,15 @@ namespace JewelMine.View.Forms
         /// <param name="e">The <see cref="LayoutEventArgs"/> instance containing the event data.</param>
         private void LayoutHandler(object sender, LayoutEventArgs e)
         {
-            if (WindowState == FormWindowState.Minimized) return;
+            if (WindowState == FormWindowState.Minimized)
+            {
+                logicInput.PauseGame = true;
+                return;
+            }
             // calculate new cell dimensions
             CalculateGridCellDimensions();
             CalculateGridCells(cells);
-            // calculate new image sizes for this form scoreSize - we do 
+            // calculate new image sizes for this form difficultySize - we do 
             // this once here instead of resizing every time we
             // draw a delta - which is a very expensive operation
             jewelResizedImageResourceDictionary = ViewHelpers.GenerateResizedJewelImageResourceDictionary(jewelImageResourceDictionary, cellWidth, cellHeight);

@@ -23,6 +23,7 @@ namespace JewelMine.Engine
             RestartGame = false;
             GameStarted = false;
             PauseGame = false;
+            ChangeDifficulty = false;
         }
 
         /// <summary>
@@ -61,5 +62,13 @@ namespace JewelMine.Engine
         ///   <c>true</c> if [resume game]; otherwise, <c>false</c>.
         /// </value>
         public bool GameStarted { get; set; }
+
+        /// <summary>
+        /// Gets or sets the change difficulty.
+        /// </summary>
+        /// <value>
+        /// The change difficulty.
+        /// </value>
+        public bool ChangeDifficulty { get; set; }
     }
 }

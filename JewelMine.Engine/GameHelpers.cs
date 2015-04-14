@@ -33,14 +33,15 @@ namespace JewelMine.Engine
         /// Calculates the score.
         /// </summary>
         /// <param name="groups">The groups.</param>
+        /// <param name="defaultGroupScore">The default group score.</param>
         /// <returns></returns>
-        internal static long CalculateScore(MarkedCollisionGroup[] groups)
+        internal static long CalculateScore(MarkedCollisionGroup[] groups, int defaultGroupScore)
         {
             long score = 0;
             foreach(MarkedCollisionGroup group in groups)
             {
                 // default for a 3 jewel collision
-                long groupScore = GameConstants.GAME_DEFAULT_COLLISION_SCORE;
+                long groupScore = defaultGroupScore;
                 // give extra points for additional collision on top of 3 jewels
                 int extraCollisions = group.Members.Count - 3;
                 if (extraCollisions > 0) groupScore += (groupScore * extraCollisions);

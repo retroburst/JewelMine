@@ -18,12 +18,13 @@ namespace JewelMine.Engine.Models
         public GameState()
         {
             Mine = new Mine();
+            Difficulty = new GameDifficulty();
             PlayState = GamePlayState.NotStarted;
             Level = GameConstants.GAME_DEFAULT_LEVEL;
-            TickSpeedMilliseconds = GameConstants.GAME_DEFAULT_TICK_SPEED_MILLISECONDS;
+            TickSpeedMilliseconds = Difficulty.TickSpeedMilliseconds;
             Score = 0;
-            DeltaStationaryTickCount = GameConstants.GAME_DELTA_STATIONARY_TICK_COUNT;
-            CollisionFinailseTickCount = GameConstants.GAME_COLLISION_FINALISE_TICK_COUNT;
+            DeltaStationaryTickCount = Difficulty.DeltaStationaryTickCount;
+            CollisionFinailseTickCount = Difficulty.CollisionFinaliseTickCount;
         }
 
         /// <summary>
@@ -43,6 +44,14 @@ namespace JewelMine.Engine.Models
         /// The state of the game play.
         /// </value>
         public GamePlayState PlayState { get; internal set; }
+
+        /// <summary>
+        /// Gets the difficulty.
+        /// </summary>
+        /// <value>
+        /// The difficulty.
+        /// </value>
+        public GameDifficulty Difficulty { get; internal set; }
 
         /// <summary>
         /// Gets the grid.

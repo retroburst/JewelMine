@@ -109,6 +109,7 @@ namespace JewelMine.Engine
                         AddNewMembersToMarkedCollisionGroupByDirection(topLeft.Jewel, topLeft.Coordinates, coordinates => new Coordinates(coordinates.X + 1, coordinates.Y - 1), group);
                         break;
                 }
+                AddSecondaryCollisionsToGroup(group);
             }
         }
 
@@ -182,8 +183,31 @@ namespace JewelMine.Engine
                     if (largestCollisionGroup != null && largestCollisionGroup.Members.Count >= 3)
                     {
                         state.Mine.MarkedCollisions.Add(largestCollisionGroup);
+                        AddSecondaryCollisionsToGroup(largestCollisionGroup);
                     }
                 }
+            }
+        }
+
+        /// <summary>
+        /// Adds the secondary collisions to group.
+        /// </summary>
+        /// <param name="group">The largest collision group.</param>
+        private void AddSecondaryCollisionsToGroup(MarkedCollisionGroup group)
+        {
+            CollisionGroupMember[] members = group.Members.ToArray();
+            foreach(CollisionGroupMember member in members)
+            {
+                // check for seconadry collisions on all four edges
+                List<CollisionGroupMember> horizontalSeconadryCollisions = FindSecondaryCollisions(member.Jewel, member.Coordinates, coordinates => new Coordinates(coordinates.X + 1, coordinates.Y), coordinates => new Coordinates(coordinates.X - 1, coordinates.Y), members);
+                List<CollisionGroupMember> verticalSeconadryCollisions = FindSecondaryCollisions(member.Jewel, member.Coordinates, coordinates => new Coordinates(coordinates.X, coordinates.Y + 1), coordinates => new Coordinates(coordinates.X, coordinates.Y - 1), members);
+                List<CollisionGroupMember> diagonalLeftSeconadryCollisions = FindSecondaryCollisions(member.Jewel, member.Coordinates, coordinates => new Coordinates(coordinates.X - 1, coordinates.Y - 1), coordinates => new Coordinates(coordinates.X + 1, coordinates.Y + 1), members);
+                List<CollisionGroupMember> diagonalRightSeconadryCollisions = FindSecondaryCollisions(member.Jewel, member.Coordinates, coordinates => new Coordinates(coordinates.X + 1, coordinates.Y - 1), coordinates => new Coordinates(coordinates.X - 1, coordinates.Y + 1), members);
+
+                if (horizontalSeconadryCollisions.Count > 0) group.Members.AddRange(horizontalSeconadryCollisions);
+                if (verticalSeconadryCollisions.Count > 0) group.Members.AddRange(verticalSeconadryCollisions);
+                if (diagonalLeftSeconadryCollisions.Count > 0) group.Members.AddRange(diagonalLeftSeconadryCollisions);
+                if (diagonalRightSeconadryCollisions.Count > 0) group.Members.AddRange(diagonalRightSeconadryCollisions);
             }
         }
 
@@ -225,6 +249,62 @@ namespace JewelMine.Engine
                     if (searchJewel.JewelType == target.JewelType
                         && !IsAlreadyMarkedCollision(target)
                         && !IsAlreadyMarkedCollision(searchJewel)
+                        && (state.Mine.Delta == null || !state.Mine.Delta.IsGroupMember(searchJewel)))
+                    {
+                        foundCollisions.Add(new CollisionGroupMember(searchJewel, coordinates));
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+                else
+                {
+                    break;
+                }
+                coordinates = moveSearch(coordinates);
+            }
+        }
+
+        /// <summary>
+        /// Finds the secondary collisions.
+        /// </summary>
+        /// <param name="target">The target.</param>
+        /// <param name="coordinates">The coordinates.</param>
+        /// <param name="incrementSearch">The increment search.</param>
+        /// <param name="decrementSearch">The decrement search.</param>
+        /// <param name="groupMembers">The group members.</param>
+        /// <returns></returns>
+        private List<CollisionGroupMember> FindSecondaryCollisions(Jewel target, Coordinates coordinates, Func<Coordinates, Coordinates> incrementSearch, Func<Coordinates, Coordinates> decrementSearch, CollisionGroupMember[] groupMembers)
+        {
+            List<CollisionGroupMember> found = new List<CollisionGroupMember>();
+            // check by increment (up)
+            FindSeconadryCollisionsByDirection(target, coordinates, incrementSearch, found, groupMembers);
+            // check by decrement (down)
+            FindSeconadryCollisionsByDirection(target, coordinates, decrementSearch, found, groupMembers);
+            return (found);
+        }
+
+        /// <summary>
+        /// Finds the seconadry collisions by direction.
+        /// </summary>
+        /// <param name="target">The target.</param>
+        /// <param name="targetCoordinates">The target coordinates.</param>
+        /// <param name="moveSearch">The move search.</param>
+        /// <param name="foundCollisions">The found collisions.</param>
+        /// <param name="groupMembers">The group members.</param>
+        private void FindSeconadryCollisionsByDirection(Jewel target, Coordinates targetCoordinates, Func<Coordinates, Coordinates> moveSearch, List<CollisionGroupMember> foundCollisions, CollisionGroupMember[] groupMembers)
+        {
+            Coordinates coordinates = moveSearch(targetCoordinates);
+            while (state.Mine.CoordinatesInBounds(coordinates))
+            {
+                // see how many in a row up that are not already marked
+                if (state.Mine[coordinates] != null && state.Mine[coordinates] is Jewel)
+                {
+                    Jewel searchJewel = (Jewel)state.Mine[coordinates];
+                    if (searchJewel.JewelType == target.JewelType
+                        && !IsAlreadyMarkedCollision(searchJewel)
+                        && !groupMembers.Any(x => x.Jewel == searchJewel)
                         && (state.Mine.Delta == null || !state.Mine.Delta.IsGroupMember(searchJewel)))
                     {
                         foundCollisions.Add(new CollisionGroupMember(searchJewel, coordinates));

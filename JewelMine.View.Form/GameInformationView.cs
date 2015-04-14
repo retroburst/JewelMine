@@ -24,6 +24,7 @@ namespace JewelMine.View.Forms
         private Rectangle gameStateSubTextRectangle = Rectangle.Empty;
         private Rectangle debugRectangle = Rectangle.Empty;
         private Rectangle debugInvalidationRetangle = Rectangle.Empty;
+        private Rectangle difficultyRectangle = Rectangle.Empty;
         private Font informationFont = null;
         private Font gameStateTextFont = null;
         private Font gameStateSubTextFont = null;
@@ -69,6 +70,7 @@ namespace JewelMine.View.Forms
             if (gameStateTextRectangle != Rectangle.Empty) invalidate(gameStateTextRectangle);
             if (gameStateSubTextRectangle != Rectangle.Empty) invalidate(gameStateSubTextRectangle);
             if (debugRectangle != Rectangle.Empty) invalidate(debugRectangle);
+            if (difficultyRectangle != Rectangle.Empty) invalidate(PadCentredRectangle(difficultyRectangle, 40));
             // need to invalidate the debug messages rect as it's been hidden
             if (debugInvalidationRetangle != Rectangle.Empty)
             {
@@ -76,6 +78,18 @@ namespace JewelMine.View.Forms
                 debugInvalidationRetangle = Rectangle.Empty;
             }
             InvalidateToggles(invalidate);
+        }
+
+        /// <summary>
+        /// Pads the centred rectangle.
+        /// </summary>
+        /// <param name="target">The target rectangle.</param>
+        /// <param name="padding">The padding.</param>
+        /// <returns></returns>
+        private Rectangle PadCentredRectangle(Rectangle target, int padding)
+        {
+            int sides = (int)padding / 2;
+            return (new Rectangle(new Point(target.X - sides, target.Y), new Size(target.Width + padding, target.Height)));
         }
 
         /// <summary>
@@ -111,8 +125,24 @@ namespace JewelMine.View.Forms
             DrawGameState(graphics, clientWidth, clientHeight);
             DrawLevel(graphics, clientWidth);
             DrawScore(graphics, clientWidth);
+            DrawDifficulty(graphics, clientWidth);
             DrawToggles(graphics, clientWidth, backgroundMusicMuted, soundEffectsMuted);
             if (showDebugInfo) DrawDebugInfo(graphics, clientWidth, clientHeight, windowWidth, windowHeight, backgroundMusicMuted, soundEffectsMuted);
+        }
+
+        /// <summary>
+        /// Draws the difficulty.
+        /// </summary>
+        /// <param name="graphics">The graphics.</param>
+        /// <param name="clientWidth">Width of the client.</param>
+        private void DrawDifficulty(Graphics graphics, int clientWidth)
+        {
+            string difficulty = gameLogic.State.Difficulty.DifficultyLevel.ToString();
+            SizeF difficultySize = graphics.MeasureString(difficulty, informationFont);
+            int xPosition = (int)((clientWidth / 2) - (difficultySize.Width / 2));
+            difficultyRectangle = new Rectangle(xPosition, ViewConstants.DEFAULT_Y_OFFSET, (int)difficultySize.Width, (int)difficultySize.Height);
+            graphics.FillRectangle(informationShadowBrushBlack, difficultyRectangle);
+            graphics.DrawString(difficulty, informationFont, informationOverlayBrushPartiallyTransparent, new PointF(xPosition, ViewConstants.DEFAULT_Y_OFFSET));
         }
 
         /// <summary>
@@ -273,6 +303,8 @@ namespace JewelMine.View.Forms
             debugMessages.Add(string.Format("Finalised Collision Count [{0}]", gameLogic.State.Mine.FinalisedCollisions.Count));
             debugMessages.Add(string.Format("Music [{0}]", backgroundMusicMuted ? "Muted" : "On"));
             debugMessages.Add(string.Format("Sound Effects [{0}]", soundEffectsMuted ? "Muted" : "On"));
+            debugMessages.Add(string.Format("Difficulty [{0}]", gameLogic.State.Difficulty.DifficultyLevel.ToString()));
+            debugMessages.Add(string.Format("Last Level [{0}]", gameLogic.State.Difficulty.LastLevel));
         }
 
         /// <summary>
@@ -283,7 +315,7 @@ namespace JewelMine.View.Forms
         private void DrawLevel(Graphics graphics, int clientWidth)
         {
             Brush levelBrush = previousLevel != gameLogic.State.Level ? informationOverlayBrushWhite : informationOverlayBrushPartiallyTransparent;
-            string level = string.Format(ViewConstants.LEVEL_PATTERN, gameLogic.State.Level.ToString("00"));
+            string level = string.Format(ViewConstants.LEVEL_PATTERN, gameLogic.State.Level, gameLogic.State.Difficulty.LastLevel);
             SizeF levelSize = graphics.MeasureString(level, informationFont);
             int levelXPosition = (clientWidth - (int)levelSize.Width - 5);
             levelRectangle = new Rectangle(levelXPosition, ViewConstants.DEFAULT_Y_OFFSET, (int)levelSize.Width, (int)levelSize.Height);
@@ -293,7 +325,7 @@ namespace JewelMine.View.Forms
         }
 
         /// <summary>
-        /// Draws the score.
+        /// Draws the difficulty.
         /// </summary>
         /// <param name="graphics">The graphics.</param>
         /// <param name="clientWidth">Width of the client.</param>
