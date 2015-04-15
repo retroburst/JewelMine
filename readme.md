@@ -5,8 +5,6 @@
 A simple game, reminiscent of 'Columns' on the Sega GameGear, 
 written as an exercise to flex skills and try my hand at a small 
 game in pure C# without using a game SDK like Unity.
-I plan to re-write this in Unity as an
-exercise.
 
 The code follows simple design principles and I have endeavoured to keep
 it clean and uncluttered. I have purposefully avoided using unneccessary
@@ -31,7 +29,7 @@ Default key bindings:
 * Change Game Difficulty - Control + U
 
 How to win:
-You win by either clearing all jewels in the mine (which is very hard to do) or by scoring enough points
+* You win by either clearing all jewels in the mine (which is very hard to do) or by scoring enough points
 from forming groups of like jewels to beat the last level of the game. To form a group of jewels you
 must have at least 3 like jewels in a vertical, horizontal or diagonal line. Other jewels in the vicinity will
 also be pulled into the group, but at least 3 must be in a line. You will receive more points for a group
