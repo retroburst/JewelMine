@@ -1,6 +1,6 @@
 #JewelMine
 
-## retroburst (Andrew D)
+#### retroburst (Andrew D)
 
 A simple game, reminiscent of 'Columns' on the Sega GameGear, 
 written as an exercise to flex skills and try my hand at a small 
