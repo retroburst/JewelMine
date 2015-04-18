@@ -545,22 +545,20 @@ namespace JewelMine.Engine
         private JewelGroup GenerateRandomDeltaJewelGroup()
         {
             Jewel[] randomJewels = new Jewel[3];
-            int tripleJewelChance = Random.Next(0, 100);
-            int doubleJewelChance = Random.Next(0, 100);
+            double tripleJewelChance = Random.NextDouble();
+            double doubleJewelChance = Random.NextDouble();
 
             JewelType firstRandomJewelType = GenerateRandomJewelType();
             randomJewels[0] = new Jewel(firstRandomJewelType);
 
-            if (tripleJewelChance >= Math.Min(
-                (state.Difficulty.DeltaTripleJewelChanceAbove + state.Level),
-                state.Difficulty.DeltaTripleJewelChanceAboveCeiling))
+            double tripleJewelChanceForLevel = CalculateChanceBasedOnLevel(state.Level, state.Difficulty.LastLevel, state.Difficulty.DeltaTripleJewelChance, state.Difficulty.DeltaTripleJewelChanceFloor);
+            double doubleJewelChanceForLevel = CalculateChanceBasedOnLevel(state.Level, state.Difficulty.LastLevel, state.Difficulty.DeltaDoubleJewelChance, state.Difficulty.DeltaDoubleJewelChanceFloor);
+            if (tripleJewelChance <= tripleJewelChanceForLevel)
             {
                 randomJewels[1] = new Jewel(firstRandomJewelType);
                 randomJewels[2] = new Jewel(firstRandomJewelType);
             }
-            else if (doubleJewelChance >= Math.Min(
-                (state.Difficulty.DeltaDoubleJewelChanceAbove + state.Level),
-                state.Difficulty.DeltaDoubleJewelChanceAboveCeiling))
+            else if (doubleJewelChance <= doubleJewelChanceForLevel)
             {
                 randomJewels[1] = new Jewel(firstRandomJewelType);
                 randomJewels[2] = new Jewel(GenerateRandomJewelType(firstRandomJewelType));
@@ -831,6 +829,23 @@ namespace JewelMine.Engine
             {
                 state.Mine[coordinates] = null;
             }
+        }
+
+
+        /// <summary>
+        /// Calculates the chance based on level.
+        /// </summary>
+        /// <param name="currentLevel">The current level.</param>
+        /// <param name="lastLevel">The number of levels.</param>
+        /// <param name="defaultChance">The default chance above.</param>
+        /// <param name="floorChance">The ceiling chance above.</param>
+        /// <returns></returns>
+        private double CalculateChanceBasedOnLevel(int currentLevel, int lastLevel, double defaultChance, double floorChance)
+        {
+            double ratio = (defaultChance - floorChance) / lastLevel;
+            double currentChance = defaultChance - (ratio * (currentLevel - 1));
+            currentChance = Math.Min(currentChance, defaultChance);
+            return (Math.Max(currentChance, floorChance));
         }
 
     }
