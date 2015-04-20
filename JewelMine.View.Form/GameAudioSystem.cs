@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.IO;
+using JewelMine.Engine;
 
 namespace JewelMine.View.Forms
 {
@@ -37,6 +38,18 @@ namespace JewelMine.View.Forms
             if (File.Exists(ViewConstants.SOUND_LEVELUP_FILENAME)) levelUpSound = new CachedSound(ViewConstants.SOUND_LEVELUP_FILENAME);
             if (File.Exists(ViewConstants.BACKGROUND_MUSIC_FILENAME)) backgroundMusic = new LoopStream(new WaveFileReader(ViewConstants.BACKGROUND_MUSIC_FILENAME));
             audioPlayer = AudioPlaybackEngine.Instance;
+        }
+
+        /// <summary>
+        /// Plays the sounds.
+        /// </summary>
+        /// <param name="logicUpdate">The logic update.</param>
+        public void PlaySounds(GameLogicUpdate logicUpdate)
+        {
+            if (logicUpdate.FinalisedCollisions.Count > 0) PlayCollision();
+            if (logicUpdate.DeltaJewelsSwapped) PlaySwap();
+            if (logicUpdate.DeltaStationary) PlayStationary();
+            if (logicUpdate.LevelIncremented) PlayLevelUp();
         }
 
         /// <summary>
@@ -164,7 +177,6 @@ namespace JewelMine.View.Forms
         /// <summary>
         /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
         /// </summary>
-        /// <exception cref="System.NotImplementedException"></exception>
         public void Dispose()
         {
             if (audioPlayer != null) audioPlayer.Dispose();

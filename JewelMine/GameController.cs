@@ -1,4 +1,5 @@
 ﻿using JewelMine.Engine;
+using JewelMine.View.Forms;
 using log4net;
 using System;
 using System.Collections.Generic;
@@ -9,7 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace JewelMine.View.Forms
+namespace JewelMine
 {
     /// <summary>
     /// Game controller manages the major components
@@ -36,9 +37,12 @@ namespace JewelMine.View.Forms
             gameAudioSystem = GameAudioSystem.Instance;
             timer = new GameTimer();
             logicInput = new GameLogicInput();
+
             keyBindingDictionary = new Dictionary<Keys, Action>();
             InitialiseKeyBindings();
+            
             preferredWindowSize = new Size(ViewConstants.WINDOW_PREFERRED_WIDTH, ViewConstants.WINDOW_PREFERRED_HEIGHT);
+            
             GameLogicUserSettings settings = new GameLogicUserSettings();
             BuildGameLogicUserSettings(settings);
             gameLogic = new GameLogic(settings);
@@ -60,12 +64,13 @@ namespace JewelMine.View.Forms
                 view.Layout += HandleViewLayout;
                 // restore user preferences
                 RestoreUserPreferences();
-                gameAudioSystem.PlayBackgroundMusicLoop();
                 // show the form
                 view.Show();
                 // proceed into the main game loop
                 GameLoop();
             }
+            // clean up audio system
+            gameAudioSystem.Dispose();
         }
 
         /// <summary>
@@ -181,13 +186,14 @@ namespace JewelMine.View.Forms
         {
             if (logger.IsDebugEnabled) logger.Debug("Starting game loop.");
             timer.Start();
+            gameAudioSystem.PlayBackgroundMusicLoop();
             while (!exitingGame)
             {
                 gameStartTime = timer.ElapsedMilliseconds;
                 Application.DoEvents();
                 GameLogicUpdate logicUpdate = gameLogic.PerformGameLogic(logicInput);
                 view.UpdateView(logicUpdate);
-                PlaySounds(logicUpdate);
+                gameAudioSystem.PlaySounds(logicUpdate);
                 if ((timer.ElapsedMilliseconds - gameStartTime) < gameLogic.State.TickSpeedMilliseconds)
                 {
                     // sleep the thread for the remaining time in this tick - saves burning CPU cycles
@@ -199,18 +205,6 @@ namespace JewelMine.View.Forms
             }
             timer.Stop();
             if (logger.IsDebugEnabled) logger.Debug("Exiting game loop.");
-        }
-
-        /// <summary>
-        /// Plays the sounds.
-        /// </summary>
-        /// <param name="logicUpdate">The logic update.</param>
-        private void PlaySounds(GameLogicUpdate logicUpdate)
-        {
-            if (logicUpdate.FinalisedCollisions.Count > 0) gameAudioSystem.PlayCollision();
-            if (logicUpdate.DeltaJewelsSwapped) gameAudioSystem.PlaySwap();
-            if (logicUpdate.DeltaStationary) gameAudioSystem.PlayStationary();
-            if (logicUpdate.LevelIncremented) gameAudioSystem.PlayLevelUp();
         }
 
         /// <summary>

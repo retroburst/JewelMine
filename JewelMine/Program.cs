@@ -9,7 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace JewelMine.View.Forms
+namespace JewelMine
 {
     /// <summary>
     /// Entry point for game execution.
