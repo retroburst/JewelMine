@@ -51,14 +51,14 @@ namespace JewelMine.View.Forms
         /// <summary>
         /// Initializes a new instance of the <see cref="GameView" /> class.
         /// </summary>
-        /// <param name="engine">The engine.</param>
-        public GameView(GameLogic engine)
+        /// <param name="logic">The logic.</param>
+        public GameView(GameLogic logic)
         {
             InitializeComponent();
             messages = new List<string>();
             preferredWindowSize = new Size(ViewConstants.WINDOW_PREFERRED_WIDTH, ViewConstants.WINDOW_PREFERRED_HEIGHT);
-            // save our game engine into a variable
-            gameLogic = engine;
+            // save our game logic into a variable
+            gameLogic = logic;
             // init game information
             gameInformationView = new GameInformationView(gameLogic);
             // init key bindings
@@ -69,7 +69,7 @@ namespace JewelMine.View.Forms
             // set paint styles
             SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.DoubleBuffer | ControlStyles.OptimizedDoubleBuffer, true);
             timer = new GameTimer();
-            cells = new Rectangle[engine.State.Mine.Columns, engine.State.Mine.Depth];
+            cells = new Rectangle[logic.State.Mine.Columns, logic.State.Mine.Depth];
             backgroundImageArray = ViewHelpers.GenerateBackgroundImageArray();
             // hook into interesting form events
             Load += LoadHandler;

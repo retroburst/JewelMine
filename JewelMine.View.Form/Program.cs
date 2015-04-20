@@ -21,8 +21,6 @@ namespace JewelMine.View.Forms
         [STAThread]
         static void Main()
         {
-            //TODO: look in to moving main loop to logic layer and sending key presses to it (via event)
-            //TODO: 
             log4net.Config.XmlConfigurator.Configure();
             try
             {

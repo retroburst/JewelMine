@@ -30,7 +30,7 @@ namespace JewelMine.View.Forms
         /// <summary>
         /// Initializes a new instance of the <see cref="GameInformationView" /> class.
         /// </summary>
-        /// <param name="gameLogic">The game engine.</param>
+        /// <param name="gameLogic">The game logic.</param>
         public GameInformationView(GameLogic logic)
         {
             gameLogic = logic;
