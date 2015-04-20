@@ -5,8 +5,6 @@ VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JewelMine.Engine", "JewelMine.Engine\JewelMine.Engine.csproj", "{A80E14AF-F30B-44DF-967F-604A2C96FBAA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JewelMine.View.Forms", "JewelMine.View.Form\JewelMine.View.Forms.csproj", "{A7886F94-D2D3-4A81-8A35-82DF1FF8A6DC}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{4CDF61DA-54B9-4921-8337-C81A790C53CE}"
 	ProjectSection(SolutionItems) = preProject
 		readme.md = readme.md
@@ -15,6 +13,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JewelMine.Resources", "JewelMine.Resources\JewelMine.Resources.csproj", "{22B7D22A-39A3-4647-B2D8-FCBF01C089DF}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JewelMine", "JewelMine\JewelMine.csproj", "{805D6DD4-72C2-4A81-AE84-E8F1923B669B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JewelMine.View.Forms", "JewelMine.View.Forms\JewelMine.View.Forms.csproj", "{A7886F94-D2D3-4A81-8A35-82DF1FF8A6DC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -26,10 +26,6 @@ Global
 		{A80E14AF-F30B-44DF-967F-604A2C96FBAA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A80E14AF-F30B-44DF-967F-604A2C96FBAA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A80E14AF-F30B-44DF-967F-604A2C96FBAA}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A7886F94-D2D3-4A81-8A35-82DF1FF8A6DC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A7886F94-D2D3-4A81-8A35-82DF1FF8A6DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A7886F94-D2D3-4A81-8A35-82DF1FF8A6DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A7886F94-D2D3-4A81-8A35-82DF1FF8A6DC}.Release|Any CPU.Build.0 = Release|Any CPU
 		{22B7D22A-39A3-4647-B2D8-FCBF01C089DF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{22B7D22A-39A3-4647-B2D8-FCBF01C089DF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{22B7D22A-39A3-4647-B2D8-FCBF01C089DF}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -38,6 +34,10 @@ Global
 		{805D6DD4-72C2-4A81-AE84-E8F1923B669B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{805D6DD4-72C2-4A81-AE84-E8F1923B669B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{805D6DD4-72C2-4A81-AE84-E8F1923B669B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A7886F94-D2D3-4A81-8A35-82DF1FF8A6DC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A7886F94-D2D3-4A81-8A35-82DF1FF8A6DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A7886F94-D2D3-4A81-8A35-82DF1FF8A6DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A7886F94-D2D3-4A81-8A35-82DF1FF8A6DC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

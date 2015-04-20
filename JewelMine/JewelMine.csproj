@@ -83,7 +83,7 @@
       <Project>{22b7d22a-39a3-4647-b2d8-fcbf01c089df}</Project>
       <Name>JewelMine.Resources</Name>
     </ProjectReference>
-    <ProjectReference Include="..\JewelMine.View.Form\JewelMine.View.Forms.csproj">
+    <ProjectReference Include="..\JewelMine.View.Forms\JewelMine.View.Forms.csproj">
       <Project>{a7886f94-d2d3-4a81-8a35-82df1ff8a6dc}</Project>
       <Name>JewelMine.View.Forms</Name>
     </ProjectReference>
