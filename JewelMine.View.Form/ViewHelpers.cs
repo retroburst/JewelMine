@@ -150,25 +150,6 @@ namespace JewelMine.View.Forms
         }
 
         /// <summary>
-        /// Performs a safe key binding.
-        /// </summary>
-        /// <param name="settingsKeyData">The settings key data.</param>
-        /// <param name="defaultKeyData">The default key data.</param>
-        /// <param name="bindingAction">The binding action.</param>
-        /// <param name="keyBindings">The key bindings.</param>
-        public static void PerformSafeKeyBinding(Keys settingsKeyData, Keys defaultKeyData, Action bindingAction, Dictionary<Keys, Action> keyBindings)
-        {
-            if (settingsKeyData == Keys.None)
-            {
-                keyBindings.Add(defaultKeyData, bindingAction);
-            }
-            else
-            {
-                keyBindings.Add(settingsKeyData, bindingAction);
-            }
-        }
-
-        /// <summary>
         /// Encodes the boolean for display.
         /// </summary>
         /// <param name="target">if set to <c>true</c> [target].</param>

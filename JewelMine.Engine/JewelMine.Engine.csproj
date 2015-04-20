@@ -55,6 +55,7 @@
     <Compile Include="GameGroupCollisionDetector.cs" />
     <Compile Include="GameLogicInput.cs" />
     <Compile Include="GameLogicUserSettings.cs" />
+    <Compile Include="IGameStateProvider.cs" />
     <Compile Include="Models\MarkedCollisionGroup.cs" />
     <Compile Include="Models\Coordinates.cs" />
     <Compile Include="GameConstants.cs" />

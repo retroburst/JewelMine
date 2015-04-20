@@ -21,7 +21,7 @@ namespace JewelMine.View.Forms
         private Font informationFont = null;
         private Font gameStateTextFont = null;
         private Font gameStateSubTextFont = null;
-        private GameLogic gameLogic = null;
+        private IGameStateProvider gameStateProvider = null;
         private long previousScore = 0;
         private int previousLevel = GameConstants.GAME_DEFAULT_LEVEL;
         private bool showDebugInfo = false;
@@ -30,10 +30,10 @@ namespace JewelMine.View.Forms
         /// <summary>
         /// Initializes a new instance of the <see cref="GameInformationView" /> class.
         /// </summary>
-        /// <param name="gameLogic">The game logic.</param>
-        public GameInformationView(GameLogic logic)
+        /// <param name="gameStateProvider">The game state provider.</param>
+        public GameInformationView(IGameStateProvider provider)
         {
-            gameLogic = logic;
+            gameStateProvider = provider;
             messageList = new List<Message>();
             InitialiseDrawingObjects();
         }
@@ -83,7 +83,7 @@ namespace JewelMine.View.Forms
         /// <param name="clientWidth">Width of the client.</param>
         private void DrawDifficulty(Graphics graphics, int clientWidth)
         {
-            string difficulty = gameLogic.State.Difficulty.DifficultyLevel.ToString();
+            string difficulty = gameStateProvider.State.Difficulty.DifficultyLevel.ToString();
             SizeF difficultySize = graphics.MeasureString(difficulty, informationFont);
             int xPosition = (int)((clientWidth / 2) - (difficultySize.Width / 2));
             Rectangle difficultyRectangle = new Rectangle(xPosition, ViewConstants.DEFAULT_Y_OFFSET, (int)difficultySize.Width, (int)difficultySize.Height);
@@ -164,28 +164,28 @@ namespace JewelMine.View.Forms
             int windowWidth, int windowHeight,
             bool backgroundMusicMuted, bool soundEffectsMuted)
         {
-            JewelGroup delta = gameLogic.State.Mine.Delta;
+            JewelGroup delta = gameStateProvider.State.Mine.Delta;
             string deltaJewels = "N/A";
             string deltaPosition = "N/A";
             if (delta != null) deltaPosition = string.Format("x={0}, y={1},{2},{3}", delta.Bottom.Coordinates.X, delta.Top.Coordinates.Y, delta.Middle.Coordinates.Y, delta.Bottom.Coordinates.Y);
             if (delta != null) deltaJewels = string.Format("{0}, {1}, {2}", GameHelpers.ShortenName(delta.Top.Jewel.JewelType.ToString()), GameHelpers.ShortenName(delta.Middle.Jewel.JewelType.ToString()), GameHelpers.ShortenName(delta.Bottom.Jewel.JewelType.ToString()));
             debugMessages.Add(string.Format("Window Size [{0}x{1}]", windowWidth, windowHeight));
             debugMessages.Add(string.Format("Client Size [{0}x{1}]", clientWidth, clientHeight));
-            debugMessages.Add(string.Format("Mine Size [{0}x{1}]", gameLogic.State.Mine.Columns, gameLogic.State.Mine.Depth));
-            debugMessages.Add(string.Format("Tick Milliseconds [{0}]", gameLogic.State.TickSpeedMilliseconds));
-            debugMessages.Add(string.Format("Finalise Col. Tick [{0}]", gameLogic.State.CollisionFinailseTickCount));
-            debugMessages.Add(string.Format("State [{0}]", gameLogic.State.PlayState.ToString()));
-            debugMessages.Add(string.Format("Delta [{0}]", gameLogic.State.Mine.Delta == null ? "None" : "Active"));
-            debugMessages.Add(string.Format("Delta Statn. Milli. [{0}]", gameLogic.State.DeltaStationaryTimeSpan.TotalMilliseconds));
+            debugMessages.Add(string.Format("Mine Size [{0}x{1}]", gameStateProvider.State.Mine.Columns, gameStateProvider.State.Mine.Depth));
+            debugMessages.Add(string.Format("Tick Milliseconds [{0}]", gameStateProvider.State.TickSpeedMilliseconds));
+            debugMessages.Add(string.Format("Finalise Col. Tick [{0}]", gameStateProvider.State.CollisionFinailseTickCount));
+            debugMessages.Add(string.Format("State [{0}]", gameStateProvider.State.PlayState.ToString()));
+            debugMessages.Add(string.Format("Delta [{0}]", gameStateProvider.State.Mine.Delta == null ? "None" : "Active"));
+            debugMessages.Add(string.Format("Delta Statn. Milli. [{0}]", gameStateProvider.State.DeltaStationaryTimeSpan.TotalMilliseconds));
             debugMessages.Add(string.Format("Delta Position [{0}]", deltaPosition));
             debugMessages.Add(string.Format("Delta All In Bounds [{0}]", delta == null ? "N/A" : delta.HasWholeGroupEnteredBounds.ToString()));
             debugMessages.Add(string.Format("Delta Jewels [{0}]", deltaJewels));
-            debugMessages.Add(string.Format("Marked Collision Count [{0}]", gameLogic.State.Mine.MarkedCollisions.Count));
-            debugMessages.Add(string.Format("Finalised Collision Count [{0}]", gameLogic.State.Mine.FinalisedCollisions.Count));
+            debugMessages.Add(string.Format("Marked Collision Count [{0}]", gameStateProvider.State.Mine.MarkedCollisions.Count));
+            debugMessages.Add(string.Format("Finalised Collision Count [{0}]", gameStateProvider.State.Mine.FinalisedCollisions.Count));
             debugMessages.Add(string.Format("Music [{0}]", backgroundMusicMuted ? "Muted" : "On"));
             debugMessages.Add(string.Format("Sound Effects [{0}]", soundEffectsMuted ? "Muted" : "On"));
-            debugMessages.Add(string.Format("Difficulty [{0}]", gameLogic.State.Difficulty.DifficultyLevel.ToString()));
-            debugMessages.Add(string.Format("Last Level [{0}]", gameLogic.State.Difficulty.LastLevel));
+            debugMessages.Add(string.Format("Difficulty [{0}]", gameStateProvider.State.Difficulty.DifficultyLevel.ToString()));
+            debugMessages.Add(string.Format("Last Level [{0}]", gameStateProvider.State.Difficulty.LastLevel));
         }
 
         /// <summary>
@@ -195,14 +195,14 @@ namespace JewelMine.View.Forms
         /// <param name="clientWidth">Width of the client.</param>
         private void DrawLevel(Graphics graphics, int clientWidth)
         {
-            Brush levelBrush = previousLevel != gameLogic.State.Level ? informationOverlayBrushWhite : informationOverlayBrushPartiallyTransparent;
-            string level = string.Format(ViewConstants.LEVEL_PATTERN, gameLogic.State.Level, gameLogic.State.Difficulty.LastLevel);
+            Brush levelBrush = previousLevel != gameStateProvider.State.Level ? informationOverlayBrushWhite : informationOverlayBrushPartiallyTransparent;
+            string level = string.Format(ViewConstants.LEVEL_PATTERN, gameStateProvider.State.Level, gameStateProvider.State.Difficulty.LastLevel);
             SizeF levelSize = graphics.MeasureString(level, informationFont);
             int levelXPosition = (clientWidth - (int)levelSize.Width - 5);
             Rectangle levelRectangle = new Rectangle(levelXPosition, ViewConstants.DEFAULT_Y_OFFSET, (int)levelSize.Width, (int)levelSize.Height);
             graphics.FillRectangle(informationShadowBrushBlack, levelRectangle);
             graphics.DrawString(level, informationFont, levelBrush, new PointF(levelXPosition, ViewConstants.DEFAULT_Y_OFFSET));
-            previousLevel = gameLogic.State.Level;
+            previousLevel = gameStateProvider.State.Level;
         }
 
         /// <summary>
@@ -212,13 +212,13 @@ namespace JewelMine.View.Forms
         /// <param name="clientWidth">Width of the client.</param>
         private void DrawScore(Graphics graphics, int clientWidth)
         {
-            Brush scoreBrush = previousScore != gameLogic.State.Score ? informationOverlayBrushWhite : informationOverlayBrushPartiallyTransparent;
-            string score = string.Format(ViewConstants.SCORE_PATTERN, gameLogic.State.Score.ToString(ViewConstants.SCORE_FORMAT_STRING));
+            Brush scoreBrush = previousScore != gameStateProvider.State.Score ? informationOverlayBrushWhite : informationOverlayBrushPartiallyTransparent;
+            string score = string.Format(ViewConstants.SCORE_PATTERN, gameStateProvider.State.Score.ToString(ViewConstants.SCORE_FORMAT_STRING));
             SizeF scoreSize = graphics.MeasureString(score, informationFont);
             Rectangle scoreRectangle = new Rectangle(ViewConstants.DEFAULT_X_OFFSET, ViewConstants.DEFAULT_Y_OFFSET, (int)scoreSize.Width, (int)scoreSize.Height);
             graphics.FillRectangle(informationShadowBrushBlack, scoreRectangle);
             graphics.DrawString(score, informationFont, scoreBrush, new PointF(ViewConstants.DEFAULT_X_OFFSET, ViewConstants.DEFAULT_Y_OFFSET));
-            previousScore = gameLogic.State.Score;
+            previousScore = gameStateProvider.State.Score;
         }
 
         /// <summary>
@@ -229,7 +229,7 @@ namespace JewelMine.View.Forms
         /// <param name="clientHeight">Height of the client.</param>
         private void DrawGameState(Graphics graphics, int clientWidth, int clientHeight)
         {
-            if (gameLogic.State.PlayState != GamePlayState.Playing)
+            if (gameStateProvider.State.PlayState != GamePlayState.Playing)
             {
                 string stateText = string.Empty;
                 string stateSubText = string.Empty;
@@ -259,7 +259,7 @@ namespace JewelMine.View.Forms
         {
             stateText = string.Empty;
             stateSubText = string.Empty;
-            switch (gameLogic.State.PlayState)
+            switch (gameStateProvider.State.PlayState)
             {
                 case GamePlayState.NotStarted:
                     stateText = ViewConstants.GAME_START_TEXT;

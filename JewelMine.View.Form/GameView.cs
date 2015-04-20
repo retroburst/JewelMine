@@ -25,11 +25,7 @@ namespace JewelMine.View.Forms
     /// </summary>
     public partial class GameView : Form
     {
-        private static readonly ILog logger = LogManager.GetLogger(typeof(GameView));
-        private Size preferredWindowSize = Size.Empty;
-        private bool disposing = false;
-        private GameTimer timer = null;
-        private GameLogic gameLogic = null;
+        private IGameStateProvider gameStateProvider = null;
         private Dictionary<JewelType, Bitmap> jewelImageResourceDictionary = null;
         private Dictionary<JewelType, Bitmap> jewelResizedImageResourceDictionary = null;
         private Bitmap[] backgroundImageArray = null;
@@ -37,48 +33,30 @@ namespace JewelMine.View.Forms
         private Rectangle[,] cells = null;
         private int cellHeight = 0;
         private int cellWidth = 0;
-        private long startTime = 0;
         private Pen deltaBorderPen = null;
         private Brush collisionOverlayBrush = null;
         private TextureBrush backgroundBrush = null;
         private Rectangle deltaBorder = Rectangle.Empty;
-        private GameAudioSystem gameAudioSystem = null;
-        private GameLogicInput logicInput = null;
         private GameInformationView gameInformationView = null;
-        private Dictionary<Keys, Action> keyBindingDictionary = null;
         private List<string> messages = null;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GameView" /> class.
         /// </summary>
-        /// <param name="logic">The logic.</param>
-        public GameView(GameLogic logic)
+        /// <param name="provider">The provider.</param>
+        public GameView(IGameStateProvider provider)
         {
             InitializeComponent();
             messages = new List<string>();
-            preferredWindowSize = new Size(ViewConstants.WINDOW_PREFERRED_WIDTH, ViewConstants.WINDOW_PREFERRED_HEIGHT);
-            // save our game logic into a variable
-            gameLogic = logic;
+            // save our game state provider into a variable
+            gameStateProvider = provider;
             // init game information
-            gameInformationView = new GameInformationView(gameLogic);
-            // init key bindings
-            keyBindingDictionary = new Dictionary<Keys, Action>();
-            InitialiseKeyBindings();
-            // init game audio system
-            gameAudioSystem = GameAudioSystem.Instance;
+            gameInformationView = new GameInformationView(provider);
             // set paint styles
             SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.DoubleBuffer | ControlStyles.OptimizedDoubleBuffer, true);
-            timer = new GameTimer();
-            cells = new Rectangle[logic.State.Mine.Columns, logic.State.Mine.Depth];
+            cells = new Rectangle[provider.State.Mine.Columns, provider.State.Mine.Depth];
             backgroundImageArray = ViewHelpers.GenerateBackgroundImageArray();
-            // hook into interesting form events
-            Load += LoadHandler;
-            FormClosed += FormClosedHandler;
-            FormClosing += FormClosingHandler;
-            Layout += LayoutHandler;
-            KeyDown += InputHandler;
             InitialiseDrawingObjects();
-            logicInput = new GameLogicInput();
             // calculate cell dimensions
             CalculateGridCellDimensions();
             CalculateGridCells(cells);
@@ -88,58 +66,40 @@ namespace JewelMine.View.Forms
             // this once here instead of resizing every time we
             // draw a delta - which is a very expensive operation
             jewelResizedImageResourceDictionary = ViewHelpers.GenerateResizedJewelImageResourceDictionary(jewelImageResourceDictionary, cellWidth, cellHeight);
-            // restore user prefs
-            RestoreUserPreferences();
-            // start the background music loop
-            gameAudioSystem.PlayBackgroundMusicLoop();
         }
 
         /// <summary>
-        /// Initialises the key bindings.
+        /// Re initialise the view based on new game state.
         /// </summary>
-        private void InitialiseKeyBindings()
+        /// <param name="provider">The provider.</param>
+        public void ReInitialise(IGameStateProvider provider)
         {
-            ViewHelpers.PerformSafeKeyBinding(Properties.Settings.Default.KeyBindingMoveLeft, Keys.Left, () => logicInput.DeltaMovement = MovementType.Left, keyBindingDictionary);
-            ViewHelpers.PerformSafeKeyBinding(Properties.Settings.Default.KeyBindingMoveRight, Keys.Right, () => logicInput.DeltaMovement = MovementType.Right, keyBindingDictionary);
-            ViewHelpers.PerformSafeKeyBinding(Properties.Settings.Default.KeyBindingMoveDown, Keys.Down, () => logicInput.DeltaMovement = MovementType.Down, keyBindingDictionary);
-            ViewHelpers.PerformSafeKeyBinding(Properties.Settings.Default.KeyBindingPauseGame, Keys.Control | Keys.P, () => logicInput.PauseGame = true, keyBindingDictionary);
-            ViewHelpers.PerformSafeKeyBinding(Properties.Settings.Default.KeyBindingRestartGame, Keys.Control | Keys.R, () => logicInput.RestartGame = true, keyBindingDictionary);
-            ViewHelpers.PerformSafeKeyBinding(Properties.Settings.Default.KeyBindingToggleDebugInfo, Keys.Control | Keys.D, () => gameInformationView.ToggleDebugInfo(), keyBindingDictionary);
-            ViewHelpers.PerformSafeKeyBinding(Properties.Settings.Default.KeyBindingQuitGame, Keys.Control | Keys.Q, () => this.Close(), keyBindingDictionary);
-            ViewHelpers.PerformSafeKeyBinding(Properties.Settings.Default.KeyBindingSwapDeltaJewels, Keys.Space, () => logicInput.DeltaSwapJewels = true, keyBindingDictionary);
-            ViewHelpers.PerformSafeKeyBinding(Properties.Settings.Default.KeyBindingToggleMusic, Keys.Control | Keys.M, () => ToggleBackgroundMusicLoop(), keyBindingDictionary);
-            ViewHelpers.PerformSafeKeyBinding(Properties.Settings.Default.KeyBindingToggleSoundEffects, Keys.Control | Keys.S, () => ToggleSoundEffects(), keyBindingDictionary);
-            ViewHelpers.PerformSafeKeyBinding(Properties.Settings.Default.KeyBindingDifficultyChange, Keys.Control | Keys.U, () => logicInput.ChangeDifficulty = true, keyBindingDictionary);
-            ViewHelpers.PerformSafeKeyBinding(Properties.Settings.Default.KeyBindingSaveGame, Keys.Control | Keys.Shift | Keys.S, () => logicInput.SaveGame = true, keyBindingDictionary);
-            ViewHelpers.PerformSafeKeyBinding(Properties.Settings.Default.KeyBindingLoadGame, Keys.Control | Keys.Shift | Keys.L, () => logicInput.LoadGame = true, keyBindingDictionary);
+            gameInformationView = new GameInformationView(provider);
+            cells = new Rectangle[provider.State.Mine.Columns, provider.State.Mine.Depth];
+            // calculate cell dimensions
+            CalculateGridCellDimensions();
+            CalculateGridCells(cells);
+            // generate and store resized images for this form difficultySize - we do 
+            // this once here instead of resizing every time we
+            // draw a delta - which is a very expensive operation
+            jewelResizedImageResourceDictionary = ViewHelpers.GenerateResizedJewelImageResourceDictionary(jewelImageResourceDictionary, cellWidth, cellHeight);
         }
 
         /// <summary>
-        /// Handles the logicInput event of the GameView control.
+        /// Toggles the debug information.
         /// </summary>
-        /// <param name="sender">The source of the event.</param>
-        /// <param name="e">The <see cref="KeyEventArgs"/> instance containing the event data.</param>
-        public void InputHandler(object sender, KeyEventArgs e)
+        public void ToggleDebugInfo()
         {
-            if (gameLogic.State.PlayState == GamePlayState.Paused || gameLogic.State.PlayState == GamePlayState.NotStarted)
-            {
-                logicInput.GameStarted = true;
-                return;
-            }
-            ProcessInput(e);
+            gameInformationView.ToggleDebugInfo();
         }
 
         /// <summary>
-        /// Processes the input.
+        /// Adds a game information message.
         /// </summary>
-        /// <param name="e">The <see cref="KeyEventArgs"/> instance containing the event data.</param>
-        private void ProcessInput(KeyEventArgs e)
+        /// <param name="message">The message.</param>
+        public void AddGameInformationMessage(string message)
         {
-            if (keyBindingDictionary.ContainsKey(e.KeyData))
-            {
-                Action bindingAction = keyBindingDictionary[e.KeyData];
-                if (bindingAction != null) bindingAction();
-            }
+            if(!string.IsNullOrEmpty(message)) messages.Add(message);
         }
 
         /// <summary>
@@ -169,76 +129,13 @@ namespace JewelMine.View.Forms
         }
 
         /// <summary>
-        /// Loads the handler.
-        /// </summary>
-        /// <param name="sender">The sender.</param>
-        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
-        private void LoadHandler(object sender, EventArgs e)
-        {
-            RestoreWindowState();
-        }
-
-        /// <summary>
-        /// Forms the closing handler.
-        /// </summary>
-        /// <param name="sender">The sender.</param>
-        /// <param name="e">The <see cref="FormClosingEventArgs"/> instance containing the event data.</param>
-        private void FormClosingHandler(object sender, FormClosingEventArgs e)
-        {
-            SaveWindowState();
-            SaveUserPreferences();
-            Properties.Settings.Default.Save();
-        }
-
-        /// <summary>
-        /// Handles the FormClosed event of the GameView control.
-        /// </summary>
-        /// <param name="sender">The source of the event.</param>
-        /// <param name="e">The <see cref="FormClosedEventArgs"/> instance containing the event data.</param>
-        private void FormClosedHandler(object sender, FormClosedEventArgs e)
-        {
-            disposing = true;
-            Application.Exit();
-        }
-
-        /// <summary>
-        /// The main game loop.
-        /// </summary>
-        public void GameLoop()
-        {
-            if (logger.IsDebugEnabled) logger.Debug("Starting game loop.");
-            timer.Start();
-            while (!disposing)
-            {
-                startTime = timer.ElapsedMilliseconds;
-                Application.DoEvents();
-                GameLogicUpdate logicUpdate = gameLogic.PerformGameLogic(logicInput);
-                Invalidate();
-                PlaySounds(logicUpdate);
-                messages.AddRange(logicUpdate.Messages);
-                if ((timer.ElapsedMilliseconds - startTime) < gameLogic.State.TickSpeedMilliseconds)
-                {
-                    // sleep the thread for the remaining time in this tick - saves burning CPU cycles
-                    int sleepTime = (int)(gameLogic.State.TickSpeedMilliseconds - (timer.ElapsedMilliseconds - startTime));
-                    Thread.Sleep(sleepTime);
-                }
-                // reset user logicInput descriptors
-                logicInput.Clear();
-            }
-            timer.Stop();
-            if (logger.IsDebugEnabled) logger.Debug("Exiting game loop.");
-        }
-
-        /// <summary>
-        /// Plays the sounds.
+        /// Updates the view.
         /// </summary>
         /// <param name="logicUpdate">The logic update.</param>
-        private void PlaySounds(GameLogicUpdate logicUpdate)
+        public void UpdateView(GameLogicUpdate logicUpdate)
         {
-            if (logicUpdate.FinalisedCollisions.Count > 0) gameAudioSystem.PlayCollision();
-            if (logicUpdate.DeltaJewelsSwapped) gameAudioSystem.PlaySwap();
-            if (logicUpdate.DeltaStationary) gameAudioSystem.PlayStationary();
-            if (logicUpdate.LevelIncremented) gameAudioSystem.PlayLevelUp();
+            Invalidate();
+            messages.AddRange(logicUpdate.Messages);
         }
 
         /// <summary>
@@ -264,7 +161,7 @@ namespace JewelMine.View.Forms
         }
 
         /// <summary>
-        /// Draws the game gameLogic text.
+        /// Draws the game gameStateProvider text.
         /// </summary>
         /// <param name="graphics">The graphics.</param>
         private void DrawGameStateText(Graphics graphics)
@@ -275,8 +172,8 @@ namespace JewelMine.View.Forms
                 ClientSize.Height,
                 Width,
                 Height,
-                gameAudioSystem.BackgroundMusicMuted,
-                gameAudioSystem.SoundEffectsMuted,
+                GameAudioSystem.Instance.BackgroundMusicMuted,
+                GameAudioSystem.Instance.SoundEffectsMuted,
                 messages);
             messages.Clear();
         }
@@ -289,7 +186,7 @@ namespace JewelMine.View.Forms
         private void DrawCollisions(Graphics graphics)
         {
             List<Rectangle> collisionOverlayRectangles = new List<Rectangle>();
-            foreach (MarkedCollisionGroup mcg in gameLogic.State.Mine.MarkedCollisions)
+            foreach (MarkedCollisionGroup mcg in gameStateProvider.State.Mine.MarkedCollisions)
             {
                 if (mcg.CollisionTickCount % 2 != 0)
                 {
@@ -309,13 +206,13 @@ namespace JewelMine.View.Forms
         /// <exception cref="System.NotImplementedException"></exception>
         private void DrawDeltaBorder(Graphics graphics)
         {
-            JewelGroup delta = gameLogic.State.Mine.Delta;
+            JewelGroup delta = gameStateProvider.State.Mine.Delta;
             if (delta != null && delta.HasWholeGroupEnteredBounds)
             {
                 Rectangle topLeft = cells[delta.Top.Coordinates.X, delta.Top.Coordinates.Y];
                 deltaBorder = new Rectangle();
-                deltaBorder.X = topLeft.X - 1;
-                deltaBorder.Y = topLeft.Y - 1;
+                deltaBorder.X = topLeft.X - 2;
+                deltaBorder.Y = topLeft.Y - 2;
                 deltaBorder.Height = (cellHeight * 3) + 2;
                 deltaBorder.Width = cellWidth + 2;
                 graphics.DrawRectangle(deltaBorderPen, deltaBorder);
@@ -328,11 +225,11 @@ namespace JewelMine.View.Forms
         /// <param name="graphics">The graphics.</param>
         private void DrawJewels(Graphics graphics)
         {
-            for (int i = 0; i < gameLogic.State.Mine.Columns; i++)
+            for (int i = 0; i < gameStateProvider.State.Mine.Columns; i++)
             {
-                for (int j = 0; j < gameLogic.State.Mine.Depth; j++)
+                for (int j = 0; j < gameStateProvider.State.Mine.Depth; j++)
                 {
-                    Jewel jewel = (Jewel)gameLogic.State.Mine.Grid[i, j];
+                    Jewel jewel = (Jewel)gameStateProvider.State.Mine.Grid[i, j];
                     if (jewel != null)
                     {
                         Rectangle cell = cells[i, j];
@@ -344,17 +241,10 @@ namespace JewelMine.View.Forms
         }
 
         /// <summary>
-        /// Handles the Layout event of the GameView control.
+        /// Updates the layout.
         /// </summary>
-        /// <param name="sender">The source of the event.</param>
-        /// <param name="e">The <see cref="LayoutEventArgs"/> instance containing the event data.</param>
-        private void LayoutHandler(object sender, LayoutEventArgs e)
+        public void UpdateLayout()
         {
-            if (WindowState == FormWindowState.Minimized)
-            {
-                logicInput.PauseGame = true;
-                return;
-            }
             // calculate new cell dimensions
             CalculateGridCellDimensions();
             CalculateGridCells(cells);
@@ -365,7 +255,6 @@ namespace JewelMine.View.Forms
             // invalidate the whole view so it is
             // all re-painted
             Invalidate();
-            if (logger.IsDebugEnabled) logger.DebugFormat("Window resized to {0}x{1}.", Width, Height);
         }
 
         /// <summary>
@@ -398,130 +287,12 @@ namespace JewelMine.View.Forms
         }
 
         /// <summary>
-        /// Saves the window state.
+        /// Centera the view window to the screen.
         /// </summary>
-        private void SaveWindowState()
+        public void CenterViewWindow()
         {
-            if (logger.IsDebugEnabled) logger.Debug("Saving the window state.");
-            if (WindowState == FormWindowState.Normal)
-            {
-                Properties.Settings.Default.WindowLocation = Location;
-                Properties.Settings.Default.WindowSize = Size;
-            }
-            else
-            {
-                Properties.Settings.Default.WindowLocation = RestoreBounds.Location;
-                Properties.Settings.Default.WindowSize = RestoreBounds.Size;
-            }
-            Properties.Settings.Default.WindowState = WindowState;
-        }
-
-        /// <summary>
-        /// Restores the state of the window.
-        /// </summary>
-        private void RestoreWindowState()
-        {
-            if (logger.IsDebugEnabled) logger.Debug("Restoring window state.");
-            if (Properties.Settings.Default.WindowSize.IsEmpty)
-            {
-                FitPreferredSizeToScreen();
-                return; // state has never been saved
-            }
-            StartPosition = FormStartPosition.Manual;
-            Location = Properties.Settings.Default.WindowLocation;
-            Size = Properties.Settings.Default.WindowSize;
-            WindowState = Properties.Settings.Default.WindowState == FormWindowState.Minimized
-                ? FormWindowState.Normal : Properties.Settings.Default.WindowState;
-        }
-
-        /// <summary>
-        /// Fits the preferred size to screen.
-        /// If the screen is too small, shrinks the
-        /// form but tries to maintain aspect ratio.
-        /// </summary>
-        private void FitPreferredSizeToScreen()
-        {
-            if (logger.IsDebugEnabled) logger.Debug("Fitting preferred size window to screen.");
-            Screen screen = Screen.FromControl(this);
-            if (screen.WorkingArea.Height < preferredWindowSize.Height)
-            {
-                // shrink for but try and maintain aspect ratio
-                int heightDifference = preferredWindowSize.Height - screen.WorkingArea.Height;
-                int customHeight = preferredWindowSize.Height - heightDifference;
-                int customWidth = preferredWindowSize.Width - heightDifference;
-                if (screen.WorkingArea.Width < customWidth)
-                {
-                    int widthDifference = customWidth - screen.WorkingArea.Width;
-                    customWidth -= widthDifference;
-                    customHeight -= widthDifference;
-                }
-                Size = new Size(customWidth, customHeight);
-            }
-            else
-            {
-                Size = preferredWindowSize;
-            }
             CenterToScreen();
         }
-
-        /// <summary>
-        /// Saves the user preferences.
-        /// </summary>
-        private void SaveUserPreferences()
-        {
-            Properties.Settings.Default.UserPreferenceMusicMuted = gameAudioSystem.BackgroundMusicMuted;
-            Properties.Settings.Default.UserPreferenceSoundEffectsMuted = gameAudioSystem.SoundEffectsMuted;
-            Properties.Settings.Default.UserPreferenceDifficulty = gameLogic.State.Difficulty.DifficultyLevel;
-        }
-
-        /// <summary>
-        /// Restores the user preferences.
-        /// </summary>
-        private void RestoreUserPreferences()
-        {
-            gameAudioSystem.BackgroundMusicMuted = Properties.Settings.Default.UserPreferenceMusicMuted;
-            AddBackgroundMusicStateMessage();
-            gameAudioSystem.SoundEffectsMuted = Properties.Settings.Default.UserPreferenceSoundEffectsMuted;
-            AddSoundEffectsStateMessage();
-        }
-
-        /// <summary>
-        /// Adds the background music state message.
-        /// </summary>
-        private void AddBackgroundMusicStateMessage()
-        {
-            string message = string.Format(ViewConstants.TOGGLE_MUSIC_PATTERN, ViewHelpers.EncodeBooleanForDisplay(!gameAudioSystem.BackgroundMusicMuted));
-            messages.Add(message);
-        }
-
-        /// <summary>
-        /// Toggles the background music loop.
-        /// </summary>
-        private void ToggleBackgroundMusicLoop()
-        {
-            gameAudioSystem.ToggleBackgroundMusicLoop();
-            AddBackgroundMusicStateMessage();
-        }
-
-        /// <summary>
-        /// Adds the sound effects state message.
-        /// </summary>
-        private void AddSoundEffectsStateMessage()
-        {
-            string message = string.Format(ViewConstants.TOGGLE_SOUND_PATTERN, ViewHelpers.EncodeBooleanForDisplay(!gameAudioSystem.SoundEffectsMuted));
-            messages.Add(message);
-        }
-
-        /// <summary>
-        /// Toggles the sound effects.
-        /// </summary>
-        private void ToggleSoundEffects()
-        {
-            gameAudioSystem.ToggleSoundEffects();
-            AddSoundEffectsStateMessage();
-        }
-
-
 
     }
 }

@@ -15,7 +15,7 @@ namespace JewelMine.Engine
     /// Encapsulates the game state models
     /// and all the logic and functionality for game play.
     /// </summary>
-    public class GameLogic
+    public class GameLogic : IGameStateProvider
     {
         public Random Random { get; private set; }
         private JewelType[] jewelTypes = null;
