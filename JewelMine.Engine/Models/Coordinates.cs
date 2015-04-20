@@ -9,6 +9,7 @@ namespace JewelMine.Engine.Models
     /// <summary>
     /// Represents a set of coordinates for a point.
     /// </summary>
+    [Serializable]
     public class Coordinates
     {
         /// <summary>

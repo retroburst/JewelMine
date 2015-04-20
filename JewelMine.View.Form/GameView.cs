@@ -46,6 +46,7 @@ namespace JewelMine.View.Forms
         private GameLogicInput logicInput = null;
         private GameInformationView gameInformationView = null;
         private Dictionary<Keys, Action> keyBindingDictionary = null;
+        private List<string> messages = null;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GameView" /> class.
@@ -54,6 +55,7 @@ namespace JewelMine.View.Forms
         public GameView(GameLogic engine)
         {
             InitializeComponent();
+            messages = new List<string>();
             preferredWindowSize = new Size(ViewConstants.WINDOW_PREFERRED_WIDTH, ViewConstants.WINDOW_PREFERRED_HEIGHT);
             // save our game engine into a variable
             gameLogic = engine;
@@ -105,9 +107,11 @@ namespace JewelMine.View.Forms
             ViewHelpers.PerformSafeKeyBinding(Properties.Settings.Default.KeyBindingToggleDebugInfo, Keys.Control | Keys.D, () => gameInformationView.ToggleDebugInfo(), keyBindingDictionary);
             ViewHelpers.PerformSafeKeyBinding(Properties.Settings.Default.KeyBindingQuitGame, Keys.Control | Keys.Q, () => this.Close(), keyBindingDictionary);
             ViewHelpers.PerformSafeKeyBinding(Properties.Settings.Default.KeyBindingSwapDeltaJewels, Keys.Space, () => logicInput.DeltaSwapJewels = true, keyBindingDictionary);
-            ViewHelpers.PerformSafeKeyBinding(Properties.Settings.Default.KeyBindingToggleMusic, Keys.Control | Keys.M, () => gameAudioSystem.ToggleBackgroundMusicLoop(), keyBindingDictionary);
-            ViewHelpers.PerformSafeKeyBinding(Properties.Settings.Default.KeyBindingToggleSoundEffects, Keys.Control | Keys.S, () => gameAudioSystem.ToggleSoundEffects(), keyBindingDictionary);
+            ViewHelpers.PerformSafeKeyBinding(Properties.Settings.Default.KeyBindingToggleMusic, Keys.Control | Keys.M, () => ToggleBackgroundMusicLoop(), keyBindingDictionary);
+            ViewHelpers.PerformSafeKeyBinding(Properties.Settings.Default.KeyBindingToggleSoundEffects, Keys.Control | Keys.S, () => ToggleSoundEffects(), keyBindingDictionary);
             ViewHelpers.PerformSafeKeyBinding(Properties.Settings.Default.KeyBindingDifficultyChange, Keys.Control | Keys.U, () => logicInput.ChangeDifficulty = true, keyBindingDictionary);
+            ViewHelpers.PerformSafeKeyBinding(Properties.Settings.Default.KeyBindingSaveGame, Keys.Control | Keys.Shift | Keys.S, () => logicInput.SaveGame = true, keyBindingDictionary);
+            ViewHelpers.PerformSafeKeyBinding(Properties.Settings.Default.KeyBindingLoadGame, Keys.Control | Keys.Shift | Keys.L, () => logicInput.LoadGame = true, keyBindingDictionary);
         }
 
         /// <summary>
@@ -209,8 +213,9 @@ namespace JewelMine.View.Forms
                 startTime = timer.ElapsedMilliseconds;
                 Application.DoEvents();
                 GameLogicUpdate logicUpdate = gameLogic.PerformGameLogic(logicInput);
-                Invalidate(logicUpdate);
+                Invalidate();
                 PlaySounds(logicUpdate);
+                messages.AddRange(logicUpdate.Messages);
                 if ((timer.ElapsedMilliseconds - startTime) < gameLogic.State.TickSpeedMilliseconds)
                 {
                     // sleep the thread for the remaining time in this tick - saves burning CPU cycles
@@ -237,32 +242,6 @@ namespace JewelMine.View.Forms
         }
 
         /// <summary>
-        /// Invalidates the view based on the specified logic update.
-        /// </summary>
-        /// <param name="logicUpdate">The logic update.</param>
-        private void Invalidate(GameLogicUpdate logicUpdate)
-        {
-            if (logicUpdate != null)
-            {
-                if (logicUpdate.GameStarted)
-                {
-                    Invalidate();
-                    return;
-                }
-                logicUpdate.JewelMovements.ForEach(jm => Invalidate(CalculateInvalidationRegion(jm.Jewel, jm.Original, jm.New)));
-                logicUpdate.Collisions.ForEach(c => CalculateInvalidationRegions(c).ForEach(r => Invalidate(r)));
-                logicUpdate.InvalidCollisions.ForEach(ic => CalculateInvalidationRegions(ic).ForEach(r => Invalidate(r)));
-                logicUpdate.FinalisedCollisions.ForEach(fc => CalculateInvalidationRegions(fc).ForEach(r => Invalidate(r)));
-            }
-            if (deltaBorder != Rectangle.Empty)
-            {
-                Invalidate(new Rectangle(deltaBorder.X - 2, deltaBorder.Y - 2, deltaBorder.Width + 4, deltaBorder.Height + 4));
-                deltaBorder = Rectangle.Empty;
-            }
-            gameInformationView.Invalidate(Invalidate);
-        }
-
-        /// <summary>
         /// </summary>
         /// <param name="e">A <see cref="T:System.Windows.Forms.PaintEventArgs" /> that contains the event data.</param>
         protected override void OnPaint(PaintEventArgs e)
@@ -272,7 +251,7 @@ namespace JewelMine.View.Forms
 
         /// <summary>
         /// Draws the specified client rectangle.
-        /// </summary>
+        /// </summary>B
         /// <param name="graphics">The graphics.</param>
         private void Draw(Graphics graphics)
         {
@@ -297,7 +276,9 @@ namespace JewelMine.View.Forms
                 Width,
                 Height,
                 gameAudioSystem.BackgroundMusicMuted,
-                gameAudioSystem.SoundEffectsMuted);
+                gameAudioSystem.SoundEffectsMuted,
+                messages);
+            messages.Clear();
         }
 
         /// <summary>
@@ -383,7 +364,7 @@ namespace JewelMine.View.Forms
             jewelResizedImageResourceDictionary = ViewHelpers.GenerateResizedJewelImageResourceDictionary(jewelImageResourceDictionary, cellWidth, cellHeight);
             // invalidate the whole view so it is
             // all re-painted
-            Invalidate(ClientRectangle);
+            Invalidate();
             if (logger.IsDebugEnabled) logger.DebugFormat("Window resized to {0}x{1}.", Width, Height);
         }
 
@@ -414,75 +395,6 @@ namespace JewelMine.View.Forms
                     cells[i, j] = new Rectangle(i * cellWidth + widthOffset, j * cellHeight + heightOffset, cellWidth, cellHeight);
                 }
             }
-        }
-
-        /// <summary>
-        /// Calculates the invalidation region.
-        /// </summary>
-        /// <param name="cg">The cg.</param>
-        /// <returns></returns>
-        private List<Rectangle> CalculateInvalidationRegions(CollisionGroup cg)
-        {
-            List<Rectangle> regions = new List<Rectangle>();
-            foreach (CollisionGroupMember collision in cg.Members)
-            {
-                Rectangle cell = cells[collision.Coordinates.X, collision.Coordinates.Y];
-                Rectangle region = new Rectangle(cell.X - 2, cell.Y - 2, cellWidth + 4, cellHeight + 4);
-                regions.Add(region);
-            }
-            return (regions);
-        }
-
-        /// <summary>
-        /// Calculates the invalidation region.
-        /// </summary>
-        /// <param name="jewel">The jewel.</param>
-        /// <param name="coordinates">The coordinates.</param>
-        /// <returns></returns>
-        public Rectangle CalculateInvalidationRegion(Jewel jewelModel, Coordinates coordinates)
-        {
-            Rectangle region = new Rectangle();
-            region.X = cells[coordinates.X, coordinates.Y].X;
-            region.Y = cells[coordinates.X, coordinates.Y].Y;
-            region.Width = cellWidth;
-            region.Height = cellHeight;
-            return (region);
-        }
-
-        /// <summary>
-        /// Calculates the invalidation region.
-        /// </summary>
-        /// <param name="jewel">The jewel.</param>
-        /// <param name="originalCoordinates">The original coordinates.</param>
-        /// <param name="newCoordinates">The new coordinates.</param>
-        /// <returns></returns>
-        public Rectangle CalculateInvalidationRegion(Jewel jewel, Coordinates originalCoordinates, Coordinates newCoordinates)
-        {
-            if (!gameLogic.State.Mine.CoordinatesInBounds(originalCoordinates)) return CalculateInvalidationRegion(jewel, newCoordinates);
-            Rectangle region = new Rectangle();
-            int minX = Math.Min(originalCoordinates.X, newCoordinates.X);
-            int minY = Math.Min(originalCoordinates.Y, newCoordinates.Y);
-            Rectangle targetCell = cells[minX, minY];
-            // add an little extra to the margin for the delta border
-            region.X = targetCell.X - 2;
-            region.Y = targetCell.Y - 2;
-            int heightMargin = cellHeight + 4;
-            int widthMargin = cellWidth + 4;
-            // movement down
-            if (newCoordinates.Y > originalCoordinates.Y)
-            {
-                int difference = newCoordinates.Y - originalCoordinates.Y;
-                region.Height = heightMargin * (difference + 1);
-                region.Width = widthMargin;
-            }
-            // movement right or left
-            else
-            {
-                int difference = Math.Max(originalCoordinates.X, newCoordinates.X) - Math.Min(originalCoordinates.X, newCoordinates.X);
-                region.Height = heightMargin;
-                region.Width = widthMargin * (difference + 1);
-            }
-            return (region);
         }
 
         /// <summary>
@@ -568,8 +480,48 @@ namespace JewelMine.View.Forms
         private void RestoreUserPreferences()
         {
             gameAudioSystem.BackgroundMusicMuted = Properties.Settings.Default.UserPreferenceMusicMuted;
+            AddBackgroundMusicStateMessage();
             gameAudioSystem.SoundEffectsMuted = Properties.Settings.Default.UserPreferenceSoundEffectsMuted;
+            AddSoundEffectsStateMessage();
         }
+
+        /// <summary>
+        /// Adds the background music state message.
+        /// </summary>
+        private void AddBackgroundMusicStateMessage()
+        {
+            string message = string.Format(ViewConstants.TOGGLE_MUSIC_PATTERN, ViewHelpers.EncodeBooleanForDisplay(!gameAudioSystem.BackgroundMusicMuted));
+            messages.Add(message);
+        }
+
+        /// <summary>
+        /// Toggles the background music loop.
+        /// </summary>
+        private void ToggleBackgroundMusicLoop()
+        {
+            gameAudioSystem.ToggleBackgroundMusicLoop();
+            AddBackgroundMusicStateMessage();
+        }
+
+        /// <summary>
+        /// Adds the sound effects state message.
+        /// </summary>
+        private void AddSoundEffectsStateMessage()
+        {
+            string message = string.Format(ViewConstants.TOGGLE_SOUND_PATTERN, ViewHelpers.EncodeBooleanForDisplay(!gameAudioSystem.SoundEffectsMuted));
+            messages.Add(message);
+        }
+
+        /// <summary>
+        /// Toggles the sound effects.
+        /// </summary>
+        private void ToggleSoundEffects()
+        {
+            gameAudioSystem.ToggleSoundEffects();
+            AddSoundEffectsStateMessage();
+        }
+
+
 
     }
 }

@@ -53,5 +53,11 @@
     <Setting Name="UserPreferenceDifficulty" Type="JewelMine.Engine.DifficultyLevel" Scope="User">
       <Value Profile="(Default)">Easy</Value>
     </Setting>
+    <Setting Name="KeyBindingSaveGame" Type="System.Windows.Forms.Keys" Scope="User">
+      <Value Profile="(Default)">Ctrl+Shift+S</Value>
+    </Setting>
+    <Setting Name="KeyBindingLoadGame" Type="System.Windows.Forms.Keys" Scope="User">
+      <Value Profile="(Default)">Ctrl+Shift+L</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

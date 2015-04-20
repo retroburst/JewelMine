@@ -18,30 +18,35 @@ namespace JewelMine.View.Forms
         public const int DEBUG_RECTANGLE_WIDTH = 280;
         public const int DEBUG_RECTANGLE_HEIGHT_OFFSET = 50;
         public const int DEBUG_RECTANGLE_PADDING = 5;
-        public const int TOGGLE_Y_OFFSET = 30;
+        public const int MESSAGE_Y_OFFSET = 30;
         public const int DEFAULT_X_OFFSET = 5;
         public const int DEFAULT_Y_OFFSET = 5;
-    
+
         // Images
         public const string IMAGE_RESOURCE_PATTERN_NAMESPACE = "JewelMine.Resources.Images";
         public const string JEWEL_IMAGE_RESOURCE_PATTERN = IMAGE_RESOURCE_PATTERN_NAMESPACE + ".{0}.gif";
         public const string BACKGROUND_IMAGE_RESOURCE_PATTERN = IMAGE_RESOURCE_PATTERN_NAMESPACE + ".{0}.jpg";
         public static string[] BACKGROUND_TEXTURE_NAMES = new string[] { 
-            "Background.Cave.1", "Background.Cave.2", 
-            "Background.Cave.3", "Background.Cave.4", 
-            "Background.Stone.1", "Background.Stone.2", 
-            "Background.Stone.3" };
-        
+            "Background.Cave.1", 
+            "Background.Cave.2", 
+            "Background.Cave.3", 
+            "Background.Cave.4", 
+            "Background.Stone.1", 
+            "Background.Stone.2", 
+            "Background.Stone.3" 
+        };
+
         // Music
         public const string BACKGROUND_MUSIC_FILENAME = "Music/Ambient.wav";
-        
+
         // Sounds
         public const string SOUND_COLLISION_FILENAME = "Sounds/Collision.wav";
         public const string SOUND_SWAP_FILENAME = "Sounds/Swap.wav";
         public const string SOUND_STATIONARY_FILENAME = "Sounds/Stationary.wav";
         public const string SOUND_LEVELUP_FILENAME = "Sounds/LevelUp.wav";
-        
+
         // Text
+        public static readonly TimeSpan GAME_MESSAGE_VISIBLE_TIME = new TimeSpan(0, 0, 2);
         public const string GAME_PAUSED_TEXT = "PAUSED";
         public const string GAME_PAUSED_SUBTEXT = "Press any key...";
 
@@ -61,6 +66,6 @@ namespace JewelMine.View.Forms
         public const string TOGGLE_SOUND_PATTERN = "Sound//{0}";
 
         // Misc
-        public const int TOGGLE_DISPLAY_TICK_COUNT = 10;
+        public const int MESSAGE_DISPLAY_TICK_COUNT = 10;
     }
 }

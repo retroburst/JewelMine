@@ -12,6 +12,7 @@ namespace JewelMine.Engine.Models
     /// jewel positions.
     /// Also defines the delta.
     /// </summary>
+    [Serializable]
     public class Mine
     {
         /// <summary>

@@ -9,8 +9,7 @@ namespace JewelMine.Engine
 {
     /// <summary>
     /// Represents updates in the game logic that
-    /// views may need to be aware of for region
-    /// invalidation.
+    /// views may need to be aware of.
     /// </summary>
     public class GameLogicUpdate
     {
@@ -23,6 +22,7 @@ namespace JewelMine.Engine
             Collisions = new List<MarkedCollisionGroup>();
             InvalidCollisions = new List<MarkedCollisionGroup>();
             FinalisedCollisions = new List<CollisionGroup>();
+            Messages = new List<string>();
         }
 
         /// <summary>
@@ -82,6 +82,14 @@ namespace JewelMine.Engine
         public bool LevelIncremented { get; set; }
 
         /// <summary>
+        /// Gets or sets a value indicating whether [game loaded].
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if [game loaded]; otherwise, <c>false</c>.
+        /// </value>
+        public bool GameLoaded { get; set; }
+
+        /// <summary>
         /// Gets or sets a value indicating whether [game restarted].
         /// </summary>
         /// <value>
@@ -112,6 +120,14 @@ namespace JewelMine.Engine
         ///   <c>true</c> if [game over]; otherwise, <c>false</c>.
         /// </value>
         public bool GameOver { get; set; }
+
+        /// <summary>
+        /// Gets or sets the messages.
+        /// </summary>
+        /// <value>
+        /// The messages.
+        /// </value>
+        public List<string> Messages { get; set; }
 
     }
 }

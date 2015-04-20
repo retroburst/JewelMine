@@ -9,6 +9,7 @@ namespace JewelMine.Engine.Models
     /// <summary>
     /// Represents a single collision group member.
     /// </summary>
+    [Serializable]
     public class CollisionGroupMember
     {
         /// <summary>

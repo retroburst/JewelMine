@@ -24,6 +24,8 @@ namespace JewelMine.Engine
             GameStarted = false;
             PauseGame = false;
             ChangeDifficulty = false;
+            SaveGame = false;
+            LoadGame = false;
         }
 
         /// <summary>
@@ -70,5 +72,21 @@ namespace JewelMine.Engine
         /// The change difficulty.
         /// </value>
         public bool ChangeDifficulty { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether [save game].
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if [save game]; otherwise, <c>false</c>.
+        /// </value>
+        public bool SaveGame { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether [load game].
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if [load game]; otherwise, <c>false</c>.
+        /// </value>
+        public bool LoadGame { get; set; }
     }
 }

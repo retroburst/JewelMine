@@ -10,6 +10,7 @@ namespace JewelMine.Engine.Models
     /// Represents a group of jewels
     /// which move together as the delta.
     /// </summary>
+    [Serializable]
     public class JewelGroup
     {
         public JewelGroupMember Top { get; private set; }
@@ -44,12 +45,12 @@ namespace JewelMine.Engine.Models
         }
 
         /// <summary>
-        /// Gets the stationary tick count.
+        /// Gets the stationary since.
         /// </summary>
         /// <value>
-        /// The stationary tick count.
+        /// The stationary since.
         /// </value>
-        public int StationaryTickCount
+        public Nullable<DateTime> StationarySince
         {
             get;
             internal set;

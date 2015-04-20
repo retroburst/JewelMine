@@ -71,6 +71,7 @@
     <Compile Include="Models\Mine.cs" />
     <Compile Include="Models\Jewel.cs" />
     <Compile Include="Models\MineObject.cs" />
+    <Compile Include="Models\SavedGameState.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -14,6 +14,9 @@ namespace JewelMine.Engine
         public const int GAME_MINE_DEFAULT_COLUMN_SIZE = 21;
         public const int GAME_MINE_DEFAULT_DEPTH_SIZE = 21;
         public const int GAME_DEFAULT_LEVEL = 1;
+        public const string GAME_MESSAGE_SAVE_GAME_PATTERN = "Save//{0}";
+        public const string GAME_MESSAGE_LOAD_GAME_PATTERN = "Load//{0}";
+        public const string GAME_DEFAULT_SAVE_GAME_FILENAME = "Saved.Game.data";
     }
 
     /// <summary>

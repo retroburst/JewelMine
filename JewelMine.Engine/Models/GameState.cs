@@ -10,6 +10,7 @@ namespace JewelMine.Engine.Models
     /// <summary>
     /// Represents the game state at any given time.
     /// </summary>
+    [Serializable]
     public class GameState
     {
         /// <summary>
@@ -24,7 +25,7 @@ namespace JewelMine.Engine.Models
             Level = GameConstants.GAME_DEFAULT_LEVEL;
             TickSpeedMilliseconds = Difficulty.TickSpeedMilliseconds;
             Score = 0;
-            DeltaStationaryTickCount = Difficulty.DeltaStationaryTickCount;
+            DeltaStationaryTimeSpan = Difficulty.DeltaStationaryTimeSpan;
             CollisionFinailseTickCount = Difficulty.CollisionFinaliseTickCount;
         }
 
@@ -85,12 +86,12 @@ namespace JewelMine.Engine.Models
         public int CollisionFinailseTickCount { get; internal set; }
 
         /// <summary>
-        /// Gets the delta stationary tick count.
+        /// Gets the delta stationary time span.
         /// </summary>
         /// <value>
-        /// The delta stationary tick count.
+        /// The delta stationary time span.
         /// </value>
-        public int DeltaStationaryTickCount { get; internal set; }
+        public TimeSpan DeltaStationaryTimeSpan { get; internal set; }
 
     }
 }

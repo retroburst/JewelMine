@@ -1,7 +1,10 @@
 ﻿using JewelMine.Engine.Models;
+using log4net;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading.Tasks;
 using System.Timers;
@@ -19,6 +22,7 @@ namespace JewelMine.Engine
         private GameState state = null;
         private GameGroupCollisionDetector collisionDetector = null;
         private GameLogicUserSettings userSettings = null;
+        private static ILog logger = LogManager.GetLogger(typeof(GameLogic));
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GameLogic" /> class.
@@ -43,6 +47,18 @@ namespace JewelMine.Engine
         }
 
         /// <summary>
+        /// Initialises the specified saved game.
+        /// </summary>
+        /// <param name="savedGame">The saved game.</param>
+        private void Initialise(SavedGameState savedGame)
+        {
+            jewelTypes = (JewelType[])Enum.GetValues(typeof(JewelType)).Cast<JewelType>().Where(x => x != JewelType.Unknown).ToArray();
+            state = savedGame.State;
+            Random = new Random();
+            collisionDetector = new GameGroupCollisionDetector(state);
+        }
+
+        /// <summary>
         /// Gets the game state model.
         /// </summary>
         /// <value>
@@ -63,6 +79,9 @@ namespace JewelMine.Engine
         {
             GameLogicUpdate logicUpdate = new GameLogicUpdate();
             bool immediateReturn = false;
+            // process any game save or game load events
+            ProcessGamePersistence(logicInput, logicUpdate, out immediateReturn);
+            if (immediateReturn) { return (logicUpdate); }
             // process any game state changes - may need to return immediately after
             ProcessGameStateChange(logicInput, logicUpdate, out immediateReturn);
             if (immediateReturn) { return (logicUpdate); }
@@ -85,6 +104,81 @@ namespace JewelMine.Engine
             // add a delta if required
             ProcessAddDelta(logicUpdate);
             return (logicUpdate);
+        }
+
+        /// <summary>
+        /// Processes the game persistence.
+        /// </summary>
+        /// <param name="logicInput">The logic input.</param>
+        /// <param name="logicUpdate">The logic update.</param>
+        /// <param name="immediateReturn">if set to <c>true</c> [immediate return].</param>
+        private void ProcessGamePersistence(GameLogicInput logicInput, GameLogicUpdate logicUpdate, out bool immediateReturn)
+        {
+            immediateReturn = false;
+            if (logicInput.SaveGame)
+            {
+                TrySaveGame(logicUpdate);
+            }
+            else if (logicInput.LoadGame)
+            {
+                TryLoadGame(logicUpdate, out immediateReturn);
+            }
+        }
+
+        /// <summary>
+        /// Tries to load the game.
+        /// </summary>
+        /// <param name="logicUpdate">The logic update.</param>
+        /// <param name="immediateReturn">if set to <c>true</c> [immediate return].</param>
+        private void TryLoadGame(GameLogicUpdate logicUpdate, out bool immediateReturn)
+        {
+            immediateReturn = false;
+            try
+            {
+                SavedGameState saveGame = null;
+                BinaryFormatter formatter = new BinaryFormatter();
+                using (FileStream fs = File.Open(GameConstants.GAME_DEFAULT_SAVE_GAME_FILENAME, FileMode.Open))
+                {
+                    saveGame = (SavedGameState)formatter.Deserialize(fs);
+                    fs.Close();
+                }
+                Initialise(saveGame);
+                logicUpdate.GameLoaded = true;
+                logicUpdate.Messages.Add(string.Format(GameConstants.GAME_MESSAGE_LOAD_GAME_PATTERN, "Done"));
+                immediateReturn = true;
+            }
+            catch (Exception ex)
+            {
+                logger.Error("Failed to load game.", ex);
+                logicUpdate.Messages.Add(string.Format(GameConstants.GAME_MESSAGE_LOAD_GAME_PATTERN, "Failed"));
+            }
+        }
+
+        /// <summary>
+        /// Tries to save the game.
+        /// </summary>
+        /// <param name="logicUpdate">The logic update.</param>
+        private void TrySaveGame(GameLogicUpdate logicUpdate)
+        {
+            try
+            {
+                SavedGameState saveGame = new SavedGameState();
+                saveGame.SavedOn = DateTime.Now;
+                saveGame.State = state;
+                BinaryFormatter formatter = new BinaryFormatter();
+                using (FileStream fs = File.Open(GameConstants.GAME_DEFAULT_SAVE_GAME_FILENAME, FileMode.OpenOrCreate))
+                {
+                    fs.SetLength(0);
+                    formatter.Serialize(fs, saveGame);
+                    fs.Close();
+                }
+                logicUpdate.Messages.Add(string.Format(GameConstants.GAME_MESSAGE_SAVE_GAME_PATTERN, "Done"));
+            }
+            catch (Exception ex)
+            {
+                logger.Error("Failed to save game.", ex);
+                logicUpdate.Messages.Add(string.Format(GameConstants.GAME_MESSAGE_SAVE_GAME_PATTERN, "Failed"));
+            }
         }
 
         /// <summary>
@@ -185,20 +279,23 @@ namespace JewelMine.Engine
                 if (IsDeltaStationary()) deltaStationary = true;
                 if (deltaStationary)
                 {
-                    if (state.Mine.Delta.StationaryTickCount >= state.DeltaStationaryTickCount)
+                    if (state.Mine.Delta.StationarySince.HasValue && (state.Mine.Delta.StationarySince.Value + state.Difficulty.DeltaStationaryTimeSpan) < DateTime.Now)
                     {
                         // delta is now in position and a new one will be added
                         state.Mine.Delta = null;
                     }
                     else
                     {
-                        state.Mine.Delta.StationaryTickCount++;
-                        if (state.Mine.Delta.StationaryTickCount == 1) logicUpdate.DeltaStationary = true;
+                        if (!state.Mine.Delta.StationarySince.HasValue)
+                        {
+                            state.Mine.Delta.StationarySince = DateTime.Now;
+                            logicUpdate.DeltaStationary = true;
+                        }
                     }
                 }
                 else
                 {
-                    state.Mine.Delta.StationaryTickCount = 0;
+                    state.Mine.Delta.StationarySince = null;
                 }
             }
         }
@@ -304,7 +401,6 @@ namespace JewelMine.Engine
             if (newTickSpeed >= state.Difficulty.TickSpeedMillisecondsFloor)
             {
                 state.TickSpeedMilliseconds -= state.Difficulty.LevelIncrementSpeedChange;
-                SetRelativeDeltaStationaryTick(state.TickSpeedMilliseconds);
             }
             else
             {
@@ -312,20 +408,8 @@ namespace JewelMine.Engine
                 if (difference < state.Difficulty.LevelIncrementSpeedChange)
                 {
                     state.TickSpeedMilliseconds = state.Difficulty.TickSpeedMillisecondsFloor;
-                    SetRelativeDeltaStationaryTick(state.TickSpeedMilliseconds);
                 }
             }
-        }
-
-        /// <summary>
-        /// Sets the relative delta stationary tick.
-        /// </summary>
-        /// <param name="newTickSpeed">The new tick speed.</param>
-        private void SetRelativeDeltaStationaryTick(double newTickSpeed)
-        {
-            double originalSpeed = state.Difficulty.TickSpeedMilliseconds * state.Difficulty.DeltaStationaryTickCount;
-            int ticks = (int)Math.Round(originalSpeed / newTickSpeed, MidpointRounding.AwayFromZero);
-            state.DeltaStationaryTickCount = ticks;
         }
 
         /// <summary>

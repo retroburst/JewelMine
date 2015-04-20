@@ -226,5 +226,29 @@ namespace JewelMine.View.Forms.Properties {
                 this["UserPreferenceDifficulty"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Ctrl+Shift+S")]
+        public global::System.Windows.Forms.Keys KeyBindingSaveGame {
+            get {
+                return ((global::System.Windows.Forms.Keys)(this["KeyBindingSaveGame"]));
+            }
+            set {
+                this["KeyBindingSaveGame"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Ctrl+Shift+L")]
+        public global::System.Windows.Forms.Keys KeyBindingLoadGame {
+            get {
+                return ((global::System.Windows.Forms.Keys)(this["KeyBindingLoadGame"]));
+            }
+            set {
+                this["KeyBindingLoadGame"] = value;
+            }
+        }
     }
 }

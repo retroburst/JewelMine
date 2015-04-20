@@ -18,23 +18,14 @@ namespace JewelMine.View.Forms
         private Brush informationOverlayBrushPartiallyTransparent = null;
         private Brush informationOverlayBrushWhite = null;
         private Brush informationShadowBrushBlack = null;
-        private Rectangle scoreRectangle = Rectangle.Empty;
-        private Rectangle levelRectangle = Rectangle.Empty;
-        private Rectangle gameStateTextRectangle = Rectangle.Empty;
-        private Rectangle gameStateSubTextRectangle = Rectangle.Empty;
-        private Rectangle debugRectangle = Rectangle.Empty;
-        private Rectangle debugInvalidationRetangle = Rectangle.Empty;
-        private Rectangle difficultyRectangle = Rectangle.Empty;
         private Font informationFont = null;
         private Font gameStateTextFont = null;
         private Font gameStateSubTextFont = null;
         private GameLogic gameLogic = null;
         private long previousScore = 0;
         private int previousLevel = GameConstants.GAME_DEFAULT_LEVEL;
-        private bool previousMusicMutedState = false;
-        private bool previousSoundMutedState = false;
         private bool showDebugInfo = false;
-        private List<ToggleInformation> toggleInformationList = null;
+        private List<Message> messageList = null;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GameInformationView" /> class.
@@ -43,7 +34,7 @@ namespace JewelMine.View.Forms
         public GameInformationView(GameLogic logic)
         {
             gameLogic = logic;
-            toggleInformationList = new List<ToggleInformation>();
+            messageList = new List<Message>();
             InitialiseDrawingObjects();
         }
 
@@ -61,53 +52,6 @@ namespace JewelMine.View.Forms
         }
 
         /// <summary>
-        /// Invalidates this instance.
-        /// </summary>
-        public void Invalidate(Action<Rectangle> invalidate)
-        {
-            if (scoreRectangle != Rectangle.Empty) invalidate(scoreRectangle);
-            if (levelRectangle != Rectangle.Empty) invalidate(levelRectangle);
-            if (gameStateTextRectangle != Rectangle.Empty) invalidate(gameStateTextRectangle);
-            if (gameStateSubTextRectangle != Rectangle.Empty) invalidate(gameStateSubTextRectangle);
-            if (debugRectangle != Rectangle.Empty) invalidate(debugRectangle);
-            if (difficultyRectangle != Rectangle.Empty) invalidate(PadCentredRectangle(difficultyRectangle, 40));
-            // need to invalidate the debug messages rect as it's been hidden
-            if (debugInvalidationRetangle != Rectangle.Empty)
-            {
-                invalidate(debugInvalidationRetangle);
-                debugInvalidationRetangle = Rectangle.Empty;
-            }
-            InvalidateToggles(invalidate);
-        }
-
-        /// <summary>
-        /// Pads the centred rectangle.
-        /// </summary>
-        /// <param name="target">The target rectangle.</param>
-        /// <param name="padding">The padding.</param>
-        /// <returns></returns>
-        private Rectangle PadCentredRectangle(Rectangle target, int padding)
-        {
-            int sides = (int)padding / 2;
-            return (new Rectangle(new Point(target.X - sides, target.Y), new Size(target.Width + padding, target.Height)));
-        }
-
-        /// <summary>
-        /// Invalidates the toggles.
-        /// </summary>
-        /// <param name="invalidate">The invalidate.</param>
-        private void InvalidateToggles(Action<Rectangle> invalidate)
-        {
-            // invalidate any rectangles - add some padding for invalidation rectangles
-            if (toggleInformationList.Count > 0)
-            {
-                int maxWidth = toggleInformationList.OrderByDescending(x => x.Rectangle.Width).First().Rectangle.Width;
-                toggleInformationList.ForEach(x =>
-                    invalidate(new Rectangle(x.Rectangle.Location, new Size(maxWidth, x.Rectangle.Height))));
-            }
-        }
-
-        /// <summary>
         /// Draws the game information.
         /// </summary>
         /// <param name="graphics">The graphics.</param>
@@ -117,16 +61,18 @@ namespace JewelMine.View.Forms
         /// <param name="windowHeight">Height of the window.</param>
         /// <param name="backgroundMusicMuted">if set to <c>true</c> [background music on].</param>
         /// <param name="soundEffectsMuted">if set to <c>true</c> [sound fx on].</param>
+        /// <param name="messages">The messages.</param>
         public void DrawGameInformation(Graphics graphics,
             int clientWidth, int clientHeight,
             int windowWidth, int windowHeight,
-            bool backgroundMusicMuted, bool soundEffectsMuted)
+            bool backgroundMusicMuted, bool soundEffectsMuted,
+            List<string> messages)
         {
             DrawGameState(graphics, clientWidth, clientHeight);
             DrawLevel(graphics, clientWidth);
             DrawScore(graphics, clientWidth);
             DrawDifficulty(graphics, clientWidth);
-            DrawToggles(graphics, clientWidth, backgroundMusicMuted, soundEffectsMuted);
+            DrawMessages(graphics, clientWidth, messages);
             if (showDebugInfo) DrawDebugInfo(graphics, clientWidth, clientHeight, windowWidth, windowHeight, backgroundMusicMuted, soundEffectsMuted);
         }
 
@@ -140,98 +86,34 @@ namespace JewelMine.View.Forms
             string difficulty = gameLogic.State.Difficulty.DifficultyLevel.ToString();
             SizeF difficultySize = graphics.MeasureString(difficulty, informationFont);
             int xPosition = (int)((clientWidth / 2) - (difficultySize.Width / 2));
-            difficultyRectangle = new Rectangle(xPosition, ViewConstants.DEFAULT_Y_OFFSET, (int)difficultySize.Width, (int)difficultySize.Height);
+            Rectangle difficultyRectangle = new Rectangle(xPosition, ViewConstants.DEFAULT_Y_OFFSET, (int)difficultySize.Width, (int)difficultySize.Height);
             graphics.FillRectangle(informationShadowBrushBlack, difficultyRectangle);
             graphics.DrawString(difficulty, informationFont, informationOverlayBrushPartiallyTransparent, new PointF(xPosition, ViewConstants.DEFAULT_Y_OFFSET));
         }
 
         /// <summary>
-        /// Draws the toggles.
+        /// Draws the messages.
         /// </summary>
         /// <param name="graphics">The graphics.</param>
         /// <param name="clientWidth">Width of the client.</param>
-        /// <param name="backgroundMusicMuted">if set to <c>true</c> [background music muted].</param>
-        /// <param name="soundEffectsMuted">if set to <c>true</c> [sound effects muted].</param>
-        private void DrawToggles(Graphics graphics, int clientWidth, bool backgroundMusicMuted, bool soundEffectsMuted)
+        /// <param name="messages">The messages.</param>
+        private void DrawMessages(Graphics graphics, int clientWidth, List<string> messages)
         {
-            bool backgroundMusicMutedStateChanged = (previousMusicMutedState != backgroundMusicMuted);
-            bool soundEffectsMutedStateChanged = (previousSoundMutedState != soundEffectsMuted);
-            // if there is a change again search in the list for existing and update the visible count
-            ProcessBackgroundMusicToggle(backgroundMusicMuted, backgroundMusicMutedStateChanged);
-            ProcessSoundEffectsToggle(soundEffectsMuted, soundEffectsMutedStateChanged);
+            foreach(string messageText in messages)
+            {
+                messageList.Add(new Message() { Text = messageText, DisplayTime = DateTime.Now });
+            }
             // remove any toggles that now expired
-            toggleInformationList.RemoveAll(x => x.ToggleVisibleTickCount >= ViewConstants.TOGGLE_DISPLAY_TICK_COUNT);
+            messageList.RemoveAll(x => (x.DisplayTime + ViewConstants.GAME_MESSAGE_VISIBLE_TIME) < DateTime.Now);
             // draw toggles in order - updating the rectangles as we go and visible counts
-            int yPosition = ViewConstants.TOGGLE_Y_OFFSET;
-            foreach (ToggleInformation toggleInfo in toggleInformationList)
+            int yPosition = ViewConstants.MESSAGE_Y_OFFSET;
+            foreach (Message message in messageList)
             {
-                SizeF toggleSize = graphics.MeasureString(toggleInfo.ToggleText, informationFont);
-                toggleInfo.Rectangle = new Rectangle(ViewConstants.DEFAULT_X_OFFSET, yPosition, (int)toggleSize.Width, (int)toggleSize.Height);
-                graphics.FillRectangle(informationShadowBrushBlack, toggleInfo.Rectangle);
-                graphics.DrawString(toggleInfo.ToggleText, informationFont, informationOverlayBrushPartiallyTransparent, new PointF(ViewConstants.DEFAULT_X_OFFSET, yPosition));
-                toggleInfo.ToggleVisibleTickCount++;
-                yPosition += (int)toggleSize.Height;
-            }
-            // save the current state of toggles
-            previousMusicMutedState = backgroundMusicMuted;
-            previousSoundMutedState = soundEffectsMuted;
-        }
-
-        /// <summary>
-        /// Processes the sound effects toggle.
-        /// </summary>
-        /// <param name="soundEffectsMuted">if set to <c>true</c> [sound effects muted].</param>
-        /// <param name="soundEffectsMutedStateChanged">if set to <c>true</c> [sound effects muted state changed].</param>
-        private void ProcessSoundEffectsToggle(bool soundEffectsMuted, bool soundEffectsMutedStateChanged)
-        {
-            if (soundEffectsMutedStateChanged)
-            {
-                ToggleInformation toggleInformation = toggleInformationList.FirstOrDefault(x => x.Type == ToggleType.SoundEffects);
-                if (toggleInformation != null)
-                {
-                    toggleInformation.ToggleVisibleTickCount = 0;
-                    toggleInformation.ToggleText = string.Format(ViewConstants.TOGGLE_SOUND_PATTERN, ViewHelpers.EncodeBooleanForDisplay(!soundEffectsMuted));
-                }
-                else
-                {
-                    ToggleInformation newToggleInformation = new ToggleInformation()
-                    {
-                        Type = ToggleType.SoundEffects,
-                        Rectangle = Rectangle.Empty,
-                        ToggleText = string.Format(ViewConstants.TOGGLE_SOUND_PATTERN, ViewHelpers.EncodeBooleanForDisplay(!soundEffectsMuted)),
-                        ToggleVisibleTickCount = 0
-                    };
-                    toggleInformationList.Add(newToggleInformation);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Processes the background music toggle.
-        /// </summary>
-        /// <param name="backgroundMusicMuted">if set to <c>true</c> [background music muted].</param>
-        /// <param name="backgroundMusicMutedStateChanged">if set to <c>true</c> [background music muted state changed].</param>
-        private void ProcessBackgroundMusicToggle(bool backgroundMusicMuted, bool backgroundMusicMutedStateChanged)
-        {
-            if (backgroundMusicMutedStateChanged)
-            {
-                ToggleInformation toggleInformation = toggleInformationList.FirstOrDefault(x => x.Type == ToggleType.BackgroundMusic);
-                if (toggleInformation != null)
-                {
-                    toggleInformation.ToggleVisibleTickCount = 0;
-                    toggleInformation.ToggleText = string.Format(ViewConstants.TOGGLE_MUSIC_PATTERN, ViewHelpers.EncodeBooleanForDisplay(!backgroundMusicMuted));
-                }
-                else
-                {
-                    ToggleInformation newToggleInformation = new ToggleInformation()
-                    {
-                        Type = ToggleType.BackgroundMusic,
-                        Rectangle = Rectangle.Empty,
-                        ToggleText = string.Format(ViewConstants.TOGGLE_MUSIC_PATTERN, ViewHelpers.EncodeBooleanForDisplay(!backgroundMusicMuted)),
-                        ToggleVisibleTickCount = 0
-                    };
-                    toggleInformationList.Add(newToggleInformation);
-                }
+                SizeF messageSize = graphics.MeasureString(message.Text, informationFont);
+                message.Rectangle = new Rectangle(ViewConstants.DEFAULT_X_OFFSET, yPosition, (int)messageSize.Width, (int)messageSize.Height);
+                graphics.FillRectangle(informationShadowBrushBlack, message.Rectangle);
+                graphics.DrawString(message.Text, informationFont, informationOverlayBrushPartiallyTransparent, new PointF(ViewConstants.DEFAULT_X_OFFSET, yPosition));
+                yPosition += (int)messageSize.Height;
             }
         }
 
@@ -250,7 +132,7 @@ namespace JewelMine.View.Forms
             bool backgroundMusicMuted, bool soundEffectsMuted)
         {
             List<string> debugMessages = new List<string>();
-            debugRectangle = new Rectangle();
+            Rectangle debugRectangle = new Rectangle();
             debugRectangle.X = clientWidth - ViewConstants.DEBUG_RECTANGLE_WIDTH;
             debugRectangle.Y = ViewConstants.DEBUG_RECTANGLE_HEIGHT_OFFSET;
             int yPosition = debugRectangle.Y + ViewConstants.DEBUG_RECTANGLE_PADDING;
@@ -269,7 +151,7 @@ namespace JewelMine.View.Forms
         /// <summary>
         /// Builds the debug messages.
         /// </summary>
-        /// <param name="debugMessages">The debug messges.</param>
+        /// <param name="debugMessages">The debug messges.</param>B
         /// <param name="clientWidth">Width of the client.</param>
         /// <param name="clientHeight">Height of the client.</param>
         /// <param name="windowWidth">Width of the window.</param>
@@ -291,13 +173,12 @@ namespace JewelMine.View.Forms
             debugMessages.Add(string.Format("Client Size [{0}x{1}]", clientWidth, clientHeight));
             debugMessages.Add(string.Format("Mine Size [{0}x{1}]", gameLogic.State.Mine.Columns, gameLogic.State.Mine.Depth));
             debugMessages.Add(string.Format("Tick Milliseconds [{0}]", gameLogic.State.TickSpeedMilliseconds));
-            debugMessages.Add(string.Format("Delta Statn. Tick [{0}]", gameLogic.State.DeltaStationaryTickCount));
             debugMessages.Add(string.Format("Finalise Col. Tick [{0}]", gameLogic.State.CollisionFinailseTickCount));
             debugMessages.Add(string.Format("State [{0}]", gameLogic.State.PlayState.ToString()));
             debugMessages.Add(string.Format("Delta [{0}]", gameLogic.State.Mine.Delta == null ? "None" : "Active"));
+            debugMessages.Add(string.Format("Delta Statn. Milli. [{0}]", gameLogic.State.DeltaStationaryTimeSpan.TotalMilliseconds));
             debugMessages.Add(string.Format("Delta Position [{0}]", deltaPosition));
             debugMessages.Add(string.Format("Delta All In Bounds [{0}]", delta == null ? "N/A" : delta.HasWholeGroupEnteredBounds.ToString()));
-            debugMessages.Add(string.Format("Delta Stat. Tick Count [{0}]", delta == null ? "N/A" : delta.StationaryTickCount.ToString()));
             debugMessages.Add(string.Format("Delta Jewels [{0}]", deltaJewels));
             debugMessages.Add(string.Format("Marked Collision Count [{0}]", gameLogic.State.Mine.MarkedCollisions.Count));
             debugMessages.Add(string.Format("Finalised Collision Count [{0}]", gameLogic.State.Mine.FinalisedCollisions.Count));
@@ -318,7 +199,7 @@ namespace JewelMine.View.Forms
             string level = string.Format(ViewConstants.LEVEL_PATTERN, gameLogic.State.Level, gameLogic.State.Difficulty.LastLevel);
             SizeF levelSize = graphics.MeasureString(level, informationFont);
             int levelXPosition = (clientWidth - (int)levelSize.Width - 5);
-            levelRectangle = new Rectangle(levelXPosition, ViewConstants.DEFAULT_Y_OFFSET, (int)levelSize.Width, (int)levelSize.Height);
+            Rectangle levelRectangle = new Rectangle(levelXPosition, ViewConstants.DEFAULT_Y_OFFSET, (int)levelSize.Width, (int)levelSize.Height);
             graphics.FillRectangle(informationShadowBrushBlack, levelRectangle);
             graphics.DrawString(level, informationFont, levelBrush, new PointF(levelXPosition, ViewConstants.DEFAULT_Y_OFFSET));
             previousLevel = gameLogic.State.Level;
@@ -334,7 +215,7 @@ namespace JewelMine.View.Forms
             Brush scoreBrush = previousScore != gameLogic.State.Score ? informationOverlayBrushWhite : informationOverlayBrushPartiallyTransparent;
             string score = string.Format(ViewConstants.SCORE_PATTERN, gameLogic.State.Score.ToString(ViewConstants.SCORE_FORMAT_STRING));
             SizeF scoreSize = graphics.MeasureString(score, informationFont);
-            scoreRectangle = new Rectangle(ViewConstants.DEFAULT_X_OFFSET, ViewConstants.DEFAULT_Y_OFFSET, (int)scoreSize.Width, (int)scoreSize.Height);
+            Rectangle scoreRectangle = new Rectangle(ViewConstants.DEFAULT_X_OFFSET, ViewConstants.DEFAULT_Y_OFFSET, (int)scoreSize.Width, (int)scoreSize.Height);
             graphics.FillRectangle(informationShadowBrushBlack, scoreRectangle);
             graphics.DrawString(score, informationFont, scoreBrush, new PointF(ViewConstants.DEFAULT_X_OFFSET, ViewConstants.DEFAULT_Y_OFFSET));
             previousScore = gameLogic.State.Score;
@@ -358,19 +239,14 @@ namespace JewelMine.View.Forms
                 Coordinates stateTextMiddle = CalculateMiddleCoordinatesForText(stateTextSize, clientWidth, clientHeight);
                 Coordinates stateSubTextMiddle = CalculateMiddleCoordinatesForText(stateSubTextSize, clientWidth, clientHeight);
 
-                gameStateTextRectangle = new Rectangle(stateTextMiddle.X, stateTextMiddle.Y, (int)stateTextSize.Width, (int)stateTextSize.Height);
-                gameStateSubTextRectangle = new Rectangle(stateSubTextMiddle.X, stateSubTextMiddle.Y + (int)stateTextSize.Height, (int)stateSubTextSize.Width, (int)stateSubTextSize.Height);
+                Rectangle gameStateTextRectangle = new Rectangle(stateTextMiddle.X, stateTextMiddle.Y, (int)stateTextSize.Width, (int)stateTextSize.Height);
+                Rectangle gameStateSubTextRectangle = new Rectangle(stateSubTextMiddle.X, stateSubTextMiddle.Y + (int)stateTextSize.Height, (int)stateSubTextSize.Width, (int)stateSubTextSize.Height);
 
                 graphics.FillRectangle(informationShadowBrushBlack, gameStateTextRectangle);
                 graphics.FillRectangle(informationShadowBrushBlack, gameStateSubTextRectangle);
 
                 graphics.DrawString(stateText, gameStateTextFont, informationOverlayBrushWhite, new PointF(gameStateTextRectangle.X, gameStateTextRectangle.Y));
                 graphics.DrawString(stateSubText, gameStateSubTextFont, informationOverlayBrushWhite, new PointF(gameStateSubTextRectangle.X, gameStateSubTextRectangle.Y));
-            }
-            else
-            {
-                gameStateTextRectangle = Rectangle.Empty;
-                gameStateSubTextRectangle = Rectangle.Empty;
             }
         }
 
@@ -421,38 +297,24 @@ namespace JewelMine.View.Forms
         }
 
         /// <summary>
-        /// Gets or sets the toggleInformation debug information.
+        /// Gets or sets the message debug information.
         /// </summary>
         /// <value>
-        /// The toggleInformation debug information.
+        /// The message debug information.
         /// </value>
         public void ToggleDebugInfo()
         {
             showDebugInfo = !showDebugInfo;
-            if (!showDebugInfo)
-            {
-                debugInvalidationRetangle = new Rectangle(debugRectangle.Location, debugRectangle.Size);
-            }
         }
 
         /// <summary>
-        /// Toggle types supported.
+        /// Manages information about a message.
         /// </summary>
-        private enum ToggleType
+        private class Message
         {
-            BackgroundMusic,
-            SoundEffects
-        }
-
-        /// <summary>
-        /// Manages information about an existing toggleInformation information display.
-        /// </summary>
-        private class ToggleInformation
-        {
-            public ToggleType Type { get; set; }
             public Rectangle Rectangle { get; set; }
-            public string ToggleText { get; set; }
-            public int ToggleVisibleTickCount { get; set; }
+            public string Text { get; set; }
+            public DateTime DisplayTime { get; set; }
         }
 
     }

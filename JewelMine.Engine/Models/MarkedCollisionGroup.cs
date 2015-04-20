@@ -10,6 +10,7 @@ namespace JewelMine.Engine.Models
     /// Represents a group of jewels
     /// which form a marked collision group.
     /// </summary>
+    [Serializable]
     public class MarkedCollisionGroup : CollisionGroup
     {
         public int CollisionTickCount { get; internal set; }

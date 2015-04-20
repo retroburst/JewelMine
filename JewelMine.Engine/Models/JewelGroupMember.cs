@@ -9,6 +9,7 @@ namespace JewelMine.Engine.Models
     /// <summary>
     /// Represents a single delta member of a group.
     /// </summary>
+    [Serializable]
     public class JewelGroupMember
     {
         /// <summary>

@@ -9,6 +9,7 @@ namespace JewelMine.Engine
     /// <summary>
     /// Represents settings for game difficulty.
     /// </summary>
+    [Serializable]
     public class GameDifficulty
     {
         public DifficultyLevel DifficultyLevel { get; private set; }
@@ -17,7 +18,7 @@ namespace JewelMine.Engine
         public double TickSpeedMilliseconds { get; private set; }
         public double TickSpeedMillisecondsFloor { get; private set; }
         public int CollisionFinaliseTickCount { get; private set; }
-        public int DeltaStationaryTickCount { get; private set; }
+        public TimeSpan DeltaStationaryTimeSpan { get; private set; }
         public double DeltaDoubleJewelChance { get; private set; }
         public double DeltaTripleJewelChance { get; private set; }
         public double DeltaDoubleJewelChanceFloor { get; private set; }
@@ -67,7 +68,7 @@ namespace JewelMine.Engine
             TickSpeedMilliseconds = 240.0d;
             TickSpeedMillisecondsFloor = 120.0d;
             CollisionFinaliseTickCount = 30;
-            DeltaStationaryTickCount = 8;
+            DeltaStationaryTimeSpan = new TimeSpan(0, 0, 0, 0, 1920);
             DeltaDoubleJewelChance = 0.9d;
             DeltaDoubleJewelChanceFloor = 0.4d;
             DeltaTripleJewelChance = 0.5d;
@@ -88,7 +89,7 @@ namespace JewelMine.Engine
             TickSpeedMilliseconds = 220.0d;
             TickSpeedMillisecondsFloor = 75.0d;
             CollisionFinaliseTickCount = 30;
-            DeltaStationaryTickCount = 8;
+            DeltaStationaryTimeSpan = new TimeSpan(0, 0, 0, 0, 1760);
             DeltaDoubleJewelChance = 0.75d;
             DeltaDoubleJewelChanceFloor = 0.25d;
             DeltaTripleJewelChance = 0.20d;
@@ -109,7 +110,7 @@ namespace JewelMine.Engine
             TickSpeedMilliseconds = 200.0d;
             TickSpeedMillisecondsFloor = 60.0d;
             CollisionFinaliseTickCount = 30;
-            DeltaStationaryTickCount = 8;
+            DeltaStationaryTimeSpan = new TimeSpan(0, 0, 0, 0, 1600);
             DeltaDoubleJewelChance = 0.50d;
             DeltaDoubleJewelChanceFloor = 0.05d;
             DeltaTripleJewelChance = 0.20d;
@@ -130,7 +131,7 @@ namespace JewelMine.Engine
             TickSpeedMilliseconds = 100.0d;
             TickSpeedMillisecondsFloor = 40.0d;
             CollisionFinaliseTickCount = 30;
-            DeltaStationaryTickCount = 8;
+            DeltaStationaryTimeSpan = new TimeSpan(0, 0, 0, 0, 800);
             DeltaDoubleJewelChance = 0.20d;
             DeltaDoubleJewelChanceFloor = 0.01d;
             DeltaTripleJewelChance = 0.10d;

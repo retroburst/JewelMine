@@ -9,6 +9,7 @@ namespace JewelMine.Engine.Models
     /// <summary>
     /// Represents a delta in the mine.
     /// </summary>
+    [Serializable]
     public class Jewel : MineObject
     {
         /// <summary>
