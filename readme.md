@@ -27,6 +27,8 @@ Default key bindings:
 * Toggle Music - Control + M
 * Toggle Sound Effects - Control + S
 * Change Game Difficulty - Control + U
+* Save Game - Control + Shift + S
+* Load Game - Control + Shift + L
 
 How to win:
 * You win by either clearing all jewels in the mine (which is very hard to do) or by scoring enough points
