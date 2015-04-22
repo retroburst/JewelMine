@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace JewelMine.Engine
+namespace JewelMine.Engine.Models
 {
     /// <summary>
     /// Stores user settings from the user.config for the game logic engine.

@@ -44,6 +44,7 @@
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -51,17 +52,23 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="GameDifficulty.cs" />
+    <Compile Include="CollisionGroupComparer.cs" />
     <Compile Include="GameGroupCollisionDetector.cs" />
-    <Compile Include="GameLogicInput.cs" />
-    <Compile Include="GameLogicUserSettings.cs" />
+    <Compile Include="IGameAudioSystem.cs" />
+    <Compile Include="Models\GameLogicUserSettings.cs" />
+    <Compile Include="IGameLogic.cs" />
     <Compile Include="IGameStateProvider.cs" />
+    <Compile Include="IFormGameView.cs" />
+    <Compile Include="IGameTimer.cs" />
+    <Compile Include="IGameView.cs" />
+    <Compile Include="Models\GameDifficulty.cs" />
+    <Compile Include="Models\GameLogicInput.cs" />
+    <Compile Include="Models\GameLogicUpdate.cs" />
     <Compile Include="Models\MarkedCollisionGroup.cs" />
     <Compile Include="Models\Coordinates.cs" />
     <Compile Include="GameConstants.cs" />
     <Compile Include="GameHelpers.cs" />
     <Compile Include="GameLogic.cs" />
-    <Compile Include="GameLogicUpdate.cs" />
     <Compile Include="GameTimer.cs" />
     <Compile Include="Models\GameState.cs" />
     <Compile Include="Models\CollisionGroup.cs" />

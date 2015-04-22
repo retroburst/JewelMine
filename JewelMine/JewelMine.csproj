@@ -83,6 +83,10 @@
       <Project>{22b7d22a-39a3-4647-b2d8-fcbf01c089df}</Project>
       <Name>JewelMine.Resources</Name>
     </ProjectReference>
+    <ProjectReference Include="..\JewelMine.View.Audio\JewelMine.View.Audio.csproj">
+      <Project>{75ca0ebc-fe33-4939-bd3c-a4effbd4ca5c}</Project>
+      <Name>JewelMine.View.Audio</Name>
+    </ProjectReference>
     <ProjectReference Include="..\JewelMine.View.Forms\JewelMine.View.Forms.csproj">
       <Project>{a7886f94-d2d3-4a81-8a35-82df1ff8a6dc}</Project>
       <Name>JewelMine.View.Forms</Name>

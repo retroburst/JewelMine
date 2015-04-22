@@ -30,29 +30,6 @@ namespace JewelMine.Engine
         }
 
         /// <summary>
-        /// Calculates the score.
-        /// </summary>
-        /// <param name="groups">The groups.</param>
-        /// <param name="defaultGroupScore">The default group score.</param>
-        /// <returns></returns>
-        internal static long CalculateScore(MarkedCollisionGroup[] groups, int defaultGroupScore)
-        {
-            long score = 0;
-            foreach(MarkedCollisionGroup group in groups)
-            {
-                // default for a 3 jewel collision
-                long groupScore = defaultGroupScore;
-                // give extra points for additional collision on top of 3 jewels
-                int extraCollisions = group.Members.Count - 3;
-                if (extraCollisions > 0) groupScore += (groupScore * extraCollisions);
-                // if diagonal then double it
-                if (group.Direction == CollisionDirection.DiagonallyLeft || group.Direction == CollisionDirection.DiagonallyRight) groupScore = groupScore * 10;
-                score += groupScore;
-            }
-            return (score);
-        }
-
-        /// <summary>
         /// Shortens the name.
         /// </summary>
         /// <param name="name">The name.</param>
@@ -64,7 +41,15 @@ namespace JewelMine.Engine
             return (result);
         }
 
-
+        /// <summary>
+        /// Encodes the boolean for display.
+        /// </summary>
+        /// <param name="target">if set to <c>true</c> [target].</param>
+        /// <returns></returns>
+        public static string EncodeBooleanForDisplay(bool target)
+        {
+            return (target ? "on" : "off");
+        }
 
     }
 }

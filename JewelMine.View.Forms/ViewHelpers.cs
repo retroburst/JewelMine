@@ -149,15 +149,5 @@ namespace JewelMine.View.Forms
             return (result);
         }
 
-        /// <summary>
-        /// Encodes the boolean for display.
-        /// </summary>
-        /// <param name="target">if set to <c>true</c> [target].</param>
-        /// <returns></returns>
-        public static string EncodeBooleanForDisplay(bool target)
-        {
-            return (target ? "On" : "Off");
-        }
-
     }
 }

@@ -15,10 +15,10 @@ namespace JewelMine.Engine
     /// Encapsulates the game state models
     /// and all the logic and functionality for game play.
     /// </summary>
-    public class GameLogic : IGameStateProvider
+    public class GameLogic : IGameLogic, IGameStateProvider
     {
+        private static readonly JewelType[] jewelTypes = (JewelType[])Enum.GetValues(typeof(JewelType)).Cast<JewelType>().Where(x => x != JewelType.Unknown).ToArray();
         public Random Random { get; private set; }
-        private JewelType[] jewelTypes = null;
         private GameState state = null;
         private GameGroupCollisionDetector collisionDetector = null;
         private GameLogicUserSettings userSettings = null;
@@ -39,7 +39,6 @@ namespace JewelMine.Engine
         /// </summary>
         private void Initialise(DifficultyLevel level)
         {
-            jewelTypes = (JewelType[])Enum.GetValues(typeof(JewelType)).Cast<JewelType>().Where(x => x != JewelType.Unknown).ToArray();
             state = new GameState(level);
             Random = new Random();
             collisionDetector = new GameGroupCollisionDetector(state);
@@ -52,7 +51,6 @@ namespace JewelMine.Engine
         /// <param name="savedGame">The saved game.</param>
         private void Initialise(SavedGameState savedGame)
         {
-            jewelTypes = (JewelType[])Enum.GetValues(typeof(JewelType)).Cast<JewelType>().Where(x => x != JewelType.Unknown).ToArray();
             state = savedGame.State;
             Random = new Random();
             collisionDetector = new GameGroupCollisionDetector(state);
@@ -144,13 +142,13 @@ namespace JewelMine.Engine
                 }
                 Initialise(saveGame);
                 logicUpdate.GameLoaded = true;
-                logicUpdate.Messages.Add(string.Format(GameConstants.GAME_MESSAGE_LOAD_GAME_PATTERN, "Done"));
+                logicUpdate.Messages.Add(string.Format(GameConstants.GAME_MESSAGE_LOAD_GAME_PATTERN, saveGame.SavedOn.ToLongDateString()));
                 immediateReturn = true;
             }
             catch (Exception ex)
             {
                 logger.Error("Failed to load game.", ex);
-                logicUpdate.Messages.Add(string.Format(GameConstants.GAME_MESSAGE_LOAD_GAME_PATTERN, "Failed"));
+                logicUpdate.Messages.Add(string.Format(GameConstants.GAME_MESSAGE_LOAD_GAME_FAILED_PATTERN, ex.Message));
             }
         }
 
@@ -172,12 +170,12 @@ namespace JewelMine.Engine
                     formatter.Serialize(fs, saveGame);
                     fs.Close();
                 }
-                logicUpdate.Messages.Add(string.Format(GameConstants.GAME_MESSAGE_SAVE_GAME_PATTERN, "Done"));
+                logicUpdate.Messages.Add(string.Format(GameConstants.GAME_MESSAGE_SAVE_GAME_PATTERN, DateTime.Now.ToLongDateString()));
             }
             catch (Exception ex)
             {
                 logger.Error("Failed to save game.", ex);
-                logicUpdate.Messages.Add(string.Format(GameConstants.GAME_MESSAGE_SAVE_GAME_PATTERN, "Failed"));
+                logicUpdate.Messages.Add(string.Format(GameConstants.GAME_MESSAGE_SAVE_GAME_FAILED_PATTERN, ex.Message));
             }
         }
 
@@ -198,6 +196,7 @@ namespace JewelMine.Engine
                 Initialise(nextLevel);
                 logicUpdate.GameStarted = true;
                 state.PlayState = GamePlayState.Playing;
+                logicUpdate.Messages.Add(string.Format(GameConstants.GAME_MESSAGE_CHANGED_DIFFICULTY_PATTERN, nextLevel.ToString(), state.Difficulty.LastLevel));
             }
         }
 
@@ -214,6 +213,7 @@ namespace JewelMine.Engine
             {
                 RestartGame(logicUpdate);
                 immediateReturn = true;
+                logicUpdate.Messages.Add(GameConstants.GAME_MESSAGE_RESTARTED);
             }
             else if (logicInput.PauseGame)
             {
@@ -309,8 +309,35 @@ namespace JewelMine.Engine
             state.Mine.MarkedCollisions.ForEach(x => x.IncrementCollisionTickCount());
             var markedCollisionsForFinalising = state.Mine.MarkedCollisions.Where(x => x.CollisionTickCount >= state.CollisionFinailseTickCount).ToArray();
             collisionDetector.FinaliseCollisionGroups(logicUpdate, markedCollisionsForFinalising);
-            state.Score += GameHelpers.CalculateScore(markedCollisionsForFinalising, state.Difficulty.GroupCollisionScore);
+            if (markedCollisionsForFinalising.Length > 0)
+            {
+                Dictionary<MarkedCollisionGroup, long> scores = CalculateScores(markedCollisionsForFinalising);
+                scores.ForEach(x => logicUpdate.Messages.Add(string.Format(GameConstants.GAME_MESSAGE_POINTS_SCORED_PATTERN, x.Value, x.Key.Direction.ToString())));
+                state.Score += scores.Sum(x => x.Value);
+            }
             collisionDetector.MarkGroupCollisions(logicUpdate);
+        }
+
+        /// <summary>
+        /// Calculates the scores for each collision.
+        /// </summary>
+        /// <param name="groups">The groups.</param>
+        /// <returns></returns>
+        private Dictionary<MarkedCollisionGroup, long> CalculateScores(MarkedCollisionGroup[] groups)
+        {
+            Dictionary<MarkedCollisionGroup, long> result = new Dictionary<MarkedCollisionGroup, long>();
+            foreach (MarkedCollisionGroup group in groups)
+            {
+                // default for a 3 jewel collision
+                long groupScore = state.Difficulty.GroupCollisionScore;
+                // give extra points for additional collision on top of 3 jewels
+                int extraCollisions = group.Members.Count - 3;
+                if (extraCollisions > 0) groupScore += (groupScore * extraCollisions);
+                // if diagonal then double it
+                if (group.Direction == CollisionDirection.DiagonallyLeft || group.Direction == CollisionDirection.DiagonallyRight) groupScore = groupScore * 10;
+                result.Add(group, groupScore);
+            }
+            return (result);
         }
 
         /// <summary>
@@ -914,7 +941,6 @@ namespace JewelMine.Engine
                 state.Mine[coordinates] = null;
             }
         }
-
 
         /// <summary>
         /// Calculates the chance based on level.

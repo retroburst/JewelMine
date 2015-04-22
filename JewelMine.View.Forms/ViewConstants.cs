@@ -36,15 +36,6 @@ namespace JewelMine.View.Forms
             "Background.Stone.3" 
         };
 
-        // Music
-        public const string BACKGROUND_MUSIC_FILENAME = "Music/Ambient.wav";
-
-        // Sounds
-        public const string SOUND_COLLISION_FILENAME = "Sounds/Collision.wav";
-        public const string SOUND_SWAP_FILENAME = "Sounds/Swap.wav";
-        public const string SOUND_STATIONARY_FILENAME = "Sounds/Stationary.wav";
-        public const string SOUND_LEVELUP_FILENAME = "Sounds/LevelUp.wav";
-
         // Text
         public static readonly TimeSpan GAME_MESSAGE_VISIBLE_TIME = new TimeSpan(0, 0, 2);
         public const string GAME_PAUSED_TEXT = "PAUSED";
@@ -62,8 +53,6 @@ namespace JewelMine.View.Forms
         public const string SCORE_PATTERN = "Score//{0}";
         public const string LEVEL_PATTERN = "Level//{0}";
         public const string SCORE_FORMAT_STRING = "00000000";
-        public const string TOGGLE_MUSIC_PATTERN = "Music//{0}";
-        public const string TOGGLE_SOUND_PATTERN = "Sound//{0}";
 
         // Misc
         public const int MESSAGE_DISPLAY_TICK_COUNT = 10;

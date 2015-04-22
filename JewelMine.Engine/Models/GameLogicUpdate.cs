@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace JewelMine.Engine
+namespace JewelMine.Engine.Models
 {
     /// <summary>
     /// Represents updates in the game logic that

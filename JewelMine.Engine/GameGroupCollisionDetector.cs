@@ -179,7 +179,7 @@ namespace JewelMine.Engine
                     foundCollisionGroups.Add(foundDiagonallyLeft);
                     foundCollisionGroups.Add(foundDiagonllyRight);
 
-                    var largestCollisionGroup = foundCollisionGroups.OrderByDescending(group => group.Members.Count).FirstOrDefault();
+                    var largestCollisionGroup = foundCollisionGroups.OrderByDescending(group => group, new CollisionGroupComparer()).FirstOrDefault();
                     if (largestCollisionGroup != null && largestCollisionGroup.Members.Count >= 3)
                     {
                         state.Mine.MarkedCollisions.Add(largestCollisionGroup);

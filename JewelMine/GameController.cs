@@ -1,4 +1,6 @@
 ﻿using JewelMine.Engine;
+using JewelMine.Engine.Models;
+using JewelMine.View.Audio;
 using JewelMine.View.Forms;
 using log4net;
 using System;
@@ -19,11 +21,11 @@ namespace JewelMine
     public class GameController
     {
         private static readonly ILog logger = LogManager.GetLogger(typeof(GameController));
-        private GameTimer timer = null;
-        private GameLogic gameLogic = null;
-        private GameView view = null;
+        private IGameTimer timer = null;
+        private IGameLogic gameLogic = null;
+        private IFormGameView view = null;
+        private IGameAudioSystem gameAudioSystem = null;
         private GameLogicInput logicInput = null;
-        private GameAudioSystem gameAudioSystem = null;
         private Dictionary<Keys, Action> keyBindingDictionary = null;
         private Size preferredWindowSize = Size.Empty;
         private bool exitingGame = false;
@@ -40,9 +42,9 @@ namespace JewelMine
 
             keyBindingDictionary = new Dictionary<Keys, Action>();
             InitialiseKeyBindings();
-            
+
             preferredWindowSize = new Size(ViewConstants.WINDOW_PREFERRED_WIDTH, ViewConstants.WINDOW_PREFERRED_HEIGHT);
-            
+
             GameLogicUserSettings settings = new GameLogicUserSettings();
             BuildGameLogicUserSettings(settings);
             gameLogic = new GameLogic(settings);
@@ -55,17 +57,18 @@ namespace JewelMine
         {
             // create a new view and guarantee it 
             // will be disposed with 'using' statement
-            using (view = new GameView(gameLogic))
+            using (view = new GameView())
             {
+                view.InitialiseView((IGameStateProvider)gameLogic, gameAudioSystem);
                 // hook up to view events
-                view.FormClosing += HandleViewClosing;
-                view.KeyDown += HandleViewKeyDown;
-                view.Load += HandleViewLoad;
-                view.Layout += HandleViewLayout;
+                view.Window.FormClosing += HandleViewClosing;
+                view.Window.KeyDown += HandleViewKeyDown;
+                view.Window.Load += HandleViewLoad;
+                view.Window.Layout += HandleViewLayout;
                 // restore user preferences
                 RestoreUserPreferences();
                 // show the form
-                view.Show();
+                view.Window.Show();
                 // proceed into the main game loop
                 GameLoop();
             }
@@ -93,13 +96,13 @@ namespace JewelMine
         /// <param name="e">The <see cref="LayoutEventArgs"/> instance containing the event data.</param>
         private void HandleViewLayout(object sender, LayoutEventArgs e)
         {
-            if (view.WindowState == FormWindowState.Minimized)
+            if (view.Window.WindowState == FormWindowState.Minimized)
             {
                 logicInput.PauseGame = true;
                 return;
             }
-            view.UpdateLayout();
-            if (logger.IsDebugEnabled) logger.DebugFormat("View window resized to {0}x{1}.", view.Width, view.Height);
+            view.UpdateViewLayout();
+            if (logger.IsDebugEnabled) logger.DebugFormat("View window resized to {0}x{1}.", view.Window.Width, view.Window.Height);
         }
 
         /// <summary>
@@ -145,19 +148,19 @@ namespace JewelMine
         /// </summary>
         private void InitialiseKeyBindings()
         {
-           PerformSafeKeyBinding(Properties.Settings.Default.KeyBindingMoveLeft, Keys.Left, () => logicInput.DeltaMovement = MovementType.Left, keyBindingDictionary);
-           PerformSafeKeyBinding(Properties.Settings.Default.KeyBindingMoveRight, Keys.Right, () => logicInput.DeltaMovement = MovementType.Right, keyBindingDictionary);
-           PerformSafeKeyBinding(Properties.Settings.Default.KeyBindingMoveDown, Keys.Down, () => logicInput.DeltaMovement = MovementType.Down, keyBindingDictionary);
-           PerformSafeKeyBinding(Properties.Settings.Default.KeyBindingPauseGame, Keys.Control | Keys.P, () => logicInput.PauseGame = true, keyBindingDictionary);
-           PerformSafeKeyBinding(Properties.Settings.Default.KeyBindingRestartGame, Keys.Control | Keys.R, () => logicInput.RestartGame = true, keyBindingDictionary);
-           PerformSafeKeyBinding(Properties.Settings.Default.KeyBindingToggleDebugInfo, Keys.Control | Keys.D, () => view.ToggleDebugInfo(), keyBindingDictionary);
-           PerformSafeKeyBinding(Properties.Settings.Default.KeyBindingQuitGame, Keys.Control | Keys.Q, () => view.Close(), keyBindingDictionary);
-           PerformSafeKeyBinding(Properties.Settings.Default.KeyBindingSwapDeltaJewels, Keys.Space, () => logicInput.DeltaSwapJewels = true, keyBindingDictionary);
-           PerformSafeKeyBinding(Properties.Settings.Default.KeyBindingToggleMusic, Keys.Control | Keys.M, () => ToggleBackgroundMusicLoop(), keyBindingDictionary);
-           PerformSafeKeyBinding(Properties.Settings.Default.KeyBindingToggleSoundEffects, Keys.Control | Keys.S, () => ToggleSoundEffects(), keyBindingDictionary);
-           PerformSafeKeyBinding(Properties.Settings.Default.KeyBindingDifficultyChange, Keys.Control | Keys.U, () => logicInput.ChangeDifficulty = true, keyBindingDictionary);
-           PerformSafeKeyBinding(Properties.Settings.Default.KeyBindingSaveGame, Keys.Control | Keys.Shift | Keys.S, () => logicInput.SaveGame = true, keyBindingDictionary);
-           PerformSafeKeyBinding(Properties.Settings.Default.KeyBindingLoadGame, Keys.Control | Keys.Shift | Keys.L, () => logicInput.LoadGame = true, keyBindingDictionary);
+            PerformSafeKeyBinding(Properties.Settings.Default.KeyBindingMoveLeft, Keys.Left, () => logicInput.DeltaMovement = MovementType.Left, keyBindingDictionary);
+            PerformSafeKeyBinding(Properties.Settings.Default.KeyBindingMoveRight, Keys.Right, () => logicInput.DeltaMovement = MovementType.Right, keyBindingDictionary);
+            PerformSafeKeyBinding(Properties.Settings.Default.KeyBindingMoveDown, Keys.Down, () => logicInput.DeltaMovement = MovementType.Down, keyBindingDictionary);
+            PerformSafeKeyBinding(Properties.Settings.Default.KeyBindingPauseGame, Keys.Control | Keys.P, () => logicInput.PauseGame = true, keyBindingDictionary);
+            PerformSafeKeyBinding(Properties.Settings.Default.KeyBindingRestartGame, Keys.Control | Keys.R, () => logicInput.RestartGame = true, keyBindingDictionary);
+            PerformSafeKeyBinding(Properties.Settings.Default.KeyBindingToggleDebugInfo, Keys.Control | Keys.D, () => view.ToggleDebugInfo(), keyBindingDictionary);
+            PerformSafeKeyBinding(Properties.Settings.Default.KeyBindingQuitGame, Keys.Control | Keys.Q, () => view.Window.Close(), keyBindingDictionary);
+            PerformSafeKeyBinding(Properties.Settings.Default.KeyBindingSwapDeltaJewels, Keys.Space, () => logicInput.DeltaSwapJewels = true, keyBindingDictionary);
+            PerformSafeKeyBinding(Properties.Settings.Default.KeyBindingToggleMusic, Keys.Control | Keys.M, () => ToggleBackgroundMusicLoop(), keyBindingDictionary);
+            PerformSafeKeyBinding(Properties.Settings.Default.KeyBindingToggleSoundEffects, Keys.Control | Keys.S, () => ToggleSoundEffects(), keyBindingDictionary);
+            PerformSafeKeyBinding(Properties.Settings.Default.KeyBindingDifficultyChange, Keys.Control | Keys.U, () => logicInput.ChangeDifficulty = true, keyBindingDictionary);
+            PerformSafeKeyBinding(Properties.Settings.Default.KeyBindingSaveGame, Keys.Control | Keys.Shift | Keys.S, () => logicInput.SaveGame = true, keyBindingDictionary);
+            PerformSafeKeyBinding(Properties.Settings.Default.KeyBindingLoadGame, Keys.Control | Keys.Shift | Keys.L, () => logicInput.LoadGame = true, keyBindingDictionary);
         }
 
         /// <summary>
@@ -200,7 +203,7 @@ namespace JewelMine
                     int sleepTime = (int)(gameLogic.State.TickSpeedMilliseconds - (timer.ElapsedMilliseconds - gameStartTime));
                     Thread.Sleep(sleepTime);
                 }
-                // reset user logicInput descriptors
+                // reset user input descriptors
                 logicInput.Clear();
             }
             timer.Stop();
@@ -223,9 +226,9 @@ namespace JewelMine
         private void RestoreUserPreferences()
         {
             gameAudioSystem.BackgroundMusicMuted = Properties.Settings.Default.UserPreferenceMusicMuted;
-            AddBackgroundMusicStateMessage();
+            gameAudioSystem.AddBackgroundMusicStateMessage(view.AddGameInformationMessage);
             gameAudioSystem.SoundEffectsMuted = Properties.Settings.Default.UserPreferenceSoundEffectsMuted;
-            AddSoundEffectsStateMessage();
+            gameAudioSystem.AddSoundEffectsStateMessage(view.AddGameInformationMessage);
         }
 
         /// <summary>
@@ -238,30 +241,12 @@ namespace JewelMine
         }
 
         /// <summary>
-        /// Adds the background music state message.
-        /// </summary>
-        private void AddBackgroundMusicStateMessage()
-        {
-            string message = string.Format(ViewConstants.TOGGLE_MUSIC_PATTERN, ViewHelpers.EncodeBooleanForDisplay(!gameAudioSystem.BackgroundMusicMuted));
-            view.AddGameInformationMessage(message);
-        }
-
-        /// <summary>
         /// Toggles the background music loop.
         /// </summary>
         private void ToggleBackgroundMusicLoop()
         {
             gameAudioSystem.ToggleBackgroundMusicLoop();
-            AddBackgroundMusicStateMessage();
-        }
-
-        /// <summary>
-        /// Adds the sound effects state message.
-        /// </summary>
-        private void AddSoundEffectsStateMessage()
-        {
-            string message = string.Format(ViewConstants.TOGGLE_SOUND_PATTERN, ViewHelpers.EncodeBooleanForDisplay(!gameAudioSystem.SoundEffectsMuted));
-            view.AddGameInformationMessage(message);
+            gameAudioSystem.AddBackgroundMusicStateMessage(view.AddGameInformationMessage);
         }
 
         /// <summary>
@@ -270,7 +255,7 @@ namespace JewelMine
         private void ToggleSoundEffects()
         {
             gameAudioSystem.ToggleSoundEffects();
-            AddSoundEffectsStateMessage();
+            gameAudioSystem.AddSoundEffectsStateMessage(view.AddGameInformationMessage);
         }
 
         /// <summary>
@@ -284,10 +269,10 @@ namespace JewelMine
                 FitViewPreferredSizeToScreen();
                 return; // state has never been saved
             }
-            view.StartPosition = FormStartPosition.Manual;
-            view.Location = Properties.Settings.Default.WindowLocation;
-            view.Size = Properties.Settings.Default.WindowSize;
-            view.WindowState = Properties.Settings.Default.WindowState == FormWindowState.Minimized ? FormWindowState.Normal : Properties.Settings.Default.WindowState;
+            view.Window.StartPosition = FormStartPosition.Manual;
+            view.Window.Location = Properties.Settings.Default.WindowLocation;
+            view.Window.Size = Properties.Settings.Default.WindowSize;
+            view.Window.WindowState = Properties.Settings.Default.WindowState == FormWindowState.Minimized ? FormWindowState.Normal : Properties.Settings.Default.WindowState;
         }
 
         /// <summary>
@@ -298,7 +283,7 @@ namespace JewelMine
         private void FitViewPreferredSizeToScreen()
         {
             if (logger.IsDebugEnabled) logger.Debug("Fitting preferred view size window to screen.");
-            Screen screen = Screen.FromControl(view);
+            Screen screen = Screen.FromControl(view.Window);
             if (screen.WorkingArea.Height < preferredWindowSize.Height)
             {
                 // shrink for but try and maintain aspect ratio
@@ -311,13 +296,13 @@ namespace JewelMine
                     customWidth -= widthDifference;
                     customHeight -= widthDifference;
                 }
-                view.Size = new Size(customWidth, customHeight);
+                view.Window.Size = new Size(customWidth, customHeight);
             }
             else
             {
-                view.Size = preferredWindowSize;
+                view.Window.Size = preferredWindowSize;
             }
-            view.CenterViewWindow();
+            view.CenterWindow();
         }
 
         /// <summary>
@@ -326,17 +311,17 @@ namespace JewelMine
         private void SaveViewWindowState()
         {
             if (logger.IsDebugEnabled) logger.Debug("Saving the view window state.");
-            if (view.WindowState == FormWindowState.Normal)
+            if (view.Window.WindowState == FormWindowState.Normal)
             {
-                Properties.Settings.Default.WindowLocation = view.Location;
-                Properties.Settings.Default.WindowSize = view.Size;
+                Properties.Settings.Default.WindowLocation = view.Window.Location;
+                Properties.Settings.Default.WindowSize = view.Window.Size;
             }
             else
             {
-                Properties.Settings.Default.WindowLocation = view.RestoreBounds.Location;
-                Properties.Settings.Default.WindowSize = view.RestoreBounds.Size;
+                Properties.Settings.Default.WindowLocation = view.Window.RestoreBounds.Location;
+                Properties.Settings.Default.WindowSize = view.Window.RestoreBounds.Size;
             }
-            Properties.Settings.Default.WindowState = view.WindowState;
+            Properties.Settings.Default.WindowState = view.Window.WindowState;
         }
 
     }

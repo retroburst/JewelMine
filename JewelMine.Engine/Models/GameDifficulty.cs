@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace JewelMine.Engine
+namespace JewelMine.Engine.Models
 {
     /// <summary>
     /// Represents settings for game difficulty.
@@ -94,7 +94,7 @@ namespace JewelMine.Engine
             DeltaDoubleJewelChanceFloor = 0.25d;
             DeltaTripleJewelChance = 0.20d;
             DeltaTripleJewelChanceFloor = 0.04d;
-            GroupCollisionScore = 1000;
+            GroupCollisionScore = 2000;
             LastLevel = 500;
             InitialLines = 5;
             LevelIncrementSpeedChange = CalculateLevelIncrementSpeedChange();
@@ -115,7 +115,7 @@ namespace JewelMine.Engine
             DeltaDoubleJewelChanceFloor = 0.05d;
             DeltaTripleJewelChance = 0.20d;
             DeltaTripleJewelChanceFloor = 0.01d;
-            GroupCollisionScore = 1000;
+            GroupCollisionScore = 3000;
             LastLevel = 1000;
             InitialLines = 4;
             LevelIncrementSpeedChange = CalculateLevelIncrementSpeedChange();
@@ -136,7 +136,7 @@ namespace JewelMine.Engine
             DeltaDoubleJewelChanceFloor = 0.01d;
             DeltaTripleJewelChance = 0.10d;
             DeltaTripleJewelChanceFloor = 0.001d;
-            GroupCollisionScore = 1000;
+            GroupCollisionScore = 4000;
             LastLevel = 10000;
             InitialLines = 3;
             LevelIncrementSpeedChange = CalculateLevelIncrementSpeedChange();

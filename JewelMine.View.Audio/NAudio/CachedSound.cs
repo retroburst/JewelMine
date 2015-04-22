@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using NAudio.Wave;
 
-namespace JewelMine.View.Forms.Audio
+namespace JewelMine.View.Audio.NAudio
 {
     /// <summary>
     /// Represents a cached sound for use

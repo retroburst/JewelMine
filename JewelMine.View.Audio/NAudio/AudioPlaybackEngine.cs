@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
 
-namespace JewelMine.View.Forms.Audio
+namespace JewelMine.View.Audio.NAudio
 {
     /// <summary>
     /// Wraps the NAudio sound output functionality,

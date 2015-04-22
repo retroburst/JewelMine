@@ -1,8 +1,6 @@
 ﻿using JewelMine.Engine;
 using JewelMine.Engine.Models;
-using JewelMine.View.Forms.Audio;
 using log4net;
-using NAudio.Wave;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -23,9 +21,10 @@ namespace JewelMine.View.Forms
     /// Windows forms based view
     /// for game.
     /// </summary>
-    public partial class GameView : Form
+    public partial class GameView : Form, IFormGameView
     {
         private IGameStateProvider gameStateProvider = null;
+        private IGameAudioSystem gameAudioSystem = null;
         private Dictionary<JewelType, Bitmap> jewelImageResourceDictionary = null;
         private Dictionary<JewelType, Bitmap> jewelResizedImageResourceDictionary = null;
         private Bitmap[] backgroundImageArray = null;
@@ -43,13 +42,23 @@ namespace JewelMine.View.Forms
         /// <summary>
         /// Initializes a new instance of the <see cref="GameView" /> class.
         /// </summary>
-        /// <param name="provider">The provider.</param>
-        public GameView(IGameStateProvider provider)
+        public GameView()
         {
-            InitializeComponent();
+            InitializeComponent();  
+        }
+
+        /// <summary>
+        /// Initialises the view.
+        /// </summary>
+        /// <param name="provider">The provider.</param>
+        /// <param name="audioSystem">The audio system.</param>
+        public void InitialiseView(IGameStateProvider provider, IGameAudioSystem audioSystem)
+        {
             messages = new List<string>();
             // save our game state provider into a variable
             gameStateProvider = provider;
+            // save the game audio system
+            gameAudioSystem = audioSystem;
             // init game information
             gameInformationView = new GameInformationView(provider);
             // set paint styles
@@ -72,8 +81,14 @@ namespace JewelMine.View.Forms
         /// Re initialise the view based on new game state.
         /// </summary>
         /// <param name="provider">The provider.</param>
-        public void ReInitialise(IGameStateProvider provider)
+        /// <param name="audioSystem">The audio system.</param>
+        public void ReInitialiseView(IGameStateProvider provider, IGameAudioSystem audioSystem)
         {
+            // save our game state provider into a variable
+            gameStateProvider = provider;
+            // save the game audio system
+            gameAudioSystem = audioSystem;
+            // set up a new game information component
             gameInformationView = new GameInformationView(provider);
             cells = new Rectangle[provider.State.Mine.Columns, provider.State.Mine.Depth];
             // calculate cell dimensions
@@ -172,8 +187,8 @@ namespace JewelMine.View.Forms
                 ClientSize.Height,
                 Width,
                 Height,
-                GameAudioSystem.Instance.BackgroundMusicMuted,
-                GameAudioSystem.Instance.SoundEffectsMuted,
+                gameAudioSystem.BackgroundMusicMuted,
+                gameAudioSystem.SoundEffectsMuted,
                 messages);
             messages.Clear();
         }
@@ -241,9 +256,9 @@ namespace JewelMine.View.Forms
         }
 
         /// <summary>
-        /// Updates the layout.
+        /// Updates the layout of the view.
         /// </summary>
-        public void UpdateLayout()
+        public void UpdateViewLayout()
         {
             // calculate new cell dimensions
             CalculateGridCellDimensions();
@@ -289,10 +304,20 @@ namespace JewelMine.View.Forms
         /// <summary>
         /// Centera the view window to the screen.
         /// </summary>
-        public void CenterViewWindow()
+        public void CenterWindow()
         {
             CenterToScreen();
         }
 
+        /// <summary>
+        /// Gets the window.
+        /// </summary>
+        /// <value>
+        /// The window.
+        /// </value>
+        public Form Window
+        {
+            get { return(this); }
+        }
     }
 }

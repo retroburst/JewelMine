@@ -11,7 +11,7 @@ namespace JewelMine.Engine
     /// Went with this approach instead of picking a way into windows
     /// subsyetem, as this might work on other operating systems with Mono.
     /// </summary>
-    public class GameTimer
+    public class GameTimer : IGameTimer
     {
         Stopwatch stopwatch = null;
 

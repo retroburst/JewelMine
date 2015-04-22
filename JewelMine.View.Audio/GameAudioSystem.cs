@@ -1,21 +1,22 @@
-﻿using JewelMine.View.Forms.Audio;
+﻿using JewelMine.Engine;
+using JewelMine.Engine.Models;
+using JewelMine.View.Audio.NAudio;
 using NAudio;
 using NAudio.Wave;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.IO;
-using JewelMine.Engine;
 
-namespace JewelMine.View.Forms
+namespace JewelMine.View.Audio
 {
     /// <summary>
     /// Encapsulates the audio system for this game,
     /// wraps NAudio classes and manages resource streams.
     /// </summary>
-    public class GameAudioSystem : IDisposable
+    public class GameAudioSystem : IGameAudioSystem, IDisposable
     {
         private AudioPlaybackEngine audioPlayer = null;
         private CachedSound swapSound = null;
@@ -32,11 +33,11 @@ namespace JewelMine.View.Forms
         /// </summary>
         private GameAudioSystem()
         {
-            if (File.Exists(ViewConstants.SOUND_COLLISION_FILENAME)) collisionSound = new CachedSound(ViewConstants.SOUND_COLLISION_FILENAME);
-            if (File.Exists(ViewConstants.SOUND_SWAP_FILENAME)) swapSound = new CachedSound(ViewConstants.SOUND_SWAP_FILENAME);
-            if (File.Exists(ViewConstants.SOUND_STATIONARY_FILENAME)) stationarySound = new CachedSound(ViewConstants.SOUND_STATIONARY_FILENAME);
-            if (File.Exists(ViewConstants.SOUND_LEVELUP_FILENAME)) levelUpSound = new CachedSound(ViewConstants.SOUND_LEVELUP_FILENAME);
-            if (File.Exists(ViewConstants.BACKGROUND_MUSIC_FILENAME)) backgroundMusic = new LoopStream(new WaveFileReader(ViewConstants.BACKGROUND_MUSIC_FILENAME));
+            if (File.Exists(AudioConstants.SOUND_COLLISION_FILENAME)) collisionSound = new CachedSound(AudioConstants.SOUND_COLLISION_FILENAME);
+            if (File.Exists(AudioConstants.SOUND_SWAP_FILENAME)) swapSound = new CachedSound(AudioConstants.SOUND_SWAP_FILENAME);
+            if (File.Exists(AudioConstants.SOUND_STATIONARY_FILENAME)) stationarySound = new CachedSound(AudioConstants.SOUND_STATIONARY_FILENAME);
+            if (File.Exists(AudioConstants.SOUND_LEVELUP_FILENAME)) levelUpSound = new CachedSound(AudioConstants.SOUND_LEVELUP_FILENAME);
+            if (File.Exists(AudioConstants.BACKGROUND_MUSIC_FILENAME)) backgroundMusic = new LoopStream(new WaveFileReader(AudioConstants.BACKGROUND_MUSIC_FILENAME));
             audioPlayer = AudioPlaybackEngine.Instance;
         }
 
@@ -180,6 +181,26 @@ namespace JewelMine.View.Forms
         public void Dispose()
         {
             if (audioPlayer != null) audioPlayer.Dispose();
+        }
+
+        /// <summary>
+        /// Adds the background music state message.
+        /// </summary>
+        /// <param name="addMessage">The add message.</param>
+        public void AddBackgroundMusicStateMessage(Action<string> addMessage)
+        {
+            string message = string.Format(AudioConstants.GAME_MESSAGE_TOGGLE_MUSIC_PATTERN, GameHelpers.EncodeBooleanForDisplay(!BackgroundMusicMuted));
+            addMessage(message);
+        }
+
+        /// <summary>
+        /// Adds the sound effects state message.
+        /// </summary>
+        /// <param name="addMessage">The add message.</param>
+        public void AddSoundEffectsStateMessage(Action<string> addMessage)
+        {
+            string message = string.Format(AudioConstants.GAME_TOGGLE_SOUND_PATTERN, GameHelpers.EncodeBooleanForDisplay(!SoundEffectsMuted));
+            addMessage(message);
         }
     }
 }

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using NAudio;
 using NAudio.Wave;
 
-namespace JewelMine.View.Forms.Audio
+namespace JewelMine.View.Audio.NAudio
 {
     /// <summary>
     /// Stream for looping playback

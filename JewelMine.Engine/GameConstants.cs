@@ -14,8 +14,14 @@ namespace JewelMine.Engine
         public const int GAME_MINE_DEFAULT_COLUMN_SIZE = 21;
         public const int GAME_MINE_DEFAULT_DEPTH_SIZE = 21;
         public const int GAME_DEFAULT_LEVEL = 1;
-        public const string GAME_MESSAGE_SAVE_GAME_PATTERN = "Save//{0}";
-        public const string GAME_MESSAGE_LOAD_GAME_PATTERN = "Load//{0}";
+        public const int GAME_NUM_JEWELS_FOR_GROUP_COLLISION = 3;
+        public const string GAME_MESSAGE_SAVE_GAME_PATTERN = "Saved {0}";
+        public const string GAME_MESSAGE_LOAD_GAME_PATTERN = "Loaded from {0}";
+        public const string GAME_MESSAGE_SAVE_GAME_FAILED_PATTERN = "Save failed [{0}]";
+        public const string GAME_MESSAGE_LOAD_GAME_FAILED_PATTERN = "Loaded failed [{0}]";
+        public const string GAME_MESSAGE_CHANGED_DIFFICULTY_PATTERN = "Difficulty set to {0} [{1:N0} Levels]";
+        public const string GAME_MESSAGE_RESTARTED = "Restarted";
+        public const string GAME_MESSAGE_POINTS_SCORED_PATTERN = "{0:N0} points scored [{1}]";
         public const string GAME_DEFAULT_SAVE_GAME_FILENAME = "Saved.Game.data";
     }
 
