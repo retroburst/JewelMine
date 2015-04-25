@@ -21,7 +21,7 @@ namespace JewelMine.Engine
         public const string GAME_MESSAGE_LOAD_GAME_FAILED_PATTERN = "Loaded failed [{0}]";
         public const string GAME_MESSAGE_CHANGED_DIFFICULTY_PATTERN = "Difficulty set to {0} [{1:N0} Levels]";
         public const string GAME_MESSAGE_RESTARTED = "Restarted";
-        public const string GAME_MESSAGE_POINTS_SCORED_PATTERN = "{0:N0} points scored [{1}]";
+        public const string GAME_MESSAGE_POINTS_SCORED_PATTERN = "{0:N0} points scored";
         public const string GAME_DEFAULT_SAVE_GAME_FILENAME = "Saved.Game.data";
     }
 
