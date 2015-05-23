@@ -20,6 +20,8 @@ namespace JewelMine
     /// </summary>
     public class GameController
     {
+        private const int GAME_MINE_DEFAULT_COLUMN_SIZE = 21;
+        private const int GAME_MINE_DEFAULT_DEPTH_SIZE = 21;
         private static readonly ILog logger = LogManager.GetLogger(typeof(GameController));
         private IGameTimer timer = null;
         private IGameLogic gameLogic = null;
@@ -238,6 +240,12 @@ namespace JewelMine
         private void BuildGameLogicUserSettings(GameLogicUserSettings settings)
         {
             settings.UserPreferredDifficulty = Properties.Settings.Default.UserPreferenceDifficulty;
+            settings.MineColumns = GAME_MINE_DEFAULT_COLUMN_SIZE;
+            settings.MineDepth = GAME_MINE_DEFAULT_DEPTH_SIZE;
+            settings.EasyDifficultySettings = GameDifficultySettingsProvider.DEFAULT_EASY_SETTINGS;
+            settings.ModerateDifficultySettings = GameDifficultySettingsProvider.DEFAULT_MODERATE_SETTINGS;
+            settings.HardDifficultySettings = GameDifficultySettingsProvider.DEFAULT_HARD_SETTINGS;
+            settings.ImpossibleDifficultySettings = GameDifficultySettingsProvider.DEFAULT_IMPOSSIBLE_SETTINGS;
         }
 
         /// <summary>

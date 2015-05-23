@@ -53,8 +53,5 @@ namespace JewelMine.View.Forms
         public const string SCORE_PATTERN = "Score//{0}";
         public const string LEVEL_PATTERN = "Level//{0}";
         public const string SCORE_FORMAT_STRING = "00000000";
-
-        // Misc
-        public const int MESSAGE_DISPLAY_TICK_COUNT = 10;
     }
 }

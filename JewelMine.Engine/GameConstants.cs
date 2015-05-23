@@ -11,8 +11,6 @@ namespace JewelMine.Engine
     /// </summary>
     public static class GameConstants
     {
-        public const int GAME_MINE_DEFAULT_COLUMN_SIZE = 21;
-        public const int GAME_MINE_DEFAULT_DEPTH_SIZE = 21;
         public const int GAME_DEFAULT_LEVEL = 1;
         public const int GAME_NUM_JEWELS_FOR_GROUP_COLLISION = 3;
         public const string GAME_MESSAGE_SAVE_GAME_PATTERN = "Saved {0}";

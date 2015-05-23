@@ -18,19 +18,10 @@ namespace JewelMine.Engine.Models
         /// <summary>
         /// Initializes a new instance of the <see cref="Mine"/> class.
         /// </summary>
-        public Mine()
-            : this(GameConstants.GAME_MINE_DEFAULT_COLUMN_SIZE, GameConstants.GAME_MINE_DEFAULT_DEPTH_SIZE)
-        { }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Mine"/> class.
-        /// </summary>
         /// <param name="columns">The columns.</param>
         /// <param name="depth">The depth.</param>
         public Mine(int columns, int depth)
         {
-            if (Columns < 0) Columns = GameConstants.GAME_MINE_DEFAULT_COLUMN_SIZE;
-            if (Depth < 0) Depth = GameConstants.GAME_MINE_DEFAULT_DEPTH_SIZE;
             Columns = columns;
             Depth = depth;
             Delta = null;

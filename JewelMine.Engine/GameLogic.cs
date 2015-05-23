@@ -39,7 +39,7 @@ namespace JewelMine.Engine
         /// </summary>
         private void Initialise(DifficultyLevel level)
         {
-            state = new GameState(level);
+            state = new GameState(level, userSettings);
             Random = new Random();
             collisionDetector = new GameGroupCollisionDetector(state);
             AddInitialLinesToMine(state.Difficulty.InitialLines);

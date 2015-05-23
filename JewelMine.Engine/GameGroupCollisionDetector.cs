@@ -58,13 +58,13 @@ namespace JewelMine.Engine
             // find new collisions and additions to existing marked collisions and mark
             // add new marks to logic update
             CheckMarkedCollisionGroupsStillValid(logicUpdate);
-            // check for new collisions
-            AddNewMarkedCollisionGroups();
             // check for new additions to existing marked collisions
             // loop through marked collisions collection
             // based on direction of collision group look on ends for new collisions
             // add to group if there and not in another group
             AddNewMembersToMarkedCollisions();
+            // check for new collisions
+            AddNewMarkedCollisionGroups();
             // add marked collisions to the logic update
             logicUpdate.Collisions.Clear();
             logicUpdate.Collisions.AddRange(state.Mine.MarkedCollisions);

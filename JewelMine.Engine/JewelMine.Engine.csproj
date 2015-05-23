@@ -55,6 +55,7 @@
     <Compile Include="CollisionGroupComparer.cs" />
     <Compile Include="GameGroupCollisionDetector.cs" />
     <Compile Include="IGameAudioSystem.cs" />
+    <Compile Include="IGameDifficultySettingsProvider.cs" />
     <Compile Include="Models\GameLogicUserSettings.cs" />
     <Compile Include="IGameLogic.cs" />
     <Compile Include="IGameStateProvider.cs" />

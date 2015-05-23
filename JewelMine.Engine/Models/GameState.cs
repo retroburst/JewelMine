@@ -17,10 +17,11 @@ namespace JewelMine.Engine.Models
         /// Initializes a new instance of the <see cref="GameState" /> class.
         /// </summary>
         /// <param name="level">The level.</param>
-        public GameState(DifficultyLevel level)
+        /// <param name="userSettings">The user settings.</param>
+        public GameState(DifficultyLevel level, GameLogicUserSettings userSettings)
         {
-            Mine = new Mine();
-            Difficulty = new GameDifficulty(level);
+            Mine = new Mine(userSettings.MineColumns, userSettings.MineDepth);
+            Difficulty = new GameDifficulty(level, userSettings);
             PlayState = GamePlayState.NotStarted;
             Level = GameConstants.GAME_DEFAULT_LEVEL;
             TickSpeedMilliseconds = Difficulty.TickSpeedMilliseconds;

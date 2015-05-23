@@ -12,34 +12,117 @@ namespace JewelMine.Engine.Models
     [Serializable]
     public class GameDifficulty
     {
+        /// <summary>
+        /// Gets the difficulty level.
+        /// </summary>
+        /// <value>The difficulty level.</value>
         public DifficultyLevel DifficultyLevel { get; private set; }
+
+        /// <summary>
+        /// Gets the level increment score threshold.
+        /// </summary>
+        /// <value>The level increment score threshold.</value>
         public int LevelIncrementScoreThreshold { get; private set; }
+
+        /// <summary>
+        /// Gets the level increment speed change.
+        /// </summary>
+        /// <value>The level increment speed change.</value>
         public double LevelIncrementSpeedChange { get; private set; }
+
+        /// <summary>
+        /// Gets the tick speed milliseconds.
+        /// </summary>
+        /// <value>The tick speed milliseconds.</value>
         public double TickSpeedMilliseconds { get; private set; }
+
+        /// <summary>
+        /// Gets the tick speed milliseconds floor.
+        /// </summary>
+        /// <value>The tick speed milliseconds floor.</value>
         public double TickSpeedMillisecondsFloor { get; private set; }
+
+        /// <summary>
+        /// Gets the collision finalise tick count.
+        /// </summary>
+        /// <value>The collision finalise tick count.</value>
         public int CollisionFinaliseTickCount { get; private set; }
+
+        /// <summary>
+        /// Gets the delta stationary time span.
+        /// </summary>
+        /// <value>The delta stationary time span.</value>
         public TimeSpan DeltaStationaryTimeSpan { get; private set; }
+
+        /// <summary>
+        /// Gets the delta double jewel chance.
+        /// </summary>
+        /// <value>The delta double jewel chance.</value>
         public double DeltaDoubleJewelChance { get; private set; }
+
+        /// <summary>
+        /// Gets the delta triple jewel chance.
+        /// </summary>
+        /// <value>The delta triple jewel chance.</value>
         public double DeltaTripleJewelChance { get; private set; }
+
+        /// <summary>
+        /// Gets the delta double jewel chance floor.
+        /// </summary>
+        /// <value>The delta double jewel chance floor.</value>
         public double DeltaDoubleJewelChanceFloor { get; private set; }
+
+        /// <summary>
+        /// Gets the delta triple jewel chance floor.
+        /// </summary>
+        /// <value>The delta triple jewel chance floor.</value>
         public double DeltaTripleJewelChanceFloor { get; private set; }
+
+        /// <summary>
+        /// Gets the group collision score.
+        /// </summary>
+        /// <value>The group collision score.</value>
         public int GroupCollisionScore { get; private set; }
+
+        /// <summary>
+        /// Gets the last level.
+        /// </summary>
+        /// <value>The last level.</value>
         public int LastLevel { get; private set; }
+
+        /// <summary>
+        /// Gets the initial lines.
+        /// </summary>
+        /// <value>The initial lines.</value>
         public int InitialLines { get; private set; }
+
+        /// <summary>
+        /// The levels.
+        /// </summary>
         private static DifficultyLevel[] levels = (DifficultyLevel[])Enum.GetValues(typeof(DifficultyLevel)).Cast<DifficultyLevel>().ToArray();
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="GameDifficulty"/> class.
+        /// Initializes a new instance of the <see cref="JewelMine.Engine.Models.GameDifficulty"/> class.
         /// </summary>
-        /// <param name="level">The level.</param>
-        public GameDifficulty(DifficultyLevel level)
+        /// <param name="level">Level.</param>
+        /// <param name="userSettings">User settings.</param>
+        public GameDifficulty(DifficultyLevel level, GameLogicUserSettings userSettings)
         {
+            DifficultyLevel = level;
             switch (level)
             {
-                case Engine.DifficultyLevel.Easy: SetEasySettings(); break;
-                case Engine.DifficultyLevel.Moderate: SetModerateSettings(); break;
-                case Engine.DifficultyLevel.Hard: SetHardSettings(); break;
-                case Engine.DifficultyLevel.Impossible: SetImpossibleSettings(); break;
+                case Engine.DifficultyLevel.Easy:
+                    SetFromConfigurableSettings(userSettings.EasyDifficultySettings);
+                    break;
+                case Engine.DifficultyLevel.Moderate:
+                    SetFromConfigurableSettings(userSettings.ModerateDifficultySettings);
+                    break;
+                case Engine.DifficultyLevel.Hard:
+                    SetFromConfigurableSettings(userSettings.HardDifficultySettings);
+                    break;
+                case Engine.DifficultyLevel.Impossible:
+                    SetFromConfigurableSettings(userSettings.ImpossibleDifficultySettings);
+                    break;
             }
         }
 
@@ -52,93 +135,33 @@ namespace JewelMine.Engine.Models
             int i = 0;
             for (i = 0; i < levels.Length; i++)
             {
-                if (levels[i] == target) break;
+                if (levels[i] == target)
+                    break;
             }
-            if (i == levels.Length - 1) return (levels[0]);
-            else return (levels[i + 1]);
+            if (i == levels.Length - 1)
+                return (levels[0]);
+            else
+                return (levels[i + 1]);
         }
 
         /// <summary>
-        /// Sets the easy settings.
+        /// Sets from configurable settings.
         /// </summary>
-        private void SetEasySettings()
+        /// <param name="provider">Provider.</param>
+        private void SetFromConfigurableSettings(IGameDifficultySettingsProvider provider)
         {
-            DifficultyLevel = Engine.DifficultyLevel.Easy;
-            LevelIncrementScoreThreshold = 5000;
-            TickSpeedMilliseconds = 240.0d;
-            TickSpeedMillisecondsFloor = 120.0d;
-            CollisionFinaliseTickCount = 30;
-            DeltaStationaryTimeSpan = new TimeSpan(0, 0, 0, 0, 1920);
-            DeltaDoubleJewelChance = 0.9d;
-            DeltaDoubleJewelChanceFloor = 0.4d;
-            DeltaTripleJewelChance = 0.5d;
-            DeltaTripleJewelChanceFloor = 0.05d;
-            GroupCollisionScore = 1000;
-            LastLevel = 255;
-            InitialLines = 5;
-            LevelIncrementSpeedChange = CalculateLevelIncrementSpeedChange();
-        }
-
-        /// <summary>
-        /// Sets the moderate settings.
-        /// </summary>
-        private void SetModerateSettings()
-        {
-            DifficultyLevel = Engine.DifficultyLevel.Moderate;
-            LevelIncrementScoreThreshold = 5000;
-            TickSpeedMilliseconds = 220.0d;
-            TickSpeedMillisecondsFloor = 75.0d;
-            CollisionFinaliseTickCount = 30;
-            DeltaStationaryTimeSpan = new TimeSpan(0, 0, 0, 0, 1760);
-            DeltaDoubleJewelChance = 0.75d;
-            DeltaDoubleJewelChanceFloor = 0.25d;
-            DeltaTripleJewelChance = 0.20d;
-            DeltaTripleJewelChanceFloor = 0.04d;
-            GroupCollisionScore = 2000;
-            LastLevel = 500;
-            InitialLines = 5;
-            LevelIncrementSpeedChange = CalculateLevelIncrementSpeedChange();
-        }
-
-        /// <summary>
-        /// Sets the hard settings.
-        /// </summary>
-        private void SetHardSettings()
-        {
-            DifficultyLevel = Engine.DifficultyLevel.Hard;
-            LevelIncrementScoreThreshold = 5000;
-            TickSpeedMilliseconds = 200.0d;
-            TickSpeedMillisecondsFloor = 60.0d;
-            CollisionFinaliseTickCount = 30;
-            DeltaStationaryTimeSpan = new TimeSpan(0, 0, 0, 0, 1600);
-            DeltaDoubleJewelChance = 0.50d;
-            DeltaDoubleJewelChanceFloor = 0.05d;
-            DeltaTripleJewelChance = 0.20d;
-            DeltaTripleJewelChanceFloor = 0.01d;
-            GroupCollisionScore = 3000;
-            LastLevel = 1000;
-            InitialLines = 4;
-            LevelIncrementSpeedChange = CalculateLevelIncrementSpeedChange();
-        }
-
-        /// <summary>
-        /// Sets the impossible settings.
-        /// </summary>
-        private void SetImpossibleSettings()
-        {
-            DifficultyLevel = Engine.DifficultyLevel.Impossible;
-            LevelIncrementScoreThreshold = 5000;
-            TickSpeedMilliseconds = 100.0d;
-            TickSpeedMillisecondsFloor = 40.0d;
-            CollisionFinaliseTickCount = 30;
-            DeltaStationaryTimeSpan = new TimeSpan(0, 0, 0, 0, 800);
-            DeltaDoubleJewelChance = 0.20d;
-            DeltaDoubleJewelChanceFloor = 0.01d;
-            DeltaTripleJewelChance = 0.10d;
-            DeltaTripleJewelChanceFloor = 0.001d;
-            GroupCollisionScore = 4000;
-            LastLevel = 10000;
-            InitialLines = 3;
+            LevelIncrementScoreThreshold = provider.LevelIncrementScoreThreshold;
+            TickSpeedMilliseconds = provider.TickSpeedMilliseconds;
+            TickSpeedMillisecondsFloor = provider.TickSpeedMillisecondsFloor;
+            CollisionFinaliseTickCount = provider.CollisionFinaliseTickCount;
+            DeltaStationaryTimeSpan = new TimeSpan(0, 0, 0, 0, provider.DeltaStationaryInMilliseconds);
+            DeltaDoubleJewelChance = provider.DeltaDoubleJewelChance;
+            DeltaDoubleJewelChanceFloor = provider.DeltaDoubleJewelChanceFloor;
+            DeltaTripleJewelChance = provider.DeltaTripleJewelChance;
+            DeltaTripleJewelChanceFloor = provider.DeltaTripleJewelChanceFloor;
+            GroupCollisionScore = provider.GroupCollisionScore;
+            LastLevel = provider.LastLevel;
+            InitialLines = provider.InitialLines;
             LevelIncrementSpeedChange = CalculateLevelIncrementSpeedChange();
         }
 
@@ -150,6 +173,5 @@ namespace JewelMine.Engine.Models
         {
             return ((TickSpeedMilliseconds - TickSpeedMillisecondsFloor) / LastLevel);
         }
-
     }
 }
