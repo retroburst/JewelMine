@@ -2,6 +2,8 @@
 
 #### retroburst (Andrew D)
 
+[.NET, C#, Windows Forms]
+
 A simple game, reminiscent of 'Columns' on the Sega GameGear, 
 written as an exercise to flex skills and try my hand at a small 
 game in pure C# without using a game SDK like Unity.
