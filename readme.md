@@ -9,7 +9,7 @@ written as an exercise to flex skills and try my hand at a small
 game in pure C# without using a game SDK like Unity.
 
 The code follows simple design principles and I have endeavoured to keep
-it clean and uncluttered. I have purposefully avoided using unneccessary
+it clean and uncluttered. I have purposefully avoided using unnecessary
 patterns such as dependencey injection. 
 
 Some details:
